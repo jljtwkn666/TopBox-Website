@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订购产品 - TOP BOX INDUSTRY</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .order-section {
+            background: var(--very-light-green);
+            padding: 40px 0;
+        }
+        .order-title {
+            color: var(--dark-green);
+            font-size: 28px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .order-filter {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .order-filter input, .order-filter select {
+            padding: 8px 15px;
+            border: 2px solid var(--gray);
+            border-radius: 20px;
+            font-size: 16px;
+            min-width: 180px;
+        }
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            box-shadow: var(--shadow);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        .order-table th, .order-table td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        .order-table th {
+            background: var(--primary-green);
+            color: var(--white);
+            font-weight: 600;
+        }
+        .order-table tr:last-child td {
+            border-bottom: none;
+        }
+        .order-table input[type="number"] {
+            width: 70px;
+            padding: 5px;
+            border: 1px solid var(--gray);
+            border-radius: 8px;
+            text-align: right;
+        }
+        .order-summary {
+            text-align: right;
+            font-size: 18px;
+            color: var(--primary-green);
+            margin-bottom: 20px;
+        }
+        .order-actions {
+            text-align: right;
+            margin-bottom: 40px;
+        }
+        .order-btn {
+            background: var(--primary-green);
+            color: var(--white);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 500;
+            margin-left: 15px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .order-btn:hover {
+            background: var(--dark-green);
+        }
+        .order-category {
+            font-size: 22px;
+            color: var(--dark-green);
+            margin: 40px 0 20px 0;
+            font-weight: bold;
+        }
+        @media (max-width: 900px) {
+            .order-table th, .order-table td {
+                font-size: 13px;
+                padding: 8px 4px;
+            }
+            .order-summary, .order-actions {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header" style="position:fixed;top:0;left:0;width:100%;z-index:2000;">
+        <div class="container">
+            <div class="logo-section">
+                <img src="../images/logo.png" alt="TOP BOX INDUSTRY" class="logo">
+                <h1 class="company-title">TOP BOX INDUSTRY</h1>
+            </div>
+            <nav class="header-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="../index.html" class="nav-link" data-i18n="nav.home">首页</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.company">公司动态</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                            <li><a href="history.html" data-i18n="nav.history">发展历程</a></li>
+                            <li><a href="news.html" data-i18n="nav.news">新闻动态</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.products">产品中心</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                            <li><a href="materials.html" data-i18n="nav.materials">包材</a></li>
+                            <li><a href="solutions.html" data-i18n="nav.solutions">整体包装方案</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.tech">技术论坛</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="industry-news.html" data-i18n="nav.industry-news">行业新闻</a></li>
+                            <li><a href="paper-packaging.html" data-i18n="nav.paper-packaging">纸包装</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.service">客户服务</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                            <li><a href="quote.html" data-i18n="nav.quote">产品报价</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a href="supply-chain.html" class="nav-link" data-i18n="nav.supply-chain">供应链合作</a></li>
+                    <li class="nav-item"><a href="contact.html" class="nav-link" data-i18n="nav.contact">联系我们</a></li>
+                </ul>
+                <div class="mobile-menu-toggle">
+                    <span></span><span></span><span></span>
+                </div>
+            </nav>
+            <div class="language-dropdown">
+                <select class="lang-select" id="langSelect">
+                    <option class="lang-option" value="zh-CN" data-flag="../images/flag-zh.png">中文</option>
+                    <option class="lang-option" value="en" data-flag="../images/flag-en.png">English</option>
+                    <option class="lang-option" value="th" data-flag="../images/flag-th.png">ไทย</option>
+                </select>
+            </div>
+        </div>
+    </header>
+    <div style="height:110px;"></div>
+    <main class="main-content">
+        <section class="order-section">
+            <div class="container">
+                <h2 class="order-title">快递纸箱产品列表</h2>
+                <div class="order-filter">
+                    <input type="text" id="box-search" placeholder="搜索产品名称/代号...">
+                    <select id="box-material-filter">
+                        <option value="">全部材质</option>
+                        <option value="三层">三层</option>
+                        <option value="五层">五层</option>
+                        <option value="七层">七层</option>
+                    </select>
+                </div>
+                <table class="order-table" id="box-table">
+                    <thead>
+                        <tr>
+                            <th>代号</th>
+                            <th>名称</th>
+                            <th>尺寸</th>
+                            <th>规格</th>
+                            <th>材质</th>
+                            <th>工艺参数</th>
+                            <th>单价(฿)</th>
+                            <th>库存</th>
+                            <th>订购数量</th>
+                            <th>金额(฿)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="box-tbody">
+                        <!-- 30条纸箱产品数据由js生成 -->
+                    </tbody>
+                </table>
+                <h2 class="order-title">快递包材产品列表</h2>
+                <div class="order-filter">
+                    <input type="text" id="material-search" placeholder="搜索包材名称...">
+                    <select id="material-type-filter">
+                        <option value="">全部类型</option>
+                        <option value="胶带">胶带</option>
+                        <option value="气泡膜">气泡膜</option>
+                        <option value="拉伸膜">拉伸膜</option>
+                        <option value="快递袋">快递袋</option>
+                        <option value="标签">标签</option>
+                        <option value="泡沫垫">泡沫垫</option>
+                        <option value="打包绳">打包绳</option>
+                    </select>
+                </div>
+                <table class="order-table" id="material-table">
+                    <thead>
+                        <tr>
+                            <th>名称</th>
+                            <th>尺寸</th>
+                            <th>规格</th>
+                            <th>材质</th>
+                            <th>工艺参数</th>
+                            <th>单价(฿)</th>
+                            <th>库存</th>
+                            <th>订购数量</th>
+                            <th>金额(฿)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="material-tbody">
+                        <!-- 20条包材产品数据由js生成 -->
+                    </tbody>
+                </table>
+                <div class="order-summary" id="order-summary">总订单金额：฿0.00</div>
+                <div class="order-actions">
+                    <button class="order-btn" id="submit-order">提交订单</button>
+                    <button class="order-btn" id="clear-order">清空</button>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 data-i18n="footer.company">公司信息</h3>
+                    <p><strong>TOP BOX INDUSTRY CO,. LTD.</strong></p>
+                    <p data-i18n="footer.address">地址：59/9 M.2, Lam Sai, Wang Noi District, Phra Nakhon Si Ayutthaya Province, Thailand 13170</p>
+                    <p data-i18n="footer.phone">电话：093 862 8101</p>
+                    <p data-i18n="footer.email">邮箱：topboxindustry@gmail.com</p>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.social">社交媒体</h3>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><img src="../images/qr-facebook.png" alt="Facebook" class="qr-code"><span>Facebook</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-tiktok.png" alt="TikTok" class="qr-code"><span>TikTok</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-lazada.png" alt="Lazada" class="qr-code"><span>Lazada</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-shopee.png" alt="Shopee" class="qr-code"><span>Shopee</span></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.quick-links">快速链接</h3>
+                    <ul class="footer-links">
+                        <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                        <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                        <li><a href="contact.html" data-i18n="nav.contact">联系我们</a></li>
+                        <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 TOP BOX INDUSTRY CO,. LTD. <span data-i18n="footer.rights">版权所有</span></p>
+            </div>
+        </div>
+    </footer>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/order.js"></script>
+</body>
+</html> 

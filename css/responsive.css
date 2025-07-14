@@ -1,0 +1,465 @@
+/* 响应式设计 */
+
+/* 大屏幕设备 (1200px 及以上) */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1400px;
+    }
+    
+    .hero-slider {
+        height: 600px;
+    }
+    
+    .slide-content h2 {
+        font-size: 42px;
+    }
+    
+    .slide-content p {
+        font-size: 20px;
+    }
+}
+
+/* 中等屏幕设备 (768px - 1199px) */
+@media (max-width: 1199px) {
+    .container {
+        padding: 0 15px;
+    }
+    
+    .company-title {
+        font-size: 24px;
+    }
+    
+    .nav-link {
+        padding: 15px 20px;
+    }
+    
+    .hero-slider {
+        height: 450px;
+    }
+    
+    .slide-content h2 {
+        font-size: 32px;
+    }
+    
+    .slide-content p {
+        font-size: 16px;
+    }
+    
+    .section-title {
+        font-size: 32px;
+    }
+}
+
+/* 平板设备 (768px - 1023px) */
+@media (max-width: 1023px) {
+    .header .container {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .logo-section {
+        justify-content: center;
+    }
+    
+    .nav-menu {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .nav-item {
+        flex: 1;
+        min-width: 120px;
+    }
+    
+    .dropdown-menu {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        background: var(--very-light-green);
+        display: none;
+    }
+    
+    .nav-item:hover .dropdown-menu {
+        display: block;
+    }
+    
+    .intro-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    
+    .services-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    
+    .footer-content {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}
+
+/* 手机设备 (最大 767px) */
+@media (max-width: 767px) {
+    .container {
+        padding: 0 10px;
+    }
+    
+    .header {
+        padding: 10px 0;
+    }
+    
+    .company-title {
+        font-size: 20px;
+    }
+    
+    .logo {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .language-switcher {
+        gap: 5px;
+    }
+    
+    .lang-btn {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+    
+    /* 移动端导航菜单 */
+    .navbar .container {
+        position: relative;
+    }
+    
+    .nav-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--white);
+        box-shadow: var(--shadow);
+        flex-direction: column;
+        z-index: 1000;
+    }
+    
+    .nav-menu.active {
+        display: block;
+    }
+    
+    .nav-item {
+        width: 100%;
+    }
+    
+    .nav-link {
+        padding: 15px 20px;
+        border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .dropdown-menu {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        background: var(--very-light-green);
+        display: none;
+        border-radius: 0;
+    }
+    
+    .nav-item:hover .dropdown-menu,
+    .nav-item.active .dropdown-menu {
+        display: block;
+    }
+    
+    .dropdown-menu li a {
+        padding: 10px 30px;
+    }
+    
+    .mobile-menu-toggle {
+        display: flex;
+    }
+    
+    /* 轮播图移动端适配 */
+    .hero-slider {
+        height: 300px;
+    }
+    
+    .slide-content {
+        padding: 20px;
+        max-width: 90%;
+    }
+    
+    .slide-content h2 {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+    
+    .slide-content p {
+        font-size: 14px;
+    }
+    
+    .slider-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    .slider-btn.prev {
+        left: 10px;
+    }
+    
+    .slider-btn.next {
+        right: 10px;
+    }
+    
+    /* 章节标题 */
+    .section-title {
+        font-size: 28px;
+        margin-bottom: 30px;
+    }
+    
+    /* 公司介绍 */
+    .company-intro {
+        padding: 50px 0;
+    }
+    
+    .intro-content {
+        gap: 20px;
+    }
+    
+    .intro-text p {
+        font-size: 14px;
+    }
+    
+    /* 产品展示 */
+    .products-showcase {
+        padding: 50px 0;
+    }
+    
+    .products-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .product-card {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+    
+    /* 服务优势 */
+    .services {
+        padding: 50px 0;
+    }
+    
+    .services-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .service-item {
+        padding: 20px 15px;
+    }
+    
+    .service-item i {
+        font-size: 36px;
+    }
+    
+    .service-item h3 {
+        font-size: 18px;
+    }
+    
+    /* 页脚 */
+    .footer {
+        padding: 30px 0 15px;
+    }
+    
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+    
+    .footer-section {
+        text-align: center;
+    }
+    
+    .social-links {
+        justify-content: center;
+    }
+    
+    .qr-code {
+        width: 50px;
+        height: 50px;
+    }
+    
+    /* 按钮适配 */
+    .btn-primary,
+    .btn-secondary {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+}
+
+/* 超小屏幕设备 (最大 480px) */
+@media (max-width: 480px) {
+    .container {
+        padding: 0 5px;
+    }
+    
+    .company-title {
+        font-size: 18px;
+    }
+    
+    .logo {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .language-switcher {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .lang-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+    
+    .hero-slider {
+        height: 250px;
+    }
+    
+    .slide-content {
+        padding: 15px;
+    }
+    
+    .slide-content h2 {
+        font-size: 20px;
+    }
+    
+    .slide-content p {
+        font-size: 12px;
+    }
+    
+    .section-title {
+        font-size: 24px;
+    }
+    
+    .company-intro,
+    .products-showcase,
+    .services {
+        padding: 30px 0;
+    }
+    
+    .intro-text p {
+        font-size: 13px;
+    }
+    
+    .service-item {
+        padding: 15px 10px;
+    }
+    
+    .service-item i {
+        font-size: 32px;
+    }
+    
+    .service-item h3 {
+        font-size: 16px;
+    }
+    
+    .footer {
+        padding: 20px 0 10px;
+    }
+    
+    .qr-code {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* 横屏手机适配 */
+@media (max-width: 767px) and (orientation: landscape) {
+    .hero-slider {
+        height: 200px;
+    }
+    
+    .slide-content h2 {
+        font-size: 18px;
+    }
+    
+    .slide-content p {
+        font-size: 12px;
+    }
+    
+    .company-intro,
+    .products-showcase,
+    .services {
+        padding: 20px 0;
+    }
+}
+
+/* 高分辨率屏幕适配 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .logo,
+    .qr-code {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* 打印样式 */
+@media print {
+    .header,
+    .navbar,
+    .footer,
+    .slider-btn,
+    .slider-dots,
+    .mobile-menu-toggle {
+        display: none !important;
+    }
+    
+    .hero-slider {
+        height: auto;
+    }
+    
+    .slide {
+        position: static;
+        opacity: 1;
+        margin-bottom: 20px;
+    }
+    
+    .slide img {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    .slide-content {
+        position: static;
+        transform: none;
+        background: none;
+        color: var(--text-dark);
+        padding: 10px 0;
+    }
+    
+    .main-content {
+        min-height: auto;
+    }
+    
+    .company-intro,
+    .products-showcase,
+    .services {
+        padding: 20px 0;
+        background: none;
+    }
+    
+    .product-card,
+    .service-item {
+        box-shadow: none;
+        border: 1px solid var(--gray);
+    }
+} 

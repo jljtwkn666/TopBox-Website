@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOP BOX INDUSTRY - 顶盒工业有限公司</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 顶部标题与LOGO -->
+    <header class="header" style="position:fixed;top:0;left:0;width:100%;z-index:2000;">
+        <div class="container">
+            <div class="logo-section">
+                <img src="images/logo.png" alt="TOP BOX INDUSTRY" class="logo">
+                <h1 class="company-title">TOP BOX INDUSTRY</h1>
+            </div>
+            <nav class="header-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="index.html" class="nav-link" data-i18n="nav.home">首页</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.company">公司动态</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="pages/about.html" data-i18n="nav.about">公司简介</a></li>
+                            <li><a href="pages/history.html" data-i18n="nav.history">发展历程</a></li>
+                            <li><a href="pages/news.html" data-i18n="nav.news">新闻动态</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.products">产品中心</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="pages/boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                            <li><a href="pages/materials.html" data-i18n="nav.materials">包材</a></li>
+                            <li><a href="pages/solutions.html" data-i18n="nav.solutions">整体包装方案</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.tech">技术论坛</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="pages/industry-news.html" data-i18n="nav.industry-news">行业新闻</a></li>
+                            <li><a href="pages/paper-packaging.html" data-i18n="nav.paper-packaging">纸包装</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.service">客户服务</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="pages/order.html" data-i18n="nav.order">订购产品</a></li>
+                            <li><a href="pages/quote.html" data-i18n="nav.quote">产品报价</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a href="pages/supply-chain.html" class="nav-link" data-i18n="nav.supply-chain">供应链合作</a></li>
+                    <li class="nav-item"><a href="pages/contact.html" class="nav-link" data-i18n="nav.contact">联系我们</a></li>
+                </ul>
+                <div class="mobile-menu-toggle">
+                    <span></span><span></span><span></span>
+                </div>
+            </nav>
+            <div class="language-dropdown">
+                <select class="lang-select" id="langSelect">
+                    <option class="lang-option" value="zh-CN" data-flag="images/flag-zh.png">中文</option>
+                    <option class="lang-option" value="en" data-flag="images/flag-en.png">English</option>
+                    <option class="lang-option" value="th" data-flag="images/flag-th.png">ไทย</option>
+                </select>
+            </div>
+        </div>
+    </header>
+    <div style="height:110px;"></div>
+
+    <!-- 主要内容区域 -->
+    <main class="main-content">
+        <!-- 首页轮播图 -->
+        <section class="hero-slider">
+            <div class="slider-container">
+                <div class="slide active">
+                    <img src="images/slider1.jpg" alt="纸箱包装展示">
+                    <div class="slide-content">
+                        <h2 data-i18n="slider.title1">专业纸箱包装解决方案</h2>
+                        <p data-i18n="slider.desc1">为您提供高品质的瓦楞纸箱产品与包装服务</p>
+                    </div>
+                </div>
+                <div class="slide">
+                    <img src="images/slider2.jpg" alt="包装生产线">
+                    <div class="slide-content">
+                        <h2 data-i18n="slider.title2">先进生产设备</h2>
+                        <p data-i18n="slider.desc2">国际一流的高精度自动柔版印刷机与糊箱机</p>
+                    </div>
+                </div>
+                <div class="slide">
+                    <img src="images/slider3.jpg" alt="快递包装">
+                    <div class="slide-content">
+                        <h2 data-i18n="slider.title3">快递包装专家</h2>
+                        <p data-i18n="slider.desc3">专业的快递运输包装解决方案</p>
+                    </div>
+                </div>
+                <button class="slider-btn prev">&lt;</button>
+                <button class="slider-btn next">&gt;</button>
+                <div class="slider-dots">
+                    <span class="dot active"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 公司介绍 -->
+        <section class="company-intro">
+            <div class="container">
+                <h2 class="section-title" data-i18n="home.about-title">关于TOP BOX</h2>
+                <div class="intro-content">
+                    <div class="intro-text">
+                        <p data-i18n="home.about-text1">顶盒工业有限公司（TOP BOX）是一家致力于瓦楞纸箱的产品设计、专业生产与销售的综合性包装服务企业。公司位于泰国大城府地区，厂房6300余平方米。</p>
+                        <p data-i18n="home.about-text2">公司拥有国际一流的高精度自动柔版印刷机、自动糊箱机，能够满足客户多种瓦楞纸箱的订单需求。另外，公司具有专业服务快递运输行业的经验以及完备的快递箱生产销售体系。</p>
+                        <a href="pages/about.html" class="btn-primary" data-i18n="home.learn-more">了解更多</a>
+                    </div>
+                    <div class="intro-image">
+                        <img src="images/factory.jpg" alt="工厂外观">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 产品展示 -->
+        <section class="products-showcase">
+            <div class="container">
+                <h2 class="section-title" data-i18n="home.products-title">产品中心</h2>
+                <div class="products-grid">
+                    <div class="product-card">
+                        <img src="images/product1.jpg" alt="纸箱纸盒">
+                        <h3 data-i18n="home.product1-title">纸箱纸盒</h3>
+                        <p data-i18n="home.product1-desc">各类规格的瓦楞纸箱产品</p>
+                        <a href="pages/boxes.html" class="btn-secondary" data-i18n="home.view-products">查看产品</a>
+                    </div>
+                    <div class="product-card">
+                        <img src="images/product2.jpg" alt="包装材料">
+                        <h3 data-i18n="home.product2-title">包装材料</h3>
+                        <p data-i18n="home.product2-desc">胶带、气泡膜等包装辅料</p>
+                        <a href="pages/materials.html" class="btn-secondary" data-i18n="home.view-products">查看产品</a>
+                    </div>
+                    <div class="product-card">
+                        <img src="images/product3.jpg" alt="整体包装方案">
+                        <h3 data-i18n="home.product3-title">整体包装方案</h3>
+                        <p data-i18n="home.product3-desc">定制化的包装解决方案</p>
+                        <a href="pages/solutions.html" class="btn-secondary" data-i18n="home.view-products">查看产品</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 服务优势 -->
+        <section class="services">
+            <div class="container">
+                <h2 class="section-title" data-i18n="home.services-title">服务优势</h2>
+                <div class="services-grid">
+                    <div class="service-item">
+                        <i class="fas fa-cogs"></i>
+                        <h3 data-i18n="home.service1-title">先进设备</h3>
+                        <p data-i18n="home.service1-desc">国际一流的高精度生产设备</p>
+                    </div>
+                    <div class="service-item">
+                        <i class="fas fa-shipping-fast"></i>
+                        <h3 data-i18n="home.service2-title">快速交付</h3>
+                        <p data-i18n="home.service2-desc">高效的生产与配送服务</p>
+                    </div>
+                    <div class="service-item">
+                        <i class="fas fa-palette"></i>
+                        <h3 data-i18n="home.service3-title">设计服务</h3>
+                        <p data-i18n="home.service3-desc">专业的包装设计咨询</p>
+                    </div>
+                    <div class="service-item">
+                        <i class="fas fa-headset"></i>
+                        <h3 data-i18n="home.service4-title">客户支持</h3>
+                        <p data-i18n="home.service4-desc">全天候的客户服务支持</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 data-i18n="footer.company">公司信息</h3>
+                    <p><strong>TOP BOX INDUSTRY CO,. LTD.</strong></p>
+                    <p data-i18n="footer.address">地址：59/9 M.2, Lam Sai, Wang Noi District, Phra Nakhon Si Ayutthaya Province, Thailand 13170</p>
+                    <p data-i18n="footer.phone">电话：093 862 8101</p>
+                    <p data-i18n="footer.email">邮箱：topboxindustry@gmail.com</p>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.social">社交媒体</h3>
+                    <div class="social-links">
+                        <a href="#" class="social-link">
+                            <img src="images/qr-facebook.png" alt="Facebook" class="qr-code">
+                            <span>Facebook</span>
+                        </a>
+                        <a href="#" class="social-link">
+                            <img src="images/qr-tiktok.png" alt="TikTok" class="qr-code">
+                            <span>TikTok</span>
+                        </a>
+                        <a href="#" class="social-link">
+                            <img src="images/qr-lazada.png" alt="Lazada" class="qr-code">
+                            <span>Lazada</span>
+                        </a>
+                        <a href="#" class="social-link">
+                            <img src="images/qr-shopee.png" alt="Shopee" class="qr-code">
+                            <span>Shopee</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.quick-links">快速链接</h3>
+                    <ul class="footer-links">
+                        <li><a href="pages/about.html" data-i18n="nav.about">公司简介</a></li>
+                        <li><a href="pages/boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                        <li><a href="pages/contact.html" data-i18n="nav.contact">联系我们</a></li>
+                        <li><a href="pages/order.html" data-i18n="nav.order">订购产品</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 TOP BOX INDUSTRY CO,. LTD. <span data-i18n="footer.rights">版权所有</span></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/i18n.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html> 

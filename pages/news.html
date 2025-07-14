@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新闻动态 - TOP BOX INDUSTRY</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .news-item {
+            background: var(--white);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        .news-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .news-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .news-content {
+            padding: 20px;
+        }
+        .news-date {
+            color: var(--primary-green);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        .news-title {
+            color: var(--dark-green);
+            font-size: 18px;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        .news-summary {
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .news-link {
+            color: var(--primary-green);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .news-link:hover {
+            color: var(--dark-green);
+        }
+        .news-category {
+            display: inline-block;
+            background: var(--very-light-green);
+            color: var(--primary-green);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header" style="position:fixed;top:0;left:0;width:100%;z-index:2000;">
+        <div class="container">
+            <div class="logo-section">
+                <img src="../images/logo.png" alt="TOP BOX INDUSTRY" class="logo">
+                <h1 class="company-title">TOP BOX INDUSTRY</h1>
+            </div>
+            <nav class="header-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="../index.html" class="nav-link" data-i18n="nav.home">首页</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.company">公司动态</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                            <li><a href="history.html" data-i18n="nav.history">发展历程</a></li>
+                            <li><a href="news.html" data-i18n="nav.news">新闻动态</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.products">产品中心</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                            <li><a href="materials.html" data-i18n="nav.materials">包材</a></li>
+                            <li><a href="solutions.html" data-i18n="nav.solutions">整体包装方案</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.tech">技术论坛</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="industry-news.html" data-i18n="nav.industry-news">行业新闻</a></li>
+                            <li><a href="paper-packaging.html" data-i18n="nav.paper-packaging">纸包装</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.service">客户服务</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                            <li><a href="quote.html" data-i18n="nav.quote">产品报价</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a href="supply-chain.html" class="nav-link" data-i18n="nav.supply-chain">供应链合作</a></li>
+                    <li class="nav-item"><a href="contact.html" class="nav-link" data-i18n="nav.contact">联系我们</a></li>
+                </ul>
+                <div class="mobile-menu-toggle">
+                    <span></span><span></span><span></span>
+                </div>
+            </nav>
+            <div class="language-dropdown">
+                <select class="lang-select" id="langSelect">
+                    <option class="lang-option" value="zh-CN" data-flag="../images/flag-zh.png">中文</option>
+                    <option class="lang-option" value="en" data-flag="../images/flag-en.png">English</option>
+                    <option class="lang-option" value="th" data-flag="../images/flag-th.png">ไทย</option>
+                </select>
+            </div>
+        </div>
+    </header>
+    <div style="height:110px;"></div>
+    <main class="main-content">
+        <section class="company-intro">
+            <div class="container">
+                <h2 class="section-title" data-i18n="nav.news">新闻动态</h2>
+                <div class="news-grid">
+                    <article class="news-item">
+                        <img src="../images/news1.jpg" alt="新闻图片" class="news-image">
+                        <div class="news-content">
+                            <div class="news-category">公司新闻</div>
+                            <div class="news-date">2025年1月15日</div>
+                            <h3 class="news-title">TOP BOX成功获得ISO9001质量管理体系认证</h3>
+                            <p class="news-summary">经过严格的审核流程，TOP BOX INDUSTRY成功通过ISO9001质量管理体系认证，标志着公司在质量管理方面达到了国际标准。</p>
+                            <a href="#" class="news-link">阅读更多 <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <img src="../images/news2.jpg" alt="新闻图片" class="news-image">
+                        <div class="news-content">
+                            <div class="news-category">产品发布</div>
+                            <div class="news-date">2025年1月10日</div>
+                            <h3 class="news-title">推出新型环保快递包装解决方案</h3>
+                            <p class="news-summary">针对电商行业需求，TOP BOX推出全新环保快递包装系列，采用可降解材料，既保护环境又满足包装需求。</p>
+                            <a href="#" class="news-link">阅读更多 <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <img src="../images/news3.jpg" alt="新闻图片" class="news-image">
+                        <div class="news-content">
+                            <div class="news-category">技术突破</div>
+                            <div class="news-date">2025年1月5日</div>
+                            <h3 class="news-title">自主研发高强度瓦楞纸板技术获得专利</h3>
+                            <p class="news-summary">公司研发团队成功开发出高强度瓦楞纸板制造技术，该技术已获得国家专利，将显著提升产品承重能力。</p>
+                            <a href="#" class="news-link">阅读更多 <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <img src="../images/news4.jpg" alt="新闻图片" class="news-image">
+                        <div class="news-content">
+                            <div class="news-category">市场拓展</div>
+                            <div class="news-date">2024年12月28日</div>
+                            <h3 class="news-title">与东南亚知名电商平台达成战略合作</h3>
+                            <p class="news-summary">TOP BOX与多家东南亚电商平台签署战略合作协议，将为平台商家提供定制化包装解决方案。</p>
+                            <a href="#" class="news-link">阅读更多 <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <img src="../images/news5.jpg" alt="新闻图片" class="news-image">
+                        <div class="news-content">
+                            <div class="news-category">设备升级</div>
+                            <div class="news-date">2024年12月20日</div>
+                            <h3 class="news-title">引进新一代全自动糊箱机提升生产效率</h3>
+                            <p class="news-summary">公司投资引进德国进口全自动糊箱机，生产效率提升40%，产品质量更加稳定可靠。</p>
+                            <a href="#" class="news-link">阅读更多 <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <img src="../images/news6.jpg" alt="新闻图片" class="news-image">
+                        <div class="news-content">
+                            <div class="news-category">社会责任</div>
+                            <div class="news-date">2024年12月15日</div>
+                            <h3 class="news-title">参与当地环保项目，推动绿色包装发展</h3>
+                            <p class="news-summary">TOP BOX积极参与当地环保项目，推广使用可回收材料，为可持续发展贡献力量。</p>
+                            <a href="#" class="news-link">阅读更多 <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <img src="../images/news7.jpg" alt="新闻图片" class="news-image">
+                        <div class="news-content">
+                            <div class="news-category">客户服务</div>
+                            <div class="news-date">2024年12月10日</div>
+                            <h3 class="news-title">推出24小时在线客服系统</h3>
+                            <p class="news-summary">为提升客户服务体验，公司推出24小时在线客服系统，为客户提供全天候技术支持。</p>
+                            <a href="#" class="news-link">阅读更多 <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <img src="../images/news8.jpg" alt="新闻图片" class="news-image">
+                        <div class="news-content">
+                            <div class="news-category">员工培训</div>
+                            <div class="news-date">2024年12月5日</div>
+                            <h3 class="news-title">组织员工参加国际包装技术培训</h3>
+                            <p class="news-summary">公司组织核心技术人员参加国际包装技术培训，提升团队专业能力，为客户提供更好服务。</p>
+                            <a href="#" class="news-link">阅读更多 <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <img src="../images/news9.jpg" alt="新闻图片" class="news-image">
+                        <div class="news-content">
+                            <div class="news-category">产品创新</div>
+                            <div class="news-date">2024年11月30日</div>
+                            <h3 class="news-title">开发防潮防震特种纸箱产品</h3>
+                            <p class="news-summary">针对电子产品包装需求，开发出防潮防震特种纸箱，有效保护产品在运输过程中的安全。</p>
+                            <a href="#" class="news-link">阅读更多 <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <img src="../images/news10.jpg" alt="新闻图片" class="news-image">
+                        <div class="news-content">
+                            <div class="news-category">行业荣誉</div>
+                            <div class="news-date">2024年11月25日</div>
+                            <h3 class="news-title">荣获"年度最佳包装供应商"奖项</h3>
+                            <p class="news-summary">在泰国包装行业年度评选中，TOP BOX荣获"年度最佳包装供应商"奖项，获得行业认可。</p>
+                            <a href="#" class="news-link">阅读更多 <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 data-i18n="footer.company">公司信息</h3>
+                    <p><strong>TOP BOX INDUSTRY CO,. LTD.</strong></p>
+                    <p data-i18n="footer.address">地址：59/9 M.2, Lam Sai, Wang Noi District, Phra Nakhon Si Ayutthaya Province, Thailand 13170</p>
+                    <p data-i18n="footer.phone">电话：093 862 8101</p>
+                    <p data-i18n="footer.email">邮箱：topboxindustry@gmail.com</p>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.social">社交媒体</h3>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><img src="../images/qr-facebook.png" alt="Facebook" class="qr-code"><span>Facebook</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-tiktok.png" alt="TikTok" class="qr-code"><span>TikTok</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-lazada.png" alt="Lazada" class="qr-code"><span>Lazada</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-shopee.png" alt="Shopee" class="qr-code"><span>Shopee</span></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.quick-links">快速链接</h3>
+                    <ul class="footer-links">
+                        <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                        <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                        <li><a href="contact.html" data-i18n="nav.contact">联系我们</a></li>
+                        <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 TOP BOX INDUSTRY CO,. LTD. <span data-i18n="footer.rights">版权所有</span></p>
+            </div>
+        </div>
+    </footer>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/main.js"></script>
+</body>
+</html> 

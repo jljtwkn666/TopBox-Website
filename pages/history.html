@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发展历程 - TOP BOX INDUSTRY</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 0;
+        }
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            background: var(--primary-green);
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -2px;
+        }
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            width: 50%;
+            box-sizing: border-box;
+        }
+        .timeline-item:nth-child(odd) {
+            left: 0;
+        }
+        .timeline-item:nth-child(even) {
+            left: 50%;
+        }
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-green);
+            border-radius: 50%;
+            top: 20px;
+            border: 4px solid var(--white);
+            box-shadow: 0 0 0 3px var(--primary-green);
+        }
+        .timeline-item:nth-child(odd)::after {
+            right: -10px;
+        }
+        .timeline-item:nth-child(even)::after {
+            left: -10px;
+        }
+        .timeline-content {
+            padding: 20px;
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+        .timeline-content h3 {
+            color: var(--dark-green);
+            margin-bottom: 10px;
+        }
+        .timeline-content .date {
+            color: var(--primary-green);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .timeline-content p {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+        @media (max-width: 768px) {
+            .timeline::after {
+                left: 31px;
+            }
+            .timeline-item {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+            }
+            .timeline-item:nth-child(even) {
+                left: 0;
+            }
+            .timeline-item::after {
+                left: 21px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header" style="position:fixed;top:0;left:0;width:100%;z-index:2000;">
+        <div class="container">
+            <div class="logo-section">
+                <img src="../images/logo.png" alt="TOP BOX INDUSTRY" class="logo">
+                <h1 class="company-title">TOP BOX INDUSTRY</h1>
+            </div>
+            <nav class="header-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="../index.html" class="nav-link" data-i18n="nav.home">首页</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.company">公司动态</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                            <li><a href="history.html" data-i18n="nav.history">发展历程</a></li>
+                            <li><a href="news.html" data-i18n="nav.news">新闻动态</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.products">产品中心</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                            <li><a href="materials.html" data-i18n="nav.materials">包材</a></li>
+                            <li><a href="solutions.html" data-i18n="nav.solutions">整体包装方案</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.tech">技术论坛</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="industry-news.html" data-i18n="nav.industry-news">行业新闻</a></li>
+                            <li><a href="paper-packaging.html" data-i18n="nav.paper-packaging">纸包装</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.service">客户服务</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                            <li><a href="quote.html" data-i18n="nav.quote">产品报价</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a href="supply-chain.html" class="nav-link" data-i18n="nav.supply-chain">供应链合作</a></li>
+                    <li class="nav-item"><a href="contact.html" class="nav-link" data-i18n="nav.contact">联系我们</a></li>
+                </ul>
+                <div class="mobile-menu-toggle">
+                    <span></span><span></span><span></span>
+                </div>
+            </nav>
+            <div class="language-dropdown">
+                <select class="lang-select" id="langSelect">
+                    <option class="lang-option" value="zh-CN" data-flag="../images/flag-zh.png">中文</option>
+                    <option class="lang-option" value="en" data-flag="../images/flag-en.png">English</option>
+                    <option class="lang-option" value="th" data-flag="../images/flag-th.png">ไทย</option>
+                </select>
+            </div>
+        </div>
+    </header>
+    <div style="height:110px;"></div>
+    <main class="main-content">
+        <section class="company-intro">
+            <div class="container">
+                <h2 class="section-title" data-i18n="nav.history">发展历程</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="date">2018年</div>
+                            <h3 data-i18n="history.2018.title">公司成立</h3>
+                            <p data-i18n="history.2018.desc">TOP BOX INDUSTRY CO,. LTD. 在泰国大城府正式成立，开始专注于瓦楞纸箱的生产与销售。</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="date">2019年</div>
+                            <h3 data-i18n="history.2019.title">设备升级</h3>
+                            <p data-i18n="history.2019.desc">引进国际一流的高精度自动柔版印刷机，提升产品质量和生产效率。</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="date">2020年</div>
+                            <h3 data-i18n="history.2020.title">业务扩展</h3>
+                            <p data-i18n="history.2020.desc">开始涉足快递包装领域，建立完整的快递箱生产销售体系。</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="date">2021年</div>
+                            <h3 data-i18n="history.2021.title">技术突破</h3>
+                            <p data-i18n="history.2021.desc">成功开发多种新型纸箱结构，获得多项技术专利。</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="date">2022年</div>
+                            <h3 data-i18n="history.2022.title">市场扩张</h3>
+                            <p data-i18n="history.2022.desc">产品销往东南亚多个国家，成为区域知名包装供应商。</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="date">2023年</div>
+                            <h3 data-i18n="history.2023.title">服务升级</h3>
+                            <p data-i18n="history.2023.desc">推出包装设计咨询服务，实现从设计到生产的一站式服务。</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="date">2024年</div>
+                            <h3 data-i18n="history.2024.title">数字化转型</h3>
+                            <p data-i18n="history.2024.desc">建立在线订购系统，提升客户服务体验。</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <div class="date">2025年</div>
+                            <h3 data-i18n="history.2025.title">未来展望</h3>
+                            <p data-i18n="history.2025.desc">继续扩大生产规模，致力于成为东南亚领先的包装解决方案提供商。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 data-i18n="footer.company">公司信息</h3>
+                    <p><strong>TOP BOX INDUSTRY CO,. LTD.</strong></p>
+                    <p data-i18n="footer.address">地址：59/9 M.2, Lam Sai, Wang Noi District, Phra Nakhon Si Ayutthaya Province, Thailand 13170</p>
+                    <p data-i18n="footer.phone">电话：093 862 8101</p>
+                    <p data-i18n="footer.email">邮箱：topboxindustry@gmail.com</p>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.social">社交媒体</h3>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><img src="../images/qr-facebook.png" alt="Facebook" class="qr-code"><span>Facebook</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-tiktok.png" alt="TikTok" class="qr-code"><span>TikTok</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-lazada.png" alt="Lazada" class="qr-code"><span>Lazada</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-shopee.png" alt="Shopee" class="qr-code"><span>Shopee</span></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.quick-links">快速链接</h3>
+                    <ul class="footer-links">
+                        <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                        <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                        <li><a href="contact.html" data-i18n="nav.contact">联系我们</a></li>
+                        <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 TOP BOX INDUSTRY CO,. LTD. <span data-i18n="footer.rights">版权所有</span></p>
+            </div>
+        </div>
+    </footer>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/main.js"></script>
+</body>
+</html> 

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>整体包装方案 - TOP BOX INDUSTRY</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .solutions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+        .solution-item {
+            background: var(--white);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        .solution-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+        .solution-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+        .solution-content {
+            padding: 25px;
+        }
+        .solution-title {
+            color: var(--dark-green);
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .solution-desc {
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .solution-features {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+        .solution-features li {
+            color: var(--text-light);
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+        .solution-features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--primary-green);
+            font-weight: bold;
+        }
+        .solution-btn {
+            display: inline-block;
+            background: var(--primary-green);
+            color: var(--white);
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 20px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        .solution-btn:hover {
+            background: var(--dark-green);
+            transform: translateY(-2px);
+        }
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            color: var(--white);
+            padding: 60px 0;
+            text-align: center;
+        }
+        .hero-content h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        .hero-content p {
+            font-size: 18px;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        .process-section {
+            padding: 60px 0;
+            background: var(--very-light-green);
+        }
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .process-item {
+            text-align: center;
+            padding: 30px 20px;
+        }
+        .process-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--primary-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: var(--white);
+            font-size: 32px;
+        }
+        .process-title {
+            color: var(--dark-green);
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .process-desc {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header class="header" style="position:fixed;top:0;left:0;width:100%;z-index:2000;">
+        <div class="container">
+            <div class="logo-section">
+                <img src="../images/logo.png" alt="TOP BOX INDUSTRY" class="logo">
+                <h1 class="company-title">TOP BOX INDUSTRY</h1>
+            </div>
+            <nav class="header-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="../index.html" class="nav-link" data-i18n="nav.home">首页</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.company">公司动态</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                            <li><a href="history.html" data-i18n="nav.history">发展历程</a></li>
+                            <li><a href="news.html" data-i18n="nav.news">新闻动态</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.products">产品中心</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                            <li><a href="materials.html" data-i18n="nav.materials">包材</a></li>
+                            <li><a href="solutions.html" data-i18n="nav.solutions">整体包装方案</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.tech">技术论坛</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="industry-news.html" data-i18n="nav.industry-news">行业新闻</a></li>
+                            <li><a href="paper-packaging.html" data-i18n="nav.paper-packaging">纸包装</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.service">客户服务</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                            <li><a href="quote.html" data-i18n="nav.quote">产品报价</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a href="supply-chain.html" class="nav-link" data-i18n="nav.supply-chain">供应链合作</a></li>
+                    <li class="nav-item"><a href="contact.html" class="nav-link" data-i18n="nav.contact">联系我们</a></li>
+                </ul>
+                <div class="mobile-menu-toggle">
+                    <span></span><span></span><span></span>
+                </div>
+            </nav>
+            <div class="language-dropdown">
+                <select class="lang-select" id="langSelect">
+                    <option class="lang-option" value="zh-CN" data-flag="../images/flag-zh.png">中文</option>
+                    <option class="lang-option" value="en" data-flag="../images/flag-en.png">English</option>
+                    <option class="lang-option" value="th" data-flag="../images/flag-th.png">ไทย</option>
+                </select>
+            </div>
+        </div>
+    </header>
+    <div style="height:110px;"></div>
+    <main class="main-content">
+        <section class="hero-section">
+            <div class="container">
+                <div class="hero-content">
+                    <h2>整体包装解决方案</h2>
+                    <p>TOP BOX提供从设计到生产的全方位包装解决方案，为不同行业客户量身定制专业的包装方案，确保产品在运输、存储、展示各个环节都能得到最佳保护。</p>
+                </div>
+            </div>
+        </section>
+        <section class="process-section">
+            <div class="container">
+                <h2 class="section-title">我们的服务流程</h2>
+                <div class="process-grid">
+                    <div class="process-item">
+                        <div class="process-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h3 class="process-title">需求分析</h3>
+                        <p class="process-desc">深入了解客户产品特性和包装需求，制定个性化解决方案。</p>
+                    </div>
+                    <div class="process-item">
+                        <div class="process-icon">
+                            <i class="fas fa-pencil-ruler"></i>
+                        </div>
+                        <h3 class="process-title">方案设计</h3>
+                        <p class="process-desc">专业设计团队根据需求设计包装结构，确保最佳保护效果。</p>
+                    </div>
+                    <div class="process-item">
+                        <div class="process-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <h3 class="process-title">样品制作</h3>
+                        <p class="process-desc">快速制作样品供客户确认，确保设计符合预期要求。</p>
+                    </div>
+                    <div class="process-item">
+                        <div class="process-icon">
+                            <i class="fas fa-industry"></i>
+                        </div>
+                        <h3 class="process-title">批量生产</h3>
+                        <p class="process-desc">使用先进设备进行批量生产，确保产品质量和交货期。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="company-intro">
+            <div class="container">
+                <h2 class="section-title">行业解决方案</h2>
+                <div class="solutions-grid">
+                    <div class="solution-item">
+                        <img src="../images/solution-electronics.jpg" alt="电子产品包装" class="solution-image">
+                        <div class="solution-content">
+                            <h3 class="solution-title">电子产品包装</h3>
+                            <p class="solution-desc">为手机、电脑、家电等电子产品提供专业的防震、防静电包装解决方案。</p>
+                            <ul class="solution-features">
+                                <li>防震缓冲设计</li>
+                                <li>防静电处理</li>
+                                <li>环保材料选择</li>
+                                <li>品牌形象展示</li>
+                            </ul>
+                            <a href="#" class="solution-btn">了解详情</a>
+                        </div>
+                    </div>
+                    <div class="solution-item">
+                        <img src="../images/solution-food.jpg" alt="食品包装" class="solution-image">
+                        <div class="solution-content">
+                            <h3 class="solution-title">食品包装</h3>
+                            <p class="solution-desc">为各类食品提供安全、卫生、美观的包装方案，确保食品安全。</p>
+                            <ul class="solution-features">
+                                <li>食品级材料</li>
+                                <li>防潮防霉设计</li>
+                                <li>保鲜功能</li>
+                                <li>透明展示窗口</li>
+                            </ul>
+                            <a href="#" class="solution-btn">了解详情</a>
+                        </div>
+                    </div>
+                    <div class="solution-item">
+                        <img src="../images/solution-cosmetics.jpg" alt="化妆品包装" class="solution-image">
+                        <div class="solution-content">
+                            <h3 class="solution-title">化妆品包装</h3>
+                            <p class="solution-desc">为化妆品提供精美、高档的包装设计，突出产品品质和品牌形象。</p>
+                            <ul class="solution-features">
+                                <li>精美印刷工艺</li>
+                                <li>特殊材质应用</li>
+                                <li>防伪设计</li>
+                                <li>礼品包装</li>
+                            </ul>
+                            <a href="#" class="solution-btn">了解详情</a>
+                        </div>
+                    </div>
+                    <div class="solution-item">
+                        <img src="../images/solution-clothing.jpg" alt="服装包装" class="solution-image">
+                        <div class="solution-content">
+                            <h3 class="solution-title">服装包装</h3>
+                            <p class="solution-desc">为服装行业提供时尚、实用的包装方案，保护衣物并提升品牌形象。</p>
+                            <ul class="solution-features">
+                                <li>防皱设计</li>
+                                <li>透气材质</li>
+                                <li>悬挂式包装</li>
+                                <li>品牌展示</li>
+                            </ul>
+                            <a href="#" class="solution-btn">了解详情</a>
+                        </div>
+                    </div>
+                    <div class="solution-item">
+                        <img src="../images/solution-pharmaceutical.jpg" alt="医药包装" class="solution-image">
+                        <div class="solution-content">
+                            <h3 class="solution-title">医药包装</h3>
+                            <p class="solution-desc">为医药产品提供安全、规范的包装方案，符合行业标准和法规要求。</p>
+                            <ul class="solution-features">
+                                <li>药品级材料</li>
+                                <li>防伪标识</li>
+                                <li>说明书配套</li>
+                                <li>儿童安全设计</li>
+                            </ul>
+                            <a href="#" class="solution-btn">了解详情</a>
+                        </div>
+                    </div>
+                    <div class="solution-item">
+                        <img src="../images/solution-logistics.jpg" alt="物流包装" class="solution-image">
+                        <div class="solution-content">
+                            <h3 class="solution-title">物流包装</h3>
+                            <p class="solution-desc">为电商和物流行业提供高效、经济的包装方案，优化运输成本。</p>
+                            <ul class="solution-features">
+                                <li>标准化设计</li>
+                                <li>轻量化材料</li>
+                                <li>快速包装</li>
+                                <li>成本优化</li>
+                            </ul>
+                            <a href="#" class="solution-btn">了解详情</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 data-i18n="footer.company">公司信息</h3>
+                    <p><strong>TOP BOX INDUSTRY CO,. LTD.</strong></p>
+                    <p data-i18n="footer.address">地址：59/9 M.2, Lam Sai, Wang Noi District, Phra Nakhon Si Ayutthaya Province, Thailand 13170</p>
+                    <p data-i18n="footer.phone">电话：093 862 8101</p>
+                    <p data-i18n="footer.email">邮箱：topboxindustry@gmail.com</p>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.social">社交媒体</h3>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><img src="../images/qr-facebook.png" alt="Facebook" class="qr-code"><span>Facebook</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-tiktok.png" alt="TikTok" class="qr-code"><span>TikTok</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-lazada.png" alt="Lazada" class="qr-code"><span>Lazada</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-shopee.png" alt="Shopee" class="qr-code"><span>Shopee</span></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.quick-links">快速链接</h3>
+                    <ul class="footer-links">
+                        <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                        <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                        <li><a href="contact.html" data-i18n="nav.contact">联系我们</a></li>
+                        <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 TOP BOX INDUSTRY CO,. LTD. <span data-i18n="footer.rights">版权所有</span></p>
+            </div>
+        </div>
+    </footer>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/main.js"></script>
+</body>
+</html> 

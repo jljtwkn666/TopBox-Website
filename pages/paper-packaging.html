@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>纸包装 - TOP BOX INDUSTRY</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .articles-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+        @media (max-width: 900px) {
+            .articles-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .article-item {
+            background: var(--white);
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            padding: 30px 25px;
+            margin-bottom: 0;
+            transition: var(--transition);
+        }
+        .article-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .article-title {
+            color: var(--dark-green);
+            font-size: 20px;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .article-meta {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .article-summary {
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header class="header" style="position:fixed;top:0;left:0;width:100%;z-index:2000;">
+        <div class="container">
+            <div class="logo-section">
+                <img src="../images/logo.png" alt="TOP BOX INDUSTRY" class="logo">
+                <h1 class="company-title">TOP BOX INDUSTRY</h1>
+            </div>
+            <nav class="header-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="../index.html" class="nav-link" data-i18n="nav.home">首页</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.company">公司动态</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                            <li><a href="history.html" data-i18n="nav.history">发展历程</a></li>
+                            <li><a href="news.html" data-i18n="nav.news">新闻动态</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.products">产品中心</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                            <li><a href="materials.html" data-i18n="nav.materials">包材</a></li>
+                            <li><a href="solutions.html" data-i18n="nav.solutions">整体包装方案</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.tech">技术论坛</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="industry-news.html" data-i18n="nav.industry-news">行业新闻</a></li>
+                            <li><a href="paper-packaging.html" data-i18n="nav.paper-packaging">纸包装</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.service">客户服务</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                            <li><a href="quote.html" data-i18n="nav.quote">产品报价</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a href="supply-chain.html" class="nav-link" data-i18n="nav.supply-chain">供应链合作</a></li>
+                    <li class="nav-item"><a href="contact.html" class="nav-link" data-i18n="nav.contact">联系我们</a></li>
+                </ul>
+                <div class="mobile-menu-toggle">
+                    <span></span><span></span><span></span>
+                </div>
+            </nav>
+            <div class="language-dropdown">
+                <select class="lang-select" id="langSelect">
+                    <option class="lang-option" value="zh-CN" data-flag="../images/flag-zh.png">中文</option>
+                    <option class="lang-option" value="en" data-flag="../images/flag-en.png">English</option>
+                    <option class="lang-option" value="th" data-flag="../images/flag-th.png">ไทย</option>
+                </select>
+            </div>
+        </div>
+    </header>
+    <div style="height:110px;"></div>
+    <main class="main-content">
+        <section class="company-intro">
+            <div class="container">
+                <h2 class="section-title" data-i18n="nav.paper-packaging">纸包装</h2>
+                <div class="articles-grid">
+                    <div class="article-item">
+                        <h3 class="article-title">瓦楞纸板的结构与性能分析</h3>
+                        <div class="article-meta">作者：李明 | 日期：2025-06-30</div>
+                        <div class="article-summary">介绍瓦楞纸板的基本结构类型、力学性能及其在包装中的应用优势。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">绿色包装材料的发展趋势</h3>
+                        <div class="article-meta">作者：王芳 | 日期：2025-06-28</div>
+                        <div class="article-summary">探讨绿色环保包装材料的研发进展及其对纸箱行业的影响。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">纸箱抗压强度的测试方法</h3>
+                        <div class="article-meta">作者：张伟 | 日期：2025-06-25</div>
+                        <div class="article-summary">详细介绍纸箱抗压强度的常用测试方法及其在实际生产中的应用。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">快递包装的安全性设计</h3>
+                        <div class="article-meta">作者：刘婷 | 日期：2025-06-22</div>
+                        <div class="article-summary">分析快递包装在运输过程中的安全性设计要点和防护措施。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">纸箱印刷工艺的创新与发展</h3>
+                        <div class="article-meta">作者：赵强 | 日期：2025-06-20</div>
+                        <div class="article-summary">介绍纸箱印刷工艺的新技术、新材料及其对产品美观性的提升。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">防潮防水纸箱的材料选择</h3>
+                        <div class="article-meta">作者：孙丽 | 日期：2025-06-18</div>
+                        <div class="article-summary">探讨防潮防水纸箱常用材料及其性能对比。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">纸箱包装的可持续发展策略</h3>
+                        <div class="article-meta">作者：周杰 | 日期：2025-06-15</div>
+                        <div class="article-summary">分析纸箱包装行业实现可持续发展的路径和措施。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">智能包装技术在纸箱行业的应用</h3>
+                        <div class="article-meta">作者：陈强 | 日期：2025-06-12</div>
+                        <div class="article-summary">介绍智能包装技术及其在纸箱行业中的创新应用。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">纸箱包装的绿色设计理念</h3>
+                        <div class="article-meta">作者：林峰 | 日期：2025-06-10</div>
+                        <div class="article-summary">阐述绿色设计理念在纸箱包装中的具体实践。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">纸箱包装的回收与再利用技术</h3>
+                        <div class="article-meta">作者：杨光 | 日期：2025-06-08</div>
+                        <div class="article-summary">介绍纸箱包装的回收流程及再利用技术的发展现状。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">高强度纸箱的结构优化设计</h3>
+                        <div class="article-meta">作者：朱琳 | 日期：2025-06-05</div>
+                        <div class="article-summary">探讨高强度纸箱的结构优化方法及其在重型包装中的应用。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">纸箱包装的数字化管理</h3>
+                        <div class="article-meta">作者：何伟 | 日期：2025-06-03</div>
+                        <div class="article-summary">分析数字化管理在纸箱包装生产和物流中的作用。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">纸箱包装的环保认证标准</h3>
+                        <div class="article-meta">作者：宋佳 | 日期：2025-06-01</div>
+                        <div class="article-summary">介绍纸箱包装行业常见的环保认证标准及其意义。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">纸箱包装的成本控制策略</h3>
+                        <div class="article-meta">作者：马超 | 日期：2025-05-30</div>
+                        <div class="article-summary">探讨纸箱包装企业在生产和采购环节的成本控制方法。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">纸箱包装的物流优化方案</h3>
+                        <div class="article-meta">作者：韩雪 | 日期：2025-05-28</div>
+                        <div class="article-summary">分析纸箱包装在物流运输中的优化设计与应用。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">纸箱包装的防伪技术</h3>
+                        <div class="article-meta">作者：徐涛 | 日期：2025-05-25</div>
+                        <div class="article-summary">介绍纸箱包装常用的防伪技术及其应用案例。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">纸箱包装的美学设计</h3>
+                        <div class="article-meta">作者：黄梅 | 日期：2025-05-22</div>
+                        <div class="article-summary">阐述美学设计在提升纸箱包装产品附加值中的作用。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">纸箱包装的出口标准与要求</h3>
+                        <div class="article-meta">作者：杨帆 | 日期：2025-05-20</div>
+                        <div class="article-summary">介绍纸箱包装出口的主要标准和国际市场的特殊要求。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">纸箱包装的创新材料应用</h3>
+                        <div class="article-meta">作者：李娜 | 日期：2025-05-18</div>
+                        <div class="article-summary">探讨新型材料在纸箱包装中的创新应用及其优势。</div>
+                    </div>
+                    <div class="article-item">
+                        <h3 class="article-title">纸箱包装的未来发展方向</h3>
+                        <div class="article-meta">作者：王磊 | 日期：2025-05-15</div>
+                        <div class="article-summary">展望纸箱包装行业未来的发展趋势和技术革新。</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 data-i18n="footer.company">公司信息</h3>
+                    <p><strong>TOP BOX INDUSTRY CO,. LTD.</strong></p>
+                    <p data-i18n="footer.address">地址：59/9 M.2, Lam Sai, Wang Noi District, Phra Nakhon Si Ayutthaya Province, Thailand 13170</p>
+                    <p data-i18n="footer.phone">电话：093 862 8101</p>
+                    <p data-i18n="footer.email">邮箱：topboxindustry@gmail.com</p>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.social">社交媒体</h3>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><img src="../images/qr-facebook.png" alt="Facebook" class="qr-code"><span>Facebook</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-tiktok.png" alt="TikTok" class="qr-code"><span>TikTok</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-lazada.png" alt="Lazada" class="qr-code"><span>Lazada</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-shopee.png" alt="Shopee" class="qr-code"><span>Shopee</span></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.quick-links">快速链接</h3>
+                    <ul class="footer-links">
+                        <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                        <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                        <li><a href="contact.html" data-i18n="nav.contact">联系我们</a></li>
+                        <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 TOP BOX INDUSTRY CO,. LTD. <span data-i18n="footer.rights">版权所有</span></p>
+            </div>
+        </div>
+    </footer>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/main.js"></script>
+</body>
+</html> 

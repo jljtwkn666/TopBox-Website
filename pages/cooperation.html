@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>供应链合作 - TOP BOX INDUSTRY</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <script src="../js/i18n.js"></script>
+    <script src="../js/main.js" defer></script>
+    <style>
+        .coop-form {
+            background: #f6fff6;
+            border-radius: 12px;
+            padding: 32px 24px;
+            max-width: 600px;
+            margin: 40px auto;
+            box-shadow: 0 2px 12px #e0f2e9;
+        }
+        .coop-form h2 {
+            color: #2e7d4f;
+            margin-bottom: 24px;
+        }
+        .coop-form label {
+            display: block;
+            margin: 12px 0 6px 0;
+            color: #388e3c;
+        }
+        .coop-form input, .coop-form textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #b2dfdb;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+        .coop-form textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        .coop-form .btn {
+            background: #43a047;
+            color: #fff;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 12px;
+        }
+        .coop-form .btn:hover {
+            background: #388e3c;
+        }
+    </style>
+</head>
+<body>
+    <header class="header" style="position:fixed;top:0;left:0;width:100%;z-index:2000;">
+        <div class="container">
+            <div class="logo-section">
+                <img src="../images/logo.png" alt="TOP BOX INDUSTRY" class="logo">
+                <h1 class="company-title">TOP BOX INDUSTRY</h1>
+            </div>
+            <nav class="header-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="../index.html" class="nav-link" data-i18n="nav.home">首页</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.company">公司动态</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                            <li><a href="history.html" data-i18n="nav.history">发展历程</a></li>
+                            <li><a href="news.html" data-i18n="nav.news">新闻动态</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.products">产品中心</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                            <li><a href="materials.html" data-i18n="nav.materials">包材</a></li>
+                            <li><a href="solutions.html" data-i18n="nav.solutions">整体包装方案</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.tech">技术论坛</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="industry-news.html" data-i18n="nav.industry-news">行业新闻</a></li>
+                            <li><a href="paper-packaging.html" data-i18n="nav.paper-packaging">纸包装</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.service">客户服务</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                            <li><a href="quote.html" data-i18n="nav.quote">产品报价</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a href="supply-chain.html" class="nav-link" data-i18n="nav.supply-chain">供应链合作</a></li>
+                    <li class="nav-item"><a href="contact.html" class="nav-link" data-i18n="nav.contact">联系我们</a></li>
+                </ul>
+                <div class="mobile-menu-toggle">
+                    <span></span><span></span><span></span>
+                </div>
+            </nav>
+            <div class="language-dropdown">
+                <select class="lang-select" id="langSelect">
+                    <option class="lang-option" value="zh-CN" data-flag="../images/flag-zh.png">中文</option>
+                    <option class="lang-option" value="en" data-flag="../images/flag-en.png">English</option>
+                    <option class="lang-option" value="th" data-flag="../images/flag-th.png">ไทย</option>
+                </select>
+            </div>
+        </div>
+    </header>
+    <div style="height:110px;"></div>
+    <main>
+        <section class="coop-form">
+            <h2 data-i18n="cooperation_title">供应链合作</h2>
+            <form id="cooperationForm">
+                <label for="company" data-i18n="company_name">公司名称</label>
+                <input type="text" id="company" name="company" required>
+                <label for="contact" data-i18n="contact_person">联系人</label>
+                <input type="text" id="contact" name="contact" required>
+                <label for="phone" data-i18n="contact_phone">联系方式</label>
+                <input type="text" id="phone" name="phone" required>
+                <label for="content" data-i18n="cooperation_content">合作内容</label>
+                <textarea id="content" name="content" required></textarea>
+                <button type="submit" class="btn" data-i18n="submit">提交</button>
+            </form>
+            <div id="coopResult" style="margin-top:18px;"></div>
+        </section>
+    </main>
+    <!-- 底部公司信息区 -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <div data-i18n="company_name">TOP BOX INDUSTRY CO., LTD.</div>
+                <div data-i18n="address">地址：广东省广州市天河区XX路88号</div>
+                <div data-i18n="phone">电话：400-888-8888</div>
+                <div data-i18n="email">邮箱：info@topbox.com</div>
+            </div>
+            <div class="footer-qr">
+                <div data-i18n="follow_us">关注我们</div>
+                <img src="../images/qr_wechat.png" alt="微信二维码" class="qr-img">
+                <img src="../images/qr_line.png" alt="Line QR Code" class="qr-img">
+            </div>
+        </div>
+    </footer>
+    <script>
+        document.getElementById('cooperationForm').onsubmit = function(e) {
+            e.preventDefault();
+            document.getElementById('coopResult').innerHTML = '<span data-i18n="coop_submitted">您的合作意向已提交，我们会尽快与您联系！</span>';
+        };
+    </script>
+    <script>
+        // 动态导航栏填充
+        if (typeof renderNavbar === 'function') renderNavbar();
+        // 多语言初始化
+        if (typeof initI18n === 'function') initI18n();
+    </script>
+</body>
+</html> 

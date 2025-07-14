@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行业新闻 - TOP BOX INDUSTRY</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .news-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .news-item {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        .news-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .news-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .news-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            color: var(--text-light);
+        }
+        .news-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .news-title {
+            color: var(--dark-green);
+            font-size: 22px;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        .news-summary {
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .news-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid var(--gray-light);
+        }
+        .news-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            color: var(--text-light);
+        }
+        .news-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-comment, .btn-share {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-comment {
+            background: var(--very-light-green);
+            color: var(--primary-green);
+        }
+        .btn-comment:hover {
+            background: var(--primary-green);
+            color: var(--white);
+        }
+        .btn-share {
+            background: var(--gray-light);
+            color: var(--text-light);
+        }
+        .btn-share:hover {
+            background: var(--primary-green);
+            color: var(--white);
+        }
+        .filter-section {
+            background: var(--very-light-green);
+            padding: 30px 0;
+            margin-bottom: 40px;
+        }
+        .filter-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 12px 45px 12px 15px;
+            border: 2px solid var(--gray);
+            border-radius: 25px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+        }
+        .search-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+        .category-filter {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--primary-green);
+            background: transparent;
+            color: var(--primary-green);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 14px;
+        }
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--primary-green);
+            color: var(--white);
+        }
+    </style>
+</head>
+<body>
+    <header class="header" style="position:fixed;top:0;left:0;width:100%;z-index:2000;">
+        <div class="container">
+            <div class="logo-section">
+                <img src="../images/logo.png" alt="TOP BOX INDUSTRY" class="logo">
+                <h1 class="company-title">TOP BOX INDUSTRY</h1>
+            </div>
+            <nav class="header-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="../index.html" class="nav-link" data-i18n="nav.home">首页</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.company">公司动态</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                            <li><a href="history.html" data-i18n="nav.history">发展历程</a></li>
+                            <li><a href="news.html" data-i18n="nav.news">新闻动态</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.products">产品中心</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                            <li><a href="materials.html" data-i18n="nav.materials">包材</a></li>
+                            <li><a href="solutions.html" data-i18n="nav.solutions">整体包装方案</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.tech">技术论坛</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="industry-news.html" data-i18n="nav.industry-news">行业新闻</a></li>
+                            <li><a href="paper-packaging.html" data-i18n="nav.paper-packaging">纸包装</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.service">客户服务</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                            <li><a href="quote.html" data-i18n="nav.quote">产品报价</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a href="supply-chain.html" class="nav-link" data-i18n="nav.supply-chain">供应链合作</a></li>
+                    <li class="nav-item"><a href="contact.html" class="nav-link" data-i18n="nav.contact">联系我们</a></li>
+                </ul>
+                <div class="mobile-menu-toggle">
+                    <span></span><span></span><span></span>
+                </div>
+            </nav>
+            <div class="language-dropdown">
+                <select class="lang-select" id="langSelect">
+                    <option class="lang-option" value="zh-CN" data-flag="../images/flag-zh.png">中文</option>
+                    <option class="lang-option" value="en" data-flag="../images/flag-en.png">English</option>
+                    <option class="lang-option" value="th" data-flag="../images/flag-th.png">ไทย</option>
+                </select>
+            </div>
+        </div>
+    </header>
+    <div style="height:110px;"></div>
+    <main class="main-content">
+        <section class="filter-section">
+            <div class="container">
+                <div class="filter-content">
+                    <div class="search-box">
+                        <input type="text" placeholder="搜索行业新闻...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="category-filter">
+                        <button class="filter-btn active">全部</button>
+                        <button class="filter-btn">市场动态</button>
+                        <button class="filter-btn">技术创新</button>
+                        <button class="filter-btn">政策法规</button>
+                        <button class="filter-btn">环保趋势</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="company-intro">
+            <div class="container">
+                <h2 class="section-title" data-i18n="nav.industry-news">行业新闻</h2>
+                <div class="news-container">
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年7月10日</span>
+                                <span><i class="fas fa-user"></i> 编辑：张明</span>
+                                <span><i class="fas fa-eye"></i> 1,245</span>
+                                <span><i class="fas fa-comments"></i> 23</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">全球纸箱包装市场预计2025年增长8.5%，环保包装需求激增</h3>
+                        <p class="news-summary">根据最新市场研究报告显示，全球纸箱包装市场在2025年预计将实现8.5%的增长，主要驱动力来自电商行业的快速发展和消费者对环保包装的日益关注。报告指出，可回收、可降解的纸箱包装产品将成为市场主流。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：3分钟</span>
+                                <span>分类：市场动态</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年7月8日</span>
+                                <span><i class="fas fa-user"></i> 编辑：李华</span>
+                                <span><i class="fas fa-eye"></i> 987</span>
+                                <span><i class="fas fa-comments"></i> 15</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">新型智能纸箱技术问世，内置传感器可监控运输状态</h3>
+                        <p class="news-summary">科技公司推出新一代智能纸箱技术，内置温度和湿度传感器，可实时监控货物运输状态。该技术将显著提升物流效率和货物安全性，预计将在高端电子产品包装领域率先应用。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：2分钟</span>
+                                <span>分类：技术创新</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年7月5日</span>
+                                <span><i class="fas fa-user"></i> 编辑：王芳</span>
+                                <span><i class="fas fa-eye"></i> 1,567</span>
+                                <span><i class="fas fa-comments"></i> 31</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">欧盟发布新包装法规，要求2026年前实现100%可回收包装</h3>
+                        <p class="news-summary">欧盟委员会发布新的包装法规，要求成员国在2026年前实现100%可回收包装目标。新法规将对纸箱包装行业产生重大影响，推动企业加快环保包装技术研发。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：4分钟</span>
+                                <span>分类：政策法规</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年7月3日</span>
+                                <span><i class="fas fa-user"></i> 编辑：陈强</span>
+                                <span><i class="fas fa-eye"></i> 892</span>
+                                <span><i class="fas fa-comments"></i> 12</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">生物降解纸箱材料研发取得突破，降解时间缩短至30天</h3>
+                        <p class="news-summary">科研团队在生物降解纸箱材料研发方面取得重大突破，新型材料在自然环境下30天内即可完全降解，比传统材料降解时间缩短70%。该技术已申请国际专利。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：3分钟</span>
+                                <span>分类：技术创新</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年6月30日</span>
+                                <span><i class="fas fa-user"></i> 编辑：刘伟</span>
+                                <span><i class="fas fa-eye"></i> 1,234</span>
+                                <span><i class="fas fa-comments"></i> 28</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">东南亚纸箱包装市场快速增长，泰国成为区域制造中心</h3>
+                        <p class="news-summary">东南亚纸箱包装市场呈现快速增长态势，年增长率达到12%。泰国凭借完善的产业链和优惠政策，正成为区域纸箱包装制造中心，吸引大量国际投资。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：2分钟</span>
+                                <span>分类：市场动态</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年6月28日</span>
+                                <span><i class="fas fa-user"></i> 编辑：赵敏</span>
+                                <span><i class="fas fa-eye"></i> 756</span>
+                                <span><i class="fas fa-comments"></i> 9</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">循环经济理念推动纸箱包装行业绿色转型</h3>
+                        <p class="news-summary">循环经济理念在全球范围内得到广泛认可，纸箱包装行业正加速绿色转型。企业纷纷采用可回收材料，建立回收体系，实现资源循环利用，推动行业可持续发展。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：3分钟</span>
+                                <span>分类：环保趋势</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年6月25日</span>
+                                <span><i class="fas fa-user"></i> 编辑：孙丽</span>
+                                <span><i class="fas fa-eye"></i> 1,089</span>
+                                <span><i class="fas fa-comments"></i> 19</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">3D打印技术在纸箱包装设计中的应用前景广阔</h3>
+                        <p class="news-summary">3D打印技术在纸箱包装设计领域的应用日益广泛，可实现复杂结构设计和快速原型制作。该技术将显著提升包装设计效率，为个性化包装提供新的可能性。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：2分钟</span>
+                                <span>分类：技术创新</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年6月22日</span>
+                                <span><i class="fas fa-user"></i> 编辑：周杰</span>
+                                <span><i class="fas fa-eye"></i> 1,456</span>
+                                <span><i class="fas fa-comments"></i> 34</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">电商包装标准化趋势明显，统一规格纸箱需求增加</h3>
+                        <p class="news-summary">随着电商行业的快速发展，包装标准化趋势日益明显。统一规格的纸箱产品需求大幅增加，有助于提高物流效率和降低成本，预计将成为未来包装行业的重要发展方向。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：3分钟</span>
+                                <span>分类：市场动态</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年6月20日</span>
+                                <span><i class="fas fa-user"></i> 编辑：吴婷</span>
+                                <span><i class="fas fa-eye"></i> 678</span>
+                                <span><i class="fas fa-comments"></i> 7</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">纳米技术在纸箱防潮处理中的应用研究进展</h3>
+                        <p class="news-summary">科研机构在纳米技术应用于纸箱防潮处理方面取得重要进展。新型纳米涂层技术可显著提升纸箱的防潮性能，同时保持环保特性，为纸箱包装在潮湿环境下的应用提供解决方案。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：4分钟</span>
+                                <span>分类：技术创新</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年6月18日</span>
+                                <span><i class="fas fa-user"></i> 编辑：郑华</span>
+                                <span><i class="fas fa-eye"></i> 1,123</span>
+                                <span><i class="fas fa-comments"></i> 21</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">国际纸箱包装协会发布行业可持续发展报告</h3>
+                        <p class="news-summary">国际纸箱包装协会发布年度可持续发展报告，详细分析了行业在环保、社会责任和经济效益方面的表现。报告显示，纸箱包装行业在可持续发展方面取得显著进展。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：5分钟</span>
+                                <span>分类：环保趋势</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年6月15日</span>
+                                <span><i class="fas fa-user"></i> 编辑：林峰</span>
+                                <span><i class="fas fa-eye"></i> 945</span>
+                                <span><i class="fas fa-comments"></i> 16</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">自动化生产线在纸箱制造中的应用日益普及</h3>
+                        <p class="news-summary">自动化生产线在纸箱制造行业的应用日益普及，显著提升了生产效率和产品质量。智能机器人和自动化设备的引入，使纸箱制造向智能制造转型。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：3分钟</span>
+                                <span>分类：技术创新</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年6月12日</span>
+                                <span><i class="fas fa-user"></i> 编辑：杨光</span>
+                                <span><i class="fas fa-eye"></i> 1,334</span>
+                                <span><i class="fas fa-comments"></i> 25</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">中国纸箱包装行业出口额创历史新高</h3>
+                        <p class="news-summary">2025年上半年，中国纸箱包装行业出口额达到历史新高，同比增长15.6%。主要出口市场包括东南亚、欧洲和北美，高质量纸箱产品在国际市场上获得广泛认可。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：2分钟</span>
+                                <span>分类：市场动态</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年6月10日</span>
+                                <span><i class="fas fa-user"></i> 编辑：黄梅</span>
+                                <span><i class="fas fa-eye"></i> 789</span>
+                                <span><i class="fas fa-comments"></i> 11</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">可食用包装材料在纸箱行业的研究进展</h3>
+                        <p class="news-summary">科研机构在可食用包装材料研究方面取得新进展，开发出基于天然多糖的可食用纸箱材料。该材料不仅环保，还可作为动物饲料，实现真正的零废弃包装。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：4分钟</span>
+                                <span>分类：技术创新</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年6月8日</span>
+                                <span><i class="fas fa-user"></i> 编辑：徐涛</span>
+                                <span><i class="fas fa-eye"></i> 1,567</span>
+                                <span><i class="fas fa-comments"></i> 29</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">全球纸浆价格波动对纸箱行业的影响分析</h3>
+                        <p class="news-summary">近期全球纸浆价格出现波动，对纸箱包装行业产生重要影响。专家分析认为，价格波动主要受供需关系、环保政策和国际贸易形势影响，预计短期内价格将趋于稳定。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：3分钟</span>
+                                <span>分类：市场动态</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年6月5日</span>
+                                <span><i class="fas fa-user"></i> 编辑：韩雪</span>
+                                <span><i class="fas fa-eye"></i> 876</span>
+                                <span><i class="fas fa-comments"></i> 14</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">数字印刷技术在纸箱包装中的应用前景</h3>
+                        <p class="news-summary">数字印刷技术在纸箱包装领域的应用前景广阔，可实现小批量、个性化印刷需求。该技术将改变传统印刷模式，为纸箱包装行业带来新的发展机遇。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：3分钟</span>
+                                <span>分类：技术创新</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年6月3日</span>
+                                <span><i class="fas fa-user"></i> 编辑：马超</span>
+                                <span><i class="fas fa-eye"></i> 1,234</span>
+                                <span><i class="fas fa-comments"></i> 22</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">包装废弃物回收体系建设取得重要进展</h3>
+                        <p class="news-summary">各地包装废弃物回收体系建设取得重要进展，回收率和利用率显著提升。完善的回收体系为纸箱包装行业的可持续发展提供了重要支撑。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：2分钟</span>
+                                <span>分类：环保趋势</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年6月1日</span>
+                                <span><i class="fas fa-user"></i> 编辑：朱琳</span>
+                                <span><i class="fas fa-eye"></i> 1,089</span>
+                                <span><i class="fas fa-comments"></i> 18</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">智能包装技术在冷链物流中的应用研究</h3>
+                        <p class="news-summary">智能包装技术在冷链物流领域的应用研究取得新进展，温度敏感标签和智能监控系统可实时监测货物状态，确保冷链运输的安全性和可靠性。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：3分钟</span>
+                                <span>分类：技术创新</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年5月30日</span>
+                                <span><i class="fas fa-user"></i> 编辑：何伟</span>
+                                <span><i class="fas fa-eye"></i> 1,456</span>
+                                <span><i class="fas fa-comments"></i> 26</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">纸箱包装行业人才需求激增，专业技能培训受关注</h3>
+                        <p class="news-summary">随着纸箱包装行业的快速发展，专业人才需求激增。设计、工艺、质量管理等专业技能培训受到广泛关注，行业人才培养体系不断完善。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：2分钟</span>
+                                <span>分类：市场动态</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="news-item">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar"></i> 2025年5月28日</span>
+                                <span><i class="fas fa-user"></i> 编辑：宋佳</span>
+                                <span><i class="fas fa-eye"></i> 678</span>
+                                <span><i class="fas fa-comments"></i> 8</span>
+                            </div>
+                        </div>
+                        <h3 class="news-title">生物基材料在纸箱包装中的应用前景分析</h3>
+                        <p class="news-summary">生物基材料在纸箱包装中的应用前景广阔，可替代传统石油基材料，减少环境污染。研究表明，生物基材料具有良好的性能和环保特性，将成为未来包装材料的重要发展方向。</p>
+                        <div class="news-actions">
+                            <div class="news-stats">
+                                <span>阅读时间：4分钟</span>
+                                <span>分类：环保趋势</span>
+                            </div>
+                            <div class="news-buttons">
+                                <button class="btn-comment"><i class="fas fa-comment"></i> 评论</button>
+                                <button class="btn-share"><i class="fas fa-share"></i> 分享</button>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 data-i18n="footer.company">公司信息</h3>
+                    <p><strong>TOP BOX INDUSTRY CO,. LTD.</strong></p>
+                    <p data-i18n="footer.address">地址：59/9 M.2, Lam Sai, Wang Noi District, Phra Nakhon Si Ayutthaya Province, Thailand 13170</p>
+                    <p data-i18n="footer.phone">电话：093 862 8101</p>
+                    <p data-i18n="footer.email">邮箱：topboxindustry@gmail.com</p>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.social">社交媒体</h3>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><img src="../images/qr-facebook.png" alt="Facebook" class="qr-code"><span>Facebook</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-tiktok.png" alt="TikTok" class="qr-code"><span>TikTok</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-lazada.png" alt="Lazada" class="qr-code"><span>Lazada</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-shopee.png" alt="Shopee" class="qr-code"><span>Shopee</span></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.quick-links">快速链接</h3>
+                    <ul class="footer-links">
+                        <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                        <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                        <li><a href="contact.html" data-i18n="nav.contact">联系我们</a></li>
+                        <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 TOP BOX INDUSTRY CO,. LTD. <span data-i18n="footer.rights">版权所有</span></p>
+            </div>
+        </div>
+    </footer>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/main.js"></script>
+</body>
+</html> 

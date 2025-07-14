@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>包装材料 - TOP BOX INDUSTRY</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .materials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .material-item {
+            background: var(--white);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .material-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+        .material-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+        }
+        .material-info {
+            padding: 20px;
+            text-align: center;
+        }
+        .material-name {
+            color: var(--dark-green);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .material-desc {
+            color: var(--text-light);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        .material-specs {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 15px;
+        }
+        .material-price {
+            color: var(--primary-green);
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .product-intro {
+            background: var(--very-light-green);
+            padding: 40px 0;
+            margin-bottom: 40px;
+        }
+        .intro-content {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .intro-content h3 {
+            color: var(--dark-green);
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .intro-content p {
+            color: var(--text-light);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header" style="position:fixed;top:0;left:0;width:100%;z-index:2000;">
+        <div class="container">
+            <div class="logo-section">
+                <img src="../images/logo.png" alt="TOP BOX INDUSTRY" class="logo">
+                <h1 class="company-title">TOP BOX INDUSTRY</h1>
+            </div>
+            <nav class="header-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="../index.html" class="nav-link" data-i18n="nav.home">首页</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.company">公司动态</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                            <li><a href="history.html" data-i18n="nav.history">发展历程</a></li>
+                            <li><a href="news.html" data-i18n="nav.news">新闻动态</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.products">产品中心</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                            <li><a href="materials.html" data-i18n="nav.materials">包材</a></li>
+                            <li><a href="solutions.html" data-i18n="nav.solutions">整体包装方案</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.tech">技术论坛</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="industry-news.html" data-i18n="nav.industry-news">行业新闻</a></li>
+                            <li><a href="paper-packaging.html" data-i18n="nav.paper-packaging">纸包装</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.service">客户服务</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                            <li><a href="quote.html" data-i18n="nav.quote">产品报价</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a href="supply-chain.html" class="nav-link" data-i18n="nav.supply-chain">供应链合作</a></li>
+                    <li class="nav-item"><a href="contact.html" class="nav-link" data-i18n="nav.contact">联系我们</a></li>
+                </ul>
+                <div class="mobile-menu-toggle">
+                    <span></span><span></span><span></span>
+                </div>
+            </nav>
+            <div class="language-dropdown">
+                <select class="lang-select" id="langSelect">
+                    <option class="lang-option" value="zh-CN" data-flag="../images/flag-zh.png">中文</option>
+                    <option class="lang-option" value="en" data-flag="../images/flag-en.png">English</option>
+                    <option class="lang-option" value="th" data-flag="../images/flag-th.png">ไทย</option>
+                </select>
+            </div>
+        </div>
+    </header>
+    <div style="height:110px;"></div>
+    <main class="main-content">
+        <section class="product-intro">
+            <div class="container">
+                <div class="intro-content">
+                    <h3>专业包装辅料解决方案</h3>
+                    <p>TOP BOX提供完整的包装辅料产品线，包括胶带、气泡膜、拉伸膜、快递袋等。我们的辅料产品采用优质材料，确保包装的密封性和保护效果，为您的产品提供全方位的包装保护。</p>
+                </div>
+            </div>
+        </section>
+        <section class="company-intro">
+            <div class="container">
+                <h2 class="section-title" data-i18n="nav.materials">包装材料</h2>
+                <div class="materials-grid">
+                    <div class="material-item" onclick="window.open('material-detail.html?type=tape', '_blank')">
+                        <img src="../images/material-tape.jpg" alt="封箱胶带" class="material-image">
+                        <div class="material-info">
+                            <h3 class="material-name">封箱胶带</h3>
+                            <p class="material-desc">高强度透明胶带，粘性强，适用于各类纸箱封口，确保包装密封性。</p>
+                            <div class="material-specs">
+                                <span>规格：48mm×100m</span>
+                                <span>材质：BOPP</span>
+                            </div>
+                            <div class="material-price">฿25/卷</div>
+                        </div>
+                    </div>
+                    <div class="material-item" onclick="window.open('material-detail.html?type=bubble', '_blank')">
+                        <img src="../images/material-bubble.jpg" alt="气泡膜" class="material-image">
+                        <div class="material-info">
+                            <h3 class="material-name">气泡膜</h3>
+                            <p class="material-desc">防震缓冲材料，有效保护易碎物品，减少运输过程中的损坏。</p>
+                            <div class="material-specs">
+                                <span>规格：1m×100m</span>
+                                <span>气泡直径：10mm</span>
+                            </div>
+                            <div class="material-price">฿180/卷</div>
+                        </div>
+                    </div>
+                    <div class="material-item" onclick="window.open('material-detail.html?type=stretch', '_blank')">
+                        <img src="../images/material-stretch.jpg" alt="拉伸膜" class="material-image">
+                        <div class="material-info">
+                            <h3 class="material-name">拉伸膜</h3>
+                            <p class="material-desc">高弹性包装膜，适用于托盘包装和货物固定，防止散落。</p>
+                            <div class="material-specs">
+                                <span>规格：500mm×1500m</span>
+                                <span>厚度：20μm</span>
+                            </div>
+                            <div class="material-price">฿450/卷</div>
+                        </div>
+                    </div>
+                    <div class="material-item" onclick="window.open('material-detail.html?type=bag', '_blank')">
+                        <img src="../images/material-bag.jpg" alt="快递袋" class="material-image">
+                        <div class="material-info">
+                            <h3 class="material-name">快递袋</h3>
+                            <p class="material-desc">防水耐磨快递袋，适合小件商品包装，轻便实用。</p>
+                            <div class="material-specs">
+                                <span>规格：300×400mm</span>
+                                <span>材质：PE</span>
+                            </div>
+                            <div class="material-price">฿2.5/个</div>
+                        </div>
+                    </div>
+                    <div class="material-item" onclick="window.open('material-detail.html?type=paper', '_blank')">
+                        <img src="../images/material-paper.jpg" alt="包装纸" class="material-image">
+                        <div class="material-info">
+                            <h3 class="material-name">包装纸</h3>
+                            <p class="material-desc">精美包装纸，适用于礼品包装，提升产品档次。</p>
+                            <div class="material-specs">
+                                <span>规格：70cm×100m</span>
+                                <span>材质：牛皮纸</span>
+                            </div>
+                            <div class="material-price">฿120/卷</div>
+                        </div>
+                    </div>
+                    <div class="material-item" onclick="window.open('material-detail.html?type=foam', '_blank')">
+                        <img src="../images/material-foam.jpg" alt="泡沫垫" class="material-image">
+                        <div class="material-info">
+                            <h3 class="material-name">泡沫垫</h3>
+                            <p class="material-desc">高密度泡沫垫，提供优异的缓冲保护，适合精密仪器包装。</p>
+                            <div class="material-specs">
+                                <span>规格：1m×2m×5cm</span>
+                                <span>密度：25kg/m³</span>
+                            </div>
+                            <div class="material-price">฿350/张</div>
+                        </div>
+                    </div>
+                    <div class="material-item" onclick="window.open('material-detail.html?type=label', '_blank')">
+                        <img src="../images/material-label.jpg" alt="标签贴纸" class="material-image">
+                        <div class="material-info">
+                            <h3 class="material-name">标签贴纸</h3>
+                            <p class="material-desc">高质量标签贴纸，适用于产品标识和地址标签。</p>
+                            <div class="material-specs">
+                                <span>规格：100×150mm</span>
+                                <span>材质：铜版纸</span>
+                            </div>
+                            <div class="material-price">฿0.8/张</div>
+                        </div>
+                    </div>
+                    <div class="material-item" onclick="window.open('material-detail.html?type=twine', '_blank')">
+                        <img src="../images/material-twine.jpg" alt="打包绳" class="material-image">
+                        <div class="material-info">
+                            <h3 class="material-name">打包绳</h3>
+                            <p class="material-desc">高强度打包绳，适用于大件物品捆绑固定。</p>
+                            <div class="material-specs">
+                                <span>规格：6mm×200m</span>
+                                <span>材质：PP</span>
+                            </div>
+                            <div class="material-price">฿85/卷</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 data-i18n="footer.company">公司信息</h3>
+                    <p><strong>TOP BOX INDUSTRY CO,. LTD.</strong></p>
+                    <p data-i18n="footer.address">地址：59/9 M.2, Lam Sai, Wang Noi District, Phra Nakhon Si Ayutthaya Province, Thailand 13170</p>
+                    <p data-i18n="footer.phone">电话：093 862 8101</p>
+                    <p data-i18n="footer.email">邮箱：topboxindustry@gmail.com</p>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.social">社交媒体</h3>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><img src="../images/qr-facebook.png" alt="Facebook" class="qr-code"><span>Facebook</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-tiktok.png" alt="TikTok" class="qr-code"><span>TikTok</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-lazada.png" alt="Lazada" class="qr-code"><span>Lazada</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-shopee.png" alt="Shopee" class="qr-code"><span>Shopee</span></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.quick-links">快速链接</h3>
+                    <ul class="footer-links">
+                        <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                        <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                        <li><a href="contact.html" data-i18n="nav.contact">联系我们</a></li>
+                        <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 TOP BOX INDUSTRY CO,. LTD. <span data-i18n="footer.rights">版权所有</span></p>
+            </div>
+        </div>
+    </footer>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/main.js"></script>
+</body>
+</html> 

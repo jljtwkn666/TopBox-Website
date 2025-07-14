@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>纸箱纸盒 - TOP BOX INDUSTRY</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .boxes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .box-item {
+            background: var(--white);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .box-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+        .box-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+        .box-info {
+            padding: 20px;
+            text-align: center;
+        }
+        .box-code {
+            color: var(--primary-green);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .box-name {
+            color: var(--dark-green);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .box-desc {
+            color: var(--text-light);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .product-intro {
+            background: var(--very-light-green);
+            padding: 40px 0;
+            margin-bottom: 40px;
+        }
+        .intro-content {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .intro-content h3 {
+            color: var(--dark-green);
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .intro-content p {
+            color: var(--text-light);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header" style="position:fixed;top:0;left:0;width:100%;z-index:2000;">
+        <div class="container">
+            <div class="logo-section">
+                <img src="../images/logo.png" alt="TOP BOX INDUSTRY" class="logo">
+                <h1 class="company-title">TOP BOX INDUSTRY</h1>
+            </div>
+            <nav class="header-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="../index.html" class="nav-link" data-i18n="nav.home">首页</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.company">公司动态</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                            <li><a href="history.html" data-i18n="nav.history">发展历程</a></li>
+                            <li><a href="news.html" data-i18n="nav.news">新闻动态</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.products">产品中心</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                            <li><a href="materials.html" data-i18n="nav.materials">包材</a></li>
+                            <li><a href="solutions.html" data-i18n="nav.solutions">整体包装方案</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.tech">技术论坛</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="industry-news.html" data-i18n="nav.industry-news">行业新闻</a></li>
+                            <li><a href="paper-packaging.html" data-i18n="nav.paper-packaging">纸包装</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link" data-i18n="nav.service">客户服务</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                            <li><a href="quote.html" data-i18n="nav.quote">产品报价</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a href="supply-chain.html" class="nav-link" data-i18n="nav.supply-chain">供应链合作</a></li>
+                    <li class="nav-item"><a href="contact.html" class="nav-link" data-i18n="nav.contact">联系我们</a></li>
+                </ul>
+                <div class="mobile-menu-toggle">
+                    <span></span><span></span><span></span>
+                </div>
+            </nav>
+            <div class="language-dropdown">
+                <select class="lang-select" id="langSelect">
+                    <option class="lang-option" value="zh-CN" data-flag="../images/flag-zh.png">中文</option>
+                    <option class="lang-option" value="en" data-flag="../images/flag-en.png">English</option>
+                    <option class="lang-option" value="th" data-flag="../images/flag-th.png">ไทย</option>
+                </select>
+            </div>
+        </div>
+    </header>
+    <div style="height:110px;"></div>
+    <main class="main-content">
+        <section class="product-intro">
+            <div class="container">
+                <div class="intro-content">
+                    <h3>专业纸箱包装解决方案</h3>
+                    <p>TOP BOX提供各类规格的瓦楞纸箱产品，从标准快递箱到定制化包装，满足不同行业和客户的需求。我们的产品采用优质材料，经过严格质量控制，确保每个纸箱都能为您的产品提供最佳保护。</p>
+                </div>
+            </div>
+        </section>
+        <section class="company-intro">
+            <div class="container">
+                <h2 class="section-title" data-i18n="nav.boxes">纸箱纸盒</h2>
+                <div class="boxes-grid">
+                    <div class="box-item" onclick="window.open('box-detail.html?type=regular', '_blank')">
+                        <img src="../images/box-regular.jpg" alt="标准箱" class="box-image">
+                        <div class="box-info">
+                            <div class="box-code">RSC-001</div>
+                            <h3 class="box-name">标准箱</h3>
+                            <p class="box-desc">经典矩形结构，适用于各类产品包装，承重能力强，性价比高。</p>
+                        </div>
+                    </div>
+                    <div class="box-item" onclick="window.open('box-detail.html?type=mailer', '_blank')">
+                        <img src="../images/box-mailer.jpg" alt="快递箱" class="box-image">
+                        <div class="box-info">
+                            <div class="box-code">MLR-002</div>
+                            <h3 class="box-name">快递箱</h3>
+                            <p class="box-desc">专为电商快递设计，轻便耐用，适合小件商品包装运输。</p>
+                        </div>
+                    </div>
+                    <div class="box-item" onclick="window.open('box-detail.html?type=display', '_blank')">
+                        <img src="../images/box-display.jpg" alt="展示箱" class="box-image">
+                        <div class="box-info">
+                            <div class="box-code">DSP-003</div>
+                            <h3 class="box-name">展示箱</h3>
+                            <p class="box-desc">开窗设计，产品展示效果好，适合零售和礼品包装。</p>
+                        </div>
+                    </div>
+                    <div class="box-item" onclick="window.open('box-detail.html?type=auto', '_blank')">
+                        <img src="../images/box-auto.jpg" alt="自锁箱" class="box-image">
+                        <div class="box-info">
+                            <div class="box-code">AUT-004</div>
+                            <h3 class="box-name">自锁箱</h3>
+                            <p class="box-desc">无需胶带，自动锁合，使用方便，环保节能。</p>
+                        </div>
+                    </div>
+                    <div class="box-item" onclick="window.open('box-detail.html?type=heavy', '_blank')">
+                        <img src="../images/box-heavy.jpg" alt="重型箱" class="box-image">
+                        <div class="box-info">
+                            <div class="box-code">HVY-005</div>
+                            <h3 class="box-name">重型箱</h3>
+                            <p class="box-desc">多层瓦楞结构，承重能力强，适合重物包装运输。</p>
+                        </div>
+                    </div>
+                    <div class="box-item" onclick="window.open('box-detail.html?type=partition', '_blank')">
+                        <img src="../images/box-partition.jpg" alt="隔板箱" class="box-image">
+                        <div class="box-info">
+                            <div class="box-code">PRT-006</div>
+                            <h3 class="box-name">隔板箱</h3>
+                            <p class="box-desc">内置隔板设计，有效分隔产品，防止碰撞损坏。</p>
+                        </div>
+                    </div>
+                    <div class="box-item" onclick="window.open('box-detail.html?type=corner', '_blank')">
+                        <img src="../images/box-corner.jpg" alt="角箱" class="box-image">
+                        <div class="box-info">
+                            <div class="box-code">CRN-007</div>
+                            <h3 class="box-name">角箱</h3>
+                            <p class="box-desc">特殊角部设计，适合长条状产品包装，节省空间。</p>
+                        </div>
+                    </div>
+                    <div class="box-item" onclick="window.open('box-detail.html?type=custom', '_blank')">
+                        <img src="../images/box-custom.jpg" alt="定制箱" class="box-image">
+                        <div class="box-info">
+                            <div class="box-code">CST-008</div>
+                            <h3 class="box-name">定制箱</h3>
+                            <p class="box-desc">根据客户需求定制，满足特殊产品包装要求。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 data-i18n="footer.company">公司信息</h3>
+                    <p><strong>TOP BOX INDUSTRY CO,. LTD.</strong></p>
+                    <p data-i18n="footer.address">地址：59/9 M.2, Lam Sai, Wang Noi District, Phra Nakhon Si Ayutthaya Province, Thailand 13170</p>
+                    <p data-i18n="footer.phone">电话：093 862 8101</p>
+                    <p data-i18n="footer.email">邮箱：topboxindustry@gmail.com</p>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.social">社交媒体</h3>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><img src="../images/qr-facebook.png" alt="Facebook" class="qr-code"><span>Facebook</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-tiktok.png" alt="TikTok" class="qr-code"><span>TikTok</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-lazada.png" alt="Lazada" class="qr-code"><span>Lazada</span></a>
+                        <a href="#" class="social-link"><img src="../images/qr-shopee.png" alt="Shopee" class="qr-code"><span>Shopee</span></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3 data-i18n="footer.quick-links">快速链接</h3>
+                    <ul class="footer-links">
+                        <li><a href="about.html" data-i18n="nav.about">公司简介</a></li>
+                        <li><a href="boxes.html" data-i18n="nav.boxes">纸箱纸盒</a></li>
+                        <li><a href="contact.html" data-i18n="nav.contact">联系我们</a></li>
+                        <li><a href="order.html" data-i18n="nav.order">订购产品</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 TOP BOX INDUSTRY CO,. LTD. <span data-i18n="footer.rights">版权所有</span></p>
+            </div>
+        </div>
+    </footer>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/main.js"></script>
+</body>
+</html> 
