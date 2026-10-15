@@ -19,7 +19,7 @@
         <button class="nav-link" data-page="settings">设置</button>
         <button class="nav-link" data-page="updates">更新日志</button>
       </nav>
-      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><span class="status-dot"></span><span>v2.1.6</span></div>
+      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><span class="status-dot"></span><span>v2.1.7</span></div>
     </header>
 
     <main>
@@ -34,14 +34,14 @@
           <div class="mode-options" role="radiogroup" aria-label="装载方式">
             <label class="mode-option selected"><input type="radio" name="mode" value="specified" checked /><span class="mode-icon">#</span><span><b>指定数量</b><small>按填写数量装载</small></span></label>
             <label class="mode-option"><input type="radio" name="mode" value="full" /><span class="mode-icon">↗</span><span><b>满载优先</b><small>尽可能填满容器</small></span></label>
-            <label class="mode-option"><input type="radio" name="mode" value="ratio" /><span class="mode-icon">%</span><span><b>按比例满载</b><small>按需求比例配载</small></span></label>
-            <label class="mode-option"><input type="radio" name="mode" value="lastFull" /><span class="mode-icon">+</span><span><b>尾货满载</b><small>最后一款自动补满</small></span></label>
+            <label class="mode-option coming-soon"><input type="radio" name="mode" value="ratio" disabled /><span class="mode-icon">%</span><span><b>按比例满载</b><small>按需求比例配载</small></span><i class="mode-beta">开发中</i></label>
+            <label class="mode-option coming-soon"><input type="radio" name="mode" value="lastFull" disabled /><span class="mode-icon">+</span><span><b>尾货满载</b><small>最后一款自动补满</small></span><i class="mode-beta">开发中</i></label>
           </div>
         </section>
 
         <div class="planner-grid">
           <section class="selector-card"><div class="section-title"><div><span class="step-number">02</span><h2>选择容器</h2><p>可多选，分别生成每个容器的方案</p></div><button class="text-button" data-go-archives="containers">管理档案</button></div><div class="selector-bulk-actions"><div><button id="selectAllContainers" class="text-button" type="button">全选</button><button id="clearAllContainers" class="text-button" type="button">取消全选</button></div><b id="selectedContainerCount">已选 0 项</b></div><label class="selector-search"><span>⌕</span><input id="containerSearch" type="search" placeholder="搜索容器名称或类型" /></label><div id="containerList" class="selection-list"></div><div id="containerPager" class="list-pager"></div></section>
-          <section class="selector-card"><div class="section-title"><div><span class="step-number">03</span><h2>选择货物</h2><p>填写每种货物的计划数量</p></div><button class="text-button" data-go-archives="cargo">管理档案</button></div><div class="selector-bulk-actions"><div><button id="selectAllCargo" class="text-button" type="button">全选</button><button id="clearAllCargo" class="text-button" type="button">取消全选</button><span id="quantityInputMode" class="quantity-input-mode" role="group" aria-label="数量输入方式"></span></div><b id="selectedCargoCount">已选 0 项</b></div><label class="selector-search"><span>⌕</span><input id="cargoSearch" type="search" placeholder="多个关键词以英文逗号分隔" /></label><div id="cargoList" class="selection-list cargo-list"></div><div id="cargoPager" class="list-pager"></div></section>
+          <section class="selector-card"><div class="section-title"><div><span class="step-number">03</span><h2>选择货物</h2><p>填写每种货物的计划数量</p></div><button class="text-button" data-go-archives="cargo">管理档案</button></div><div class="selector-bulk-actions"><div><button id="selectAllCargo" class="text-button" type="button">全选</button><button id="clearAllCargo" class="text-button" type="button">取消全选</button><span id="quantityInputMode" class="quantity-input-mode" role="group" aria-label="数量输入方式"></span><button id="resetCargoSelection" class="text-button cargo-reset" type="button">重置</button></div><b id="selectedCargoCount">已选 0 项</b></div><label class="selector-search"><span>⌕</span><input id="cargoSearch" type="search" placeholder="多个关键词以英文逗号分隔" /></label><div id="cargoList" class="selection-list cargo-list"></div><div id="cargoPager" class="list-pager"></div></section>
         </div>
 
         <section id="results" class="results hidden" aria-live="polite">
@@ -67,6 +67,7 @@
 
       <section id="updates" class="page">
         <div class="page-heading"><div><p class="eyebrow">RELEASE NOTES</p><h1>更新日志</h1><p>TOP BOX货物装载配货平台版本记录。</p></div><label class="update-filter">更新日期<select id="updateDateFilter"><option value="all">全部日期</option><option value="2026-10-15">2026-10-15</option><option value="2026-10-14">2026-10-14</option></select></label></div>
+        <article class="release-latest" data-release-date="2026-10-15"><div class="release-title"><h2>v2.1.7</h2><time>2026-10-15</time></div><ul><li>货物选择区新增“重置”：清空全部货物勾选、将包数恢复为 1，并切回按包数输入。</li><li>指定数量允许多选与数量编辑；满载优先仅可单选并锁定数量输入。</li><li>按比例满载、尾货满载暂标记为“开发中”并禁用。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-15"><div class="release-title"><h2>v2.1.6</h2><time>2026-10-15</time></div><ul><li>货物选择新增“按包数输入／按小件数输入”切换；另一单位会自动换算显示。</li><li>生成最优方案后，页面顶部显示“已生成”提示，并在 2 秒后自动消失。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-15"><div class="release-title"><h2>v2.1.5</h2><time>2026-10-15</time></div><ul><li>CSV 导入自动识别 UTF-8 与 Excel 常见中文编码，修复档案类型乱码；新版模板也加入 UTF-8 标记。</li><li>容器档案、货物档案与已保存方案均支持分页，默认每页 50 条并可自定义条数；列表增加序号。</li><li>选择容器和货物新增全选、取消全选及已选数量提示。</li><li>混装改用紧凑的最佳空位匹配与摆放方向评分，减少无效搜索和货物之间的空隙。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-15"><div class="release-title"><h2>v2.1.4</h2><time>2026-10-15</time></div><ul><li>尺寸标签随 3D 视角实时校正角度，始终平行于对应尺寸线且保持可读。</li><li>货物名称提示、容器尺寸标注移至 3D 预览右上角“显示设置”。</li><li>容器和货物档案的容积统一显示为 4 位小数。</li><li>托盘在 3D 中渲染为木质托盘，货物从托盘面开始装载，受长宽限制而不受高度限制。</li></ul></article>
