@@ -1,0 +1,9 @@
+{
+  "$schema": "https://unpkg.com/wrangler@latest/config-schema.json",
+  "name": "topbox-cargo-loading",
+  "compatibility_date": "2026-10-15",
+  "assets": {
+    "directory": "."
+  }
+}
+
