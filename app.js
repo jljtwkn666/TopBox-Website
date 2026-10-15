@@ -42,8 +42,6 @@ function loadState() {
     };
   } catch { return fallback; }
 }
-document.addEventListener('change',event=>{if(event.target.matches('input[name="mode"]'))applyCargoModeRules();});
-document.addEventListener('click',event=>{if(event.target.closest('#resetCargoSelection'))resetCargoSelection();});
 const state = loadState();
 function persistState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -388,6 +386,8 @@ $('#exportArchives').addEventListener('click',exportArchivesTable);$('#exportSav
 let enhancedSelectorTimer,successToastTimer;function showSuccess(message){const toast=$('#appToast');if(!toast)return;toast.textContent=message;toast.classList.remove('visible');void toast.offsetWidth;toast.classList.add('visible');clearTimeout(successToastTimer);successToastTimer=setTimeout(()=>toast.classList.remove('visible'),2000);}function requestSelectorRender(){clearTimeout(enhancedSelectorTimer);enhancedSelectorTimer=setTimeout(renderSelectors,120);}
 const renderPlanBase=renderPlan;renderPlan=function(){renderPlanBase();if(!state.plan)return;const plan=state.plan.plans[state.plan.active],c=plan.container,maxX=plan.positions.reduce((m,p)=>Math.max(m,p.x+p.l),0),maxY=plan.positions.reduce((m,p)=>Math.max(m,p.y+p.w),0),maxZ=plan.positions.reduce((m,p)=>Math.max(m,p.z+p.h),0),remaining={l:Math.max(0,c.l-maxX),w:Math.max(0,c.w-maxY),h:Math.max(0,c.h-maxZ)};$('#freeSpaceBadge').textContent='';$('#freeSpaceDetails').innerHTML=`<div class="free-space-row"><span>${t('长')} ${remaining.l} mm</span><span>${t('宽')} ${remaining.w} mm</span><span>${t('高')} ${remaining.h} mm</span></div>`;};
 const renderPlanDimensionsBase=renderPlan;renderPlan=function(){renderPlanDimensionsBase();$('#containerDimensionLabels')?.classList.add('hidden');};
+$$('input[name="mode"]').forEach(input=>input.addEventListener('change',applyCargoModeRules));
+$('#resetCargoSelection').addEventListener('click',resetCargoSelection);
 Object.assign(I18N.en,{'按包数输入':'Enter packages','按小件数输入':'Enter pieces','包数':'Packages','折合':'Equivalent to','数量输入方式':'Quantity input mode','已生成':'Generated'});
 Object.assign(I18N.th,{'按包数输入':'กรอกจำนวนแพ็ก','按小件数输入':'กรอกจำนวนชิ้น','包数':'จำนวนแพ็ก','折合':'เทียบเท่า','数量输入方式':'รูปแบบการกรอกจำนวน','已生成':'สร้างแล้ว'});
 Object.assign(I18N.en,{'开发中':'In development'});Object.assign(I18N.th,{'开发中':'กำลังพัฒนา'});
