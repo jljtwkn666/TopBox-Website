@@ -122,7 +122,9 @@ async function renderUsers() {
   try {
     const data = await api('/api/admin/users');
     $('#adminUsersList').innerHTML = data.users.map(account => {
-      const editable = account.role !== 'super_admin' && (user.role === 'super_admin' || account.role === 'user');
+      // Administrators always retain their management capabilities; feature
+      // switches are intentionally scoped to ordinary user accounts.
+      const editable = account.role === 'user';
       const permissionControls = editable ? `<div class="permission-switches"><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="records" type="checkbox" ${account.permissions?.records ? 'checked' : ''}> 档案维护</label><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="updates" type="checkbox" ${account.permissions?.updates ? 'checked' : ''}> 更新日志</label></div>` : '';
       const roleControl = user.role === 'super_admin' && account.role !== 'super_admin' ? `<select data-user-role="${escapeHtml(account.id)}"><option value="user" ${account.role === 'user' ? 'selected' : ''}>普通用户</option><option value="admin" ${account.role === 'admin' ? 'selected' : ''}>管理员</option></select>` : '';
       return `<div class="admin-user-row"><div><b>${escapeHtml(account.nickname || account.username)}</b><span> · ${escapeHtml(account.username)} · ${escapeHtml(account.role)}</span>${permissionControls}</div>${roleControl}</div>`;
