@@ -160,12 +160,14 @@ async function api(request, env, path) {
     const payload = JSON.parse(share.payload);
     if (parts[1] !== 'import' && request.method === 'GET') return json({ code, kind: share.record_kind, count: payload.length, expiresAt: share.expires_at });
     if (parts[1] === 'import' && request.method === 'POST') {
+      const body = await readBody(request), importMode = body?.mode === 'overwrite' ? 'overwrite' : 'append';
       if (share.record_kind === 'plans') {
+        if (importMode === 'overwrite') await env.DB.prepare('DELETE FROM plans WHERE owner_id = ?').bind(user.id).run();
         for (const plan of payload) await env.DB.prepare('INSERT INTO plans (id, owner_id, name, payload, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)').bind(`p_${randomId()}`, user.id, String(plan.name || '导入方案').slice(0, 120), JSON.stringify({ mode: plan.mode || 'specified', plans: plan.plans || [] }), now(), now()).run();
       } else {
         const records = await loadUserRecords(env, user.id), key = share.record_kind, ids = new Set(records[key].map(item => item.id));
         const imported = payload.map(item => ({ ...item, id: ids.has(item.id) ? `${item.id}_${randomId().slice(0, 6)}` : item.id }));
-        records[key] = uniqueRecords([...records[key], ...imported]);
+        records[key] = importMode === 'overwrite' ? uniqueRecords(imported) : uniqueRecords([...records[key], ...imported]);
         await env.DB.prepare('INSERT INTO user_records (owner_id, record_key, payload, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(owner_id, record_key) DO UPDATE SET payload=excluded.payload, updated_at=excluded.updated_at').bind(user.id, key, JSON.stringify(records[key]), now()).run();
       }
       return json({ ok: true, kind: share.record_kind, count: payload.length });
