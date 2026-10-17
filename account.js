@@ -186,33 +186,46 @@ async function compactAvatar(file) {
 }
 
 let shareAction = null;
+async function regenerateShareCode() {
+  const appState = state(); if (!shareAction || !appState) return;
+  const payload = shareAction.kind === 'plans' ? appState.savedPlans : appState[shareAction.kind];
+  const input = $('#shareCodeInput');
+  $('#shareConfirm').disabled = true;
+  $('#shareMessage').textContent = '正在随机生成可用分享码…';
+  try {
+    const result = await api('/api/shares', { method: 'POST', body: JSON.stringify({ kind: shareAction.kind, payload }) });
+    input.value = result.code; input.readOnly = true;
+    $('#shareMessage').textContent = `分享码已生成：${result.code}\n有效至 ${new Date(result.expiresAt).toLocaleString('zh-CN')}。`;
+  } finally { $('#shareConfirm').disabled = false; }
+}
 function openShareDialog(mode, kind) {
   const dialog = $('#shareDialog'), input = $('#shareCodeInput');
   shareAction = { mode, kind };
   $('#shareTitle').textContent = mode === 'create' ? '生成数据分享码' : '导入数据分享码';
-  $('#shareMessage').textContent = mode === 'create' ? '将生成有效期 30 天的分享码，可供其他用户导入。' : '输入其他用户提供的分享码。导入前会显示数据类别和数量。';
+  $('#shareMessage').textContent = mode === 'create' ? '正在自动生成有效期 30 天的分享码。' : '输入或粘贴其他用户提供的分享码。导入前会显示数据类别和数量。';
   input.value = ''; input.readOnly = mode === 'create';
-  $('#shareConfirm').textContent = mode === 'create' ? '生成分享码' : '下一步';
+  const appendMode = $('input[name="shareImportMode"][value="append"]'); if (appendMode) appendMode.checked = true;
+  $('#shareImportMode').classList.add('hidden');
+  $('#shareCopy').classList.toggle('hidden', mode !== 'create');
+  $('#shareConfirm').textContent = mode === 'create' ? '随机生成' : '下一步';
   dialog.showModal();
+  if (mode === 'create') regenerateShareCode().catch(error => { $('#shareMessage').textContent = error.message; });
 }
 async function handleShareDialog() {
   const appState = state(); if (!shareAction || !appState) return;
   const input = $('#shareCodeInput');
   if (shareAction.mode === 'create') {
-    const payload = shareAction.kind === 'plans' ? appState.savedPlans : appState[shareAction.kind];
-    const result = await api('/api/shares', { method: 'POST', body: JSON.stringify({ kind: shareAction.kind, payload }) });
-    input.value = result.code; input.readOnly = true; $('#shareMessage').textContent = `分享码已生成：${result.code}\n有效至 ${new Date(result.expiresAt).toLocaleString('zh-CN')}。`;
-    $('#shareConfirm').textContent = '关闭'; shareAction.mode = 'close'; return;
+    await regenerateShareCode(); return;
   }
-  if (shareAction.mode === 'close') { $('#shareDialog').close(); return; }
   if (shareAction.mode === 'import') {
     const code = input.value.trim(); if (!code) throw new Error('请输入分享码。');
     const preview = await api(`/api/shares/${encodeURIComponent(code)}`);
     shareAction = { mode: 'confirm', code, kind: preview.kind };
     $('#shareMessage').textContent = `即将导入 ${preview.count} 条${preview.kind === 'plans' ? '装车方案' : preview.kind === 'containers' ? '容器档案' : '货物档案'}。确认后将加入当前账号的数据。`;
-    $('#shareConfirm').textContent = '确认导入'; return;
+    input.readOnly = true; $('#shareImportMode').classList.remove('hidden'); $('#shareConfirm').textContent = '确认导入'; return;
   }
-  const result = await api(`/api/shares/${encodeURIComponent(shareAction.code)}/import`, { method: 'POST', body: '{}' });
+  const importMode = $('input[name="shareImportMode"]:checked')?.value || 'append';
+  const result = await api(`/api/shares/${encodeURIComponent(shareAction.code)}/import`, { method: 'POST', body: JSON.stringify({ mode: importMode }) });
   $('#shareDialog').close(); await loadBootstrap(); notify(`已导入 ${result.count} 条数据。`);
 }
 
@@ -220,6 +233,7 @@ function bindEvents() {
   $('#accountMenuButton').addEventListener('click', openAccountPage);
   $('#shareClose').addEventListener('click', () => $('#shareDialog').close());
   $('#shareCancel').addEventListener('click', () => $('#shareDialog').close());
+  $('#shareCopy').addEventListener('click', async () => { const code = $('#shareCodeInput').value; if (!code) return; try { await navigator.clipboard.writeText(code); notify('分享码已复制。'); } catch { $('#shareCodeInput').select(); document.execCommand('copy'); notify('分享码已复制。'); } });
   $('#shareForm').addEventListener('submit', async event => { event.preventDefault(); try { await handleShareDialog(); } catch (error) { notify(error.message, true); } });
   $('#shareArchives').addEventListener('click', () => openShareDialog('create', state()?.archive === 'cargo' ? 'cargo' : 'containers'));
   $('#importArchiveShare').addEventListener('click', () => openShareDialog('import', 'archives'));
@@ -252,10 +266,8 @@ function bindEvents() {
     catch (error) { notify(error.message, true); }
   });
   document.addEventListener('click', event => {
-    const archiveAction = event.target.closest('#archives [data-delete], #bulkDeleteArchive');
     if (!user) return;
     if (!canEditRecords() && event.target.closest('#archives [data-edit], #archives [data-delete], #addArchive, #bulkDeleteArchive, .file-button')) { event.preventDefault(); event.stopImmediatePropagation(); notify('未获档案维护权限。', true); return; }
-    if (archiveAction) setTimeout(() => syncUserRecords().catch(error => notify(error.message, true)), 350);
   }, true);
   $$('.nav-link').forEach(button => button.addEventListener('click', () => setTimeout(() => loadBootstrap().catch(() => {}), 0), true));
   $('#archiveForm').addEventListener('submit', () => setTimeout(() => syncUserRecords().catch(error => notify(error.message, true)), 0));
