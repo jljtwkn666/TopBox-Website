@@ -1,3 +1,4 @@
+
 const SEED_CONTAINERS = [
   { id: 'c1', name: '9.6m 厢式货车', type: '车厢', shape: 'box', l: 9600, w: 2400, h: 2500, weight: 6800, pieces: 1, reserve: 5, price: 0, color: '#0f4c81' },
   { id: 'c2', name: '7.6m 厢式货车', type: '车厢', shape: 'box', l: 7600, w: 2300, h: 2300, weight: 5200, pieces: 1, reserve: 4, price: 0, color: '#2563eb' },
@@ -32,23 +33,28 @@ async function ensureSchema(env) {
     env.DB.prepare('CREATE TABLE IF NOT EXISTS shared_records (record_key TEXT PRIMARY KEY, payload TEXT NOT NULL, updated_at TEXT NOT NULL, updated_by TEXT)'),
     env.DB.prepare('CREATE TABLE IF NOT EXISTS plans (id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, name TEXT NOT NULL, payload TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)')
   ]);
+  // Existing deployments predate per-user feature permissions. The migration is
+  // deliberately idempotent because every Worker isolate can initialize itself.
+  await env.DB.prepare("ALTER TABLE users ADD COLUMN permissions TEXT NOT NULL DEFAULT '{\"records\":false,\"updates\":false}'").run().catch(() => {});
   const admin = await env.DB.prepare('SELECT id FROM users WHERE username = ?').bind('admin').first();
   if (!admin) {
     const password = await newPassword('12345');
-    await env.DB.prepare('INSERT OR IGNORE INTO users (id, username, password_hash, password_salt, role, nickname, avatar, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').bind('u_admin', 'admin', password.hash, password.salt, 'super_admin', '超级管理员', '', now(), now()).run();
+    await env.DB.prepare('INSERT OR IGNORE INTO users (id, username, password_hash, password_salt, role, nickname, avatar, permissions, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').bind('u_admin', 'admin', password.hash, password.salt, 'super_admin', '超级管理员', '', JSON.stringify({ records: true, updates: true }), now(), now()).run();
   }
   for (const [key, payload] of [['containers', SEED_CONTAINERS], ['cargo', SEED_CARGO]]) await env.DB.prepare('INSERT OR IGNORE INTO shared_records (record_key, payload, updated_at, updated_by) VALUES (?, ?, ?, ?)').bind(key, JSON.stringify(payload), now(), 'u_admin').run();
 }
 
-const publicUser = row => row && ({ id: row.id, username: row.username, role: row.role, nickname: row.nickname, avatar: row.avatar || '' });
+const defaultPermissions = role => ({ records: role === 'super_admin' || role === 'admin', updates: role === 'super_admin' || role === 'admin' });
+const permissionsFor = row => { try { return { ...defaultPermissions(row?.role), ...(row?.permissions ? JSON.parse(row.permissions) : {}) }; } catch { return defaultPermissions(row?.role); } };
+const publicUser = row => row && ({ id: row.id, username: row.username, role: row.role, nickname: row.nickname, avatar: row.avatar || '', permissions: permissionsFor(row) });
 async function sessionUser(request, env) {
   const raw = cookieValue(request, 'topbox_session');
   if (!raw) return null;
-  const row = await env.DB.prepare('SELECT u.id, u.username, u.role, u.nickname, u.avatar FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?').bind(await sha256(raw), now()).first();
+  const row = await env.DB.prepare('SELECT u.id, u.username, u.role, u.nickname, u.avatar, u.permissions FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?').bind(await sha256(raw), now()).first();
   return publicUser(row);
 }
 const canManageUsers = user => user?.role === 'super_admin' || user?.role === 'admin';
-const canEditRecords = user => canManageUsers(user);
+const canEditRecords = user => canManageUsers(user) || Boolean(user?.permissions?.records);
 const assertPassword = password => typeof password === 'string' && password.length >= 5 && password.length <= 128;
 async function readBody(request) { try { return await request.json(); } catch { return null; } }
 
@@ -74,8 +80,9 @@ async function api(request, env, path) {
     return json({ user, containers: records.containers || SEED_CONTAINERS, cargo: records.cargo || SEED_CARGO, plans: (plans.results || []).map(row => ({ id: row.id, name: row.name, createdAt: row.created_at, updatedAt: row.updated_at, ...JSON.parse(row.payload) })) });
   }
   if (path === '/api/profile' && request.method === 'PATCH') {
-    const body = await readBody(request), nickname = String(body?.nickname || '').trim().slice(0, 40), avatar = String(body?.avatar || '').trim().slice(0, 500);
+    const body = await readBody(request), nickname = String(body?.nickname || '').trim().slice(0, 40), avatar = String(body?.avatar || '').trim().slice(0, 500000);
     if (!nickname) return error('昵称不能为空。');
+    if (avatar && !/^(data:image\/(png|jpe?g|webp);base64,|https:\/\/)/i.test(avatar)) return error('头像格式无效。');
     await env.DB.prepare('UPDATE users SET nickname = ?, avatar = ?, updated_at = ? WHERE id = ?').bind(nickname, avatar, now(), user.id).run();
     return json({ user: { ...user, nickname, avatar } });
   }
@@ -89,7 +96,7 @@ async function api(request, env, path) {
   if (path === '/api/shared/records') {
     if (request.method === 'GET') { const rows = await env.DB.prepare('SELECT record_key, payload FROM shared_records').all(); return json(Object.fromEntries((rows.results || []).map(row => [row.record_key, JSON.parse(row.payload)]))); }
     if (request.method === 'PUT') {
-      if (!canEditRecords(user)) return error('只有管理员可维护共享档案。', 403);
+      if (!canEditRecords(user)) return error('未获档案维护权限。', 403);
       const body = await readBody(request); if (!Array.isArray(body?.containers) || !Array.isArray(body?.cargo)) return error('共享档案格式无效。');
       await env.DB.batch(['containers', 'cargo'].map(key => env.DB.prepare('INSERT INTO shared_records (record_key, payload, updated_at, updated_by) VALUES (?, ?, ?, ?) ON CONFLICT(record_key) DO UPDATE SET payload=excluded.payload, updated_at=excluded.updated_at, updated_by=excluded.updated_by').bind(key, JSON.stringify(body[key]), now(), user.id)));
       return json({ ok: true });
@@ -105,22 +112,25 @@ async function api(request, env, path) {
   if (path.startsWith('/api/plans/') && request.method === 'DELETE') { await env.DB.prepare('DELETE FROM plans WHERE id = ? AND owner_id = ?').bind(decodeURIComponent(path.slice(11)), user.id).run(); return json({ ok: true }); }
   if (path === '/api/admin/users') {
     if (!canManageUsers(user)) return error('无用户管理权限。', 403);
-    if (request.method === 'GET') { const users = await env.DB.prepare('SELECT id, username, role, nickname, avatar, created_at, updated_at FROM users ORDER BY CASE role WHEN \'super_admin\' THEN 0 WHEN \'admin\' THEN 1 ELSE 2 END, created_at').all(); return json({ users: users.results || [] }); }
+    if (request.method === 'GET') { const users = await env.DB.prepare('SELECT id, username, role, nickname, avatar, permissions, created_at, updated_at FROM users ORDER BY CASE role WHEN \'super_admin\' THEN 0 WHEN \'admin\' THEN 1 ELSE 2 END, created_at').all(); return json({ users: (users.results || []).map(publicUser) }); }
     if (request.method === 'POST') {
       const body = await readBody(request), username = String(body?.username || '').trim().toLowerCase(), role = body?.role === 'admin' ? 'admin' : 'user', nickname = String(body?.nickname || username).trim().slice(0, 40);
       if (!/^[a-z0-9_.-]{3,40}$/.test(username) || !assertPassword(body?.password) || !nickname) return error('账号需为 3–40 位小写字母、数字、._-，密码至少 5 位。');
       if (role === 'admin' && user.role !== 'super_admin') return error('只有超级管理员可创建管理员。', 403);
       if (role === 'admin' && +(await env.DB.prepare('SELECT COUNT(*) AS count FROM users WHERE role = ?').bind('admin').first()).count >= 5) return error('管理员数量最多为 5 个。');
       const password = await newPassword(body.password);
-      try { await env.DB.prepare('INSERT INTO users (id, username, password_hash, password_salt, role, nickname, avatar, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').bind(`u_${randomId()}`, username, password.hash, password.salt, role, nickname, '', now(), now()).run(); } catch { return error('该账号已存在。'); }
+      try { await env.DB.prepare('INSERT INTO users (id, username, password_hash, password_salt, role, nickname, avatar, permissions, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').bind(`u_${randomId()}`, username, password.hash, password.salt, role, nickname, '', JSON.stringify(defaultPermissions(role)), now(), now()).run(); } catch { return error('该账号已存在。'); }
       return json({ ok: true });
     }
     if (request.method === 'PATCH') {
-      if (user.role !== 'super_admin') return error('只有超级管理员可调整管理员权限。', 403);
-      const body = await readBody(request), id = String(body?.id || ''), role = body?.role === 'admin' ? 'admin' : 'user', target = await env.DB.prepare('SELECT id, role FROM users WHERE id = ?').bind(id).first();
+      const body = await readBody(request), id = String(body?.id || ''), target = await env.DB.prepare('SELECT id, role, permissions FROM users WHERE id = ?').bind(id).first();
       if (!target || target.role === 'super_admin') return error('不能调整该账号。');
+      if (user.role !== 'super_admin' && target.role !== 'user') return error('只能调整普通用户权限。', 403);
+      const role = user.role === 'super_admin' ? (body?.role === 'admin' ? 'admin' : 'user') : target.role;
+      const requested = body?.permissions && typeof body.permissions === 'object' ? body.permissions : permissionsFor(target);
+      const permissions = { records: Boolean(requested.records), updates: Boolean(requested.updates) };
       if (role === 'admin' && target.role !== 'admin' && +(await env.DB.prepare('SELECT COUNT(*) AS count FROM users WHERE role = ?').bind('admin').first()).count >= 5) return error('管理员数量最多为 5 个。');
-      await env.DB.prepare('UPDATE users SET role = ?, updated_at = ? WHERE id = ?').bind(role, now(), id).run(); return json({ ok: true });
+      await env.DB.prepare('UPDATE users SET role = ?, permissions = ?, updated_at = ? WHERE id = ?').bind(role, JSON.stringify(permissions), now(), id).run(); return json({ ok: true });
     }
   }
   return error('接口不存在。', 404);
