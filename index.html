@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 10434)
+Total output lines: 143
+
 <!doctype html>
 <html lang="zh-CN">
   <head>
@@ -6,8 +9,8 @@
     <meta name="theme-color" content="#0b2545" />
     <title>TOP BOX货物装载配货平台</title>
     <link rel="preconnect" href="https://unpkg.com" />
-    <link rel="stylesheet" href="styles.css?v=2.6.4" />
-    <link rel="stylesheet" href="visual-enhancements.css?v=2.6.4" />
+    <link rel="stylesheet" href="styles.css?v=2.6.5" />
+    <link rel="stylesheet" href="visual-enhancements.css?v=2.6.5" />
   </head>
   <body>
     <header class="topbar">
@@ -20,7 +23,7 @@
         <button class="nav-link" data-page="settings">设置</button>
         <button class="nav-link" data-page="updates">更新日志</button>
       </nav>
-      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v2.6.4</span></div>
+      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v2.6.5</span></div>
     </header>
 
     <main>
@@ -68,6 +71,7 @@
 
       <section id="updates" class="page">
         <div class="page-heading"><div><p class="eyebrow">RELEASE NOTES</p><h1>更新日志</h1><p>TOP BOX货物装载配货平台版本记录。</p></div><label class="update-filter">更新日期<select id="updateDateFilter"><option value="all">全部日期</option><option value="2026-10-17">2026-10-17</option><option value="2026-10-16">2026-10-16</option><option value="2026-10-15">2026-10-15</option><option value="2026-10-14">2026-10-14</option></select></label></div>
+        <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.6.5</h2><time>2026-10-17</time></div><ul><li>所有方案预览、导出方案图片及 PDF 的空间利用率统一按已用容积 ÷ 可用容积计算，显示实际百分比并保留两位小数。</li><li>修复方案管理列表“打开方案”按钮：可正常回到装载方案页并显示对应 3D 方案。</li><li>彻底移除已选项目标签的旧版问号／浏览器提示，只在鼠标附近显示已选择的名称。</li><li>新增容器或货物档案保存完成后，页面会显示成功提示。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.6.4</h2><time>2026-10-17</time></div><ul><li>已选容器／货物悬浮提示仅显示已选择名称；未选择时不再显示“暂未选择”或问号提示。</li><li>档案与装载方案的单条、批量删除统一恢复为居中确认弹窗，确认后才写入服务端；批量删除按钮会随勾选状态正确启用。</li><li>重新分配货物档案所有字段列宽，完善导入按钮字号和后台用户“角色、保存、删除”操作区布局。</li><li>空间利用率和每个装载方案利用率改为已用容积 ÷ 可用容积的真实百分比，保留两位小数。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.6.3</h2><time>2026-10-17</time></div><ul><li>档案管理与方案管理改为单一、独立的原生表格渲染，彻底移除旧卡片渲染对列表列顺序和首次加载布局的覆盖。</li><li>容器档案、货物档案与装载方案删除改为服务端确认写入后再刷新界面，删除不再在浏览器刷新后恢复。</li><li>使用教程删除“后台权限”第 6 条，保留用户实际操作所需的五个步骤。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.6.2</h2><time>2026-10-17</time></div><ul><li>空间利用率改为精确显示两位小数。</li><li>档案与装载方案列表进一步固定表格列宽和单元格布局，避免首次加载时出现列错位。</li><li>后台用户列表移至创建账号模块下方，并扩展为全宽区域，优化输入框、角色与删除操作排布。</li><li>分享码支持 1、5、12 小时、1、3、15、30 天有效期，也可自定义小时或天数。</li></ul></article>
@@ -80,10 +84,7 @@
         <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.3.0</h2><time>2026-10-17</time></div><ul><li>导出方案图片与 PDF 的文件名统一采用“TOP BOX货物装车方案”前缀。</li><li>已选容器／货物标签改为自定义悬浮清单，可直接查看已选择的名称。</li><li>新增图文使用教程、用户登录、账户中心和管理员后台；共享档案与个人方案改由服务端安全保存。</li><li>修复 Cloudflare 密码哈希兼容性问题，默认超级管理员与共享档案初始化已验证。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-16"><div class="release-title"><h2>v2.2.1</h2><time>2026-10-16</time></div><ul><li>档案与方案管理页改为页面本身不滚动，只有列表区域滚动；列头保持固定。</li><li>满载优先的“仅单选货物”提示改为红色；未装载标签固定显示包数与小件数，并强化额外车辆方案入口。</li><li>更新日志按日期自动分组，可折叠展开，并显示每个日期的更新条数。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-16"><div class="release-title"><h2>v2.2.0</h2><time>2026-10-16</time></div><ul><li>档案管理默认打开容器档案；新增档案按容器／货物类型智能隐藏不适用字段。</li><li>档案与方案列表优化为固定列头、勾选列优先，已选数量支持悬浮查看名称。</li><li>未装载标签新增包数与小件数，并提供基于现有车厢档案的额外车辆装载建议。</li><li>补齐顶部菜单、搜索框多语言显示；导出按钮更新为蓝色“导出方案PDF”。</li></ul></article>
-        <article class="release-latest" data-release-date="2026-10-15"><div class="release-title"><h2>v2.1.7</h2><time>2026-10-15</time></div><ul><li>货物选择区新增“重置”：清空全部货物勾选、将包数恢复为 1，并切回按包数输入。</li><li>指定数量允许多选与数量编辑；满载优先仅可单选并锁定数量输入。</li><li>按比例满载、尾货满载暂标记为“开发中”并禁用。</li></ul></article>
-        <article class="release-latest" data-release-date="2026-10-15"><div class="release-title"><h2>v2.1.6</h2><time>2026-10-15</time></div><ul><li>货物选择新增“按包数输入／按小件数输入”切换；另一单位会自动换算显示。</li><li>生成最优方案后，页面顶部显示“已生成”提示，并在 2 秒后自动消失。</li></ul></article>
-        <article class="release-latest" data-release-date="2026-10-15"><div class="release-title"><h2>v2.1.5</h2><time>2026-10-15</time></div><ul><li>CSV 导入自动识别 UTF-8 与 Excel 常见中文编码，修复档案类型乱码；新版模板也加入 UTF-8 标记。</li><li>容器档案、货物档案与已保存方案均支持分页，默认每页 50 条并可自定义条数；列表增加序号。</li><li>选择容器和货物新增全选、取消全选及已选数量提示。</li><li>混装改用紧凑的最佳空位匹配与摆放方向评分，减少无效搜索和货物之间的空隙。</li></ul></article>
-        <article class="release-latest" data-release-date="2026-10-15"><div class="release-title"><h2>v2.1.4</h2><time>2026-10-15</time></div><ul><li>尺寸标签随 3D 视角实时校正角度，始终平行于对应尺寸线且保持可读。</li><li>货物名称提示、容器尺寸标注移至 3D 预览右上角“显示设置”。</li><li>容器和货物档案的容积统一显示为 4 位小数。</li><li>托盘在 3D 中渲染为木质托盘，货物从托盘面开始装载，受长宽限制而不受高度限制。</li></ul></article>
+        <article class="release-latest" data-release-date="2026-10-15"><div class="release-title"><h2>v2.1.7</h2><time>2026-10-15</time></div><ul><li>货物选择区新增“重置”：清空…434 tokens truncated…货物从托盘面开始装载，受长宽限制而不受高度限制。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-15"><div class="release-title"><h2>v2.1.3</h2><time>2026-10-15</time></div><ul><li>3D 尺寸标签改为透明背景，并随对应尺寸线自动旋转，显示“长／宽／高：数值 mm”。</li><li>容器选择卡片统一以 mm 显示长、宽、高。</li><li>容器档案与容器模板移除小件数；货物仍保留小件数。</li><li>修复新增或编辑档案后表格行与标题列错位的问题。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-15"><div class="release-title"><h2>v2.1.2</h2><time>2026-10-15</time></div><ul><li>3D 容器尺寸改为工程尺寸线：包含延长线、端点短线和统一的尺寸数值标签。</li><li>3D 画布改为按需绘制，减少静止页面的持续渲染消耗。</li><li>货物行的包数与总小件数区域固定右对齐，消除右侧大面积留白。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-15"><div class="release-title"><h2>v2.1.1</h2><time>2026-10-15</time></div><ul><li>修复 3D 尺寸标注的渲染作用域异常，恢复 3D 预览及全部容器方案展示。</li><li>货物行直接渲染“包数 · 总小件数”，输入包数时立即更新对应总件数。</li></ul></article>
@@ -96,7 +97,7 @@
       </section>
 
       <section id="tutorial" class="page">
-        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.6.4 更新</span></div>
+        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.6.5 更新</span></div>
         <div class="tutorial-grid" id="tutorialGrid">
           <article class="tutorial-card"><span class="tutorial-step">01</span><div class="tutorial-graphic account-graphic">◉</div><h2>登录与账户</h2><p>首次由管理员创建账号。登录后可在账户中心修改昵称、上传头像图片和修改密码。</p></article>
           <article class="tutorial-card"><span class="tutorial-step">02</span><div class="tutorial-graphic archive-graphic">▤</div><h2>维护个人档案</h2><p>在“档案管理”维护当前账号自己的容器和货物；档案与其他账号互不影响。</p></article>
@@ -135,8 +136,8 @@
         }
       }
     </script>
-    <script type="module" src="app.js?v=2.6.4"></script>
-    <script type="module" src="account.js?v=2.6.4"></script>
+    <script type="module" src="app.js?v=2.6.5"></script>
+    <script type="module" src="account.js?v=2.6.5"></script>
   </body>
 </html>
 
