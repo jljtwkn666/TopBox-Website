@@ -178,3 +178,22 @@
 .stable-pager-controls{display:inline-flex;gap:8px;align-items:center}.stable-pager-controls button{min-width:36px;height:34px;border:1px solid #d5e2ee;border-radius:8px;background:#fff;color:#365876;font-size:20px}.stable-pager-controls button:disabled{opacity:.45}.stable-pager-controls select{height:34px;min-width:72px;border:1px solid #d5e2ee;border-radius:8px;background:#fff;color:#365876;padding:0 8px}
 @media(max-width:760px){#archives .table-wrap{max-height:480px!important}#savedPlansList .stable-list-table-wrap{max-height:480px!important}.stable-pager-controls{gap:5px}}
 
+/* v2.6.4 — cargo columns, import action and account actions. */
+.heading-actions .file-button{min-height:38px!important;padding:0 14px!important;font:600 13px inherit!important;line-height:38px!important}
+#archives .stable-archive-table.is-cargo{min-width:1160px!important}
+#archives .stable-archive-table.is-cargo th:nth-child(1),#archives .stable-archive-table.is-cargo td:nth-child(1){width:48px!important}
+#archives .stable-archive-table.is-cargo th:nth-child(2),#archives .stable-archive-table.is-cargo td:nth-child(2){width:56px!important}
+#archives .stable-archive-table.is-cargo th:nth-child(3),#archives .stable-archive-table.is-cargo td:nth-child(3){width:180px!important}
+#archives .stable-archive-table.is-cargo th:nth-child(4),#archives .stable-archive-table.is-cargo td:nth-child(4){width:140px!important}
+#archives .stable-archive-table.is-cargo th:nth-child(5),#archives .stable-archive-table.is-cargo td:nth-child(5){width:210px!important}
+#archives .stable-archive-table.is-cargo th:nth-child(6),#archives .stable-archive-table.is-cargo td:nth-child(6){width:108px!important}
+#archives .stable-archive-table.is-cargo th:nth-child(7),#archives .stable-archive-table.is-cargo td:nth-child(7){width:96px!important}
+#archives .stable-archive-table.is-cargo th:nth-child(8),#archives .stable-archive-table.is-cargo td:nth-child(8){width:92px!important}
+#archives .stable-archive-table.is-cargo th:nth-child(9),#archives .stable-archive-table.is-cargo td:nth-child(9){width:64px!important}
+#archives .stable-archive-table.is-cargo th:nth-child(10),#archives .stable-archive-table.is-cargo td:nth-child(10){width:142px!important}
+.admin-account-layout .user-row-actions{display:grid!important;grid-template-columns:1fr 1fr!important;grid-template-areas:"role role" "save delete"!important;gap:8px!important;align-self:center!important;min-width:212px!important}
+.admin-account-layout .user-row-actions select{grid-area:role!important;width:100%!important;height:34px!important;min-width:0!important}
+.admin-account-layout .user-row-actions .delete-user{grid-area:delete!important;width:100%!important;min-width:0!important;height:34px!important}
+.admin-account-layout .user-row-actions .button{grid-area:save!important;width:100%!important;min-width:0!important;height:34px!important}
+@media(max-width:760px){.admin-account-layout .user-row-actions{grid-template-columns:1fr 1fr!important;min-width:0!important;width:100%}}
+
