@@ -7,7 +7,6 @@ globalThis.t ??= text => String(text ?? '');
 let user = null;
 let knownPlanIds = new Set();
 let pendingAvatar = '';
-let sharedRecordsSignature = '';
 
 const notify = (message, error = false) => {
   const toast = $('#appToast');
@@ -32,10 +31,11 @@ const canViewUpdates = () => isAdmin() || Boolean(user?.permissions?.updates);
 const state = () => window.TopBoxApp?.state;
 const rerender = () => {
   window.TopBoxApp?.renderSelectors?.();
-  document.querySelector('.nav-link.active')?.click();
+  window.TopBoxApp?.renderArchives?.();
+  window.TopBoxApp?.renderSavedPlans?.();
 };
 
-function applySharedRecords(data) {
+function applyUserRecords(data) {
   const appState = state();
   if (!appState) throw new Error('页面初始化失败，请刷新后重试。');
   const quantities = new Map(appState.cargo.map(item => [item.id, { quantity: item.quantity, pieceQuantity: item.pieceQuantity }]));
@@ -76,28 +76,24 @@ function applyUser(next) {
 
 async function loadBootstrap() {
   const data = await api('/api/bootstrap');
-  sharedRecordsSignature = JSON.stringify({ containers: data.containers || [], cargo: data.cargo || [] });
-  const appState = applySharedRecords(data);
+  const appState = applyUserRecords(data);
   appState.savedPlans = Array.isArray(data.plans) ? data.plans : [];
   knownPlanIds = new Set(appState.savedPlans.map(item => item.id));
   applyUser(data.user);
   requestAnimationFrame(() => { rerender(); requestAnimationFrame(rerender); });
 }
 
-async function refreshSharedRecords() {
+async function refreshUserRecords() {
   if (!user) return;
   const data = await api('/api/shared/records');
-  const signature = JSON.stringify({ containers: data.containers || [], cargo: data.cargo || [] });
-  if (signature === sharedRecordsSignature) return;
-  sharedRecordsSignature = signature;
-  applySharedRecords(data);
+  applyUserRecords(data);
   rerender();
 }
 
-async function syncSharedRecords() {
-  if (!canEditRecords() || !state()) return;
+async function syncUserRecords() {
+  if (!state()) return;
   await api('/api/shared/records', { method: 'PUT', body: JSON.stringify({ containers: state().containers, cargo: state().cargo }) });
-  await refreshSharedRecords();
+  await refreshUserRecords();
 }
 
 function bindSelectionTooltips() {
@@ -148,7 +144,9 @@ async function renderUsers() {
       const permissionControls = editablePermissions ? `<div class="permission-switches"><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="records" type="checkbox" ${account.permissions?.records ? 'checked' : ''}> 档案维护</label><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="updates" type="checkbox" ${account.permissions?.updates ? 'checked' : ''}> 更新日志</label></div>` : '';
       const roleControl = user.role === 'super_admin' && account.role !== 'super_admin' ? `<select data-user-role="${escapeHtml(account.id)}"><option value="user" ${account.role === 'user' ? 'selected' : ''}>普通用户</option><option value="admin" ${account.role === 'admin' ? 'selected' : ''}>管理员</option></select>` : '';
       const profileControls = editableProfile ? `<div class="user-edit-fields"><input data-user-username="${escapeHtml(account.id)}" value="${escapeHtml(account.username)}" aria-label="用户名"><input data-user-nickname="${escapeHtml(account.id)}" value="${escapeHtml(account.nickname || '')}" aria-label="昵称"><input data-user-password="${escapeHtml(account.id)}" type="password" placeholder="新密码（留空不修改）" aria-label="新密码"><button type="button" class="button secondary" data-save-user="${escapeHtml(account.id)}">保存用户</button></div>` : '';
-      return `<div class="admin-user-row"><div><b>${escapeHtml(account.nickname || account.username)}</b><span> · ${escapeHtml(account.username)} · ${escapeHtml(account.role)}</span>${profileControls}${permissionControls}</div>${roleControl}</div>`;
+      const deletable = account.role !== 'super_admin' && (user.role === 'super_admin' || account.role === 'user');
+      const deleteControl = deletable ? `<button type="button" class="text-button delete-user" data-delete-user="${escapeHtml(account.id)}">删除用户</button>` : '';
+      return `<div class="admin-user-row"><div><b>${escapeHtml(account.nickname || account.username)}</b><span> · ${escapeHtml(account.username)} · ${escapeHtml(account.role)}</span>${profileControls}${permissionControls}</div><div class="user-row-actions">${roleControl}${deleteControl}</div></div>`;
     }).join('');
     $$('[data-user-role]').forEach(select => select.addEventListener('change', async () => {
       const permissions = $$(`[data-user-permission="${select.dataset.userRole}"]`).reduce((value, input) => ({ ...value, [input.dataset.permission]: input.checked }), {});
@@ -167,6 +165,11 @@ async function renderUsers() {
       try { await api('/api/admin/users', { method: 'PATCH', body: JSON.stringify({ id, ...(role ? { role } : {}), username: $(`[data-user-username="${id}"]`)?.value, nickname: $(`[data-user-nickname="${id}"]`)?.value, password, permissions }) }); notify('用户资料已更新。'); renderUsers(); }
       catch (error) { notify(error.message, true); }
     }));
+    $$('[data-delete-user]').forEach(button => button.addEventListener('click', async () => {
+      if (button.dataset.confirming !== 'true') { button.dataset.confirming = 'true'; button.textContent = '再次点击确认删除'; setTimeout(() => { if (button.dataset.confirming === 'true') { button.dataset.confirming = ''; button.textContent = '删除用户'; } }, 3000); return; }
+      try { await api(`/api/admin/users/${encodeURIComponent(button.dataset.deleteUser)}`, { method: 'DELETE' }); notify('用户已删除。'); renderUsers(); }
+      catch (error) { notify(error.message, true); }
+    }));
   } catch (error) { notify(error.message, true); }
 }
 
@@ -182,8 +185,46 @@ async function compactAvatar(file) {
   return canvas.toDataURL('image/webp', .82);
 }
 
+let shareAction = null;
+function openShareDialog(mode, kind) {
+  const dialog = $('#shareDialog'), input = $('#shareCodeInput');
+  shareAction = { mode, kind };
+  $('#shareTitle').textContent = mode === 'create' ? '生成数据分享码' : '导入数据分享码';
+  $('#shareMessage').textContent = mode === 'create' ? '将生成有效期 30 天的分享码，可供其他用户导入。' : '输入其他用户提供的分享码。导入前会显示数据类别和数量。';
+  input.value = ''; input.readOnly = mode === 'create';
+  $('#shareConfirm').textContent = mode === 'create' ? '生成分享码' : '下一步';
+  dialog.showModal();
+}
+async function handleShareDialog() {
+  const appState = state(); if (!shareAction || !appState) return;
+  const input = $('#shareCodeInput');
+  if (shareAction.mode === 'create') {
+    const payload = shareAction.kind === 'plans' ? appState.savedPlans : appState[shareAction.kind];
+    const result = await api('/api/shares', { method: 'POST', body: JSON.stringify({ kind: shareAction.kind, payload }) });
+    input.value = result.code; input.readOnly = true; $('#shareMessage').textContent = `分享码已生成：${result.code}\n有效至 ${new Date(result.expiresAt).toLocaleString('zh-CN')}。`;
+    $('#shareConfirm').textContent = '关闭'; shareAction.mode = 'close'; return;
+  }
+  if (shareAction.mode === 'close') { $('#shareDialog').close(); return; }
+  if (shareAction.mode === 'import') {
+    const code = input.value.trim(); if (!code) throw new Error('请输入分享码。');
+    const preview = await api(`/api/shares/${encodeURIComponent(code)}`);
+    shareAction = { mode: 'confirm', code, kind: preview.kind };
+    $('#shareMessage').textContent = `即将导入 ${preview.count} 条${preview.kind === 'plans' ? '装车方案' : preview.kind === 'containers' ? '容器档案' : '货物档案'}。确认后将加入当前账号的数据。`;
+    $('#shareConfirm').textContent = '确认导入'; return;
+  }
+  const result = await api(`/api/shares/${encodeURIComponent(shareAction.code)}/import`, { method: 'POST', body: '{}' });
+  $('#shareDialog').close(); await loadBootstrap(); notify(`已导入 ${result.count} 条数据。`);
+}
+
 function bindEvents() {
   $('#accountMenuButton').addEventListener('click', openAccountPage);
+  $('#shareClose').addEventListener('click', () => $('#shareDialog').close());
+  $('#shareCancel').addEventListener('click', () => $('#shareDialog').close());
+  $('#shareForm').addEventListener('submit', async event => { event.preventDefault(); try { await handleShareDialog(); } catch (error) { notify(error.message, true); } });
+  $('#shareArchives').addEventListener('click', () => openShareDialog('create', state()?.archive === 'cargo' ? 'cargo' : 'containers'));
+  $('#importArchiveShare').addEventListener('click', () => openShareDialog('import', 'archives'));
+  $('#sharePlans').addEventListener('click', () => openShareDialog('create', 'plans'));
+  $('#importPlanShare').addEventListener('click', () => openShareDialog('import', 'plans'));
   $('#toggleLoginPassword').addEventListener('click', () => { const input = $('#loginPassword'), visible = input.type === 'text'; input.type = visible ? 'password' : 'text'; $('#toggleLoginPassword').textContent = visible ? '◉' : '◉̸'; $('#toggleLoginPassword').setAttribute('aria-label', visible ? '显示密码' : '隐藏密码'); });
   $('#loginForm').addEventListener('submit', async event => {
     event.preventDefault();
@@ -214,11 +255,11 @@ function bindEvents() {
     const archiveAction = event.target.closest('#archives [data-delete], #bulkDeleteArchive');
     if (!user) return;
     if (!canEditRecords() && event.target.closest('#archives [data-edit], #archives [data-delete], #addArchive, #bulkDeleteArchive, .file-button')) { event.preventDefault(); event.stopImmediatePropagation(); notify('未获档案维护权限。', true); return; }
-    if (canEditRecords() && archiveAction) setTimeout(() => syncSharedRecords().catch(error => notify(error.message, true)), 0);
+    if (archiveAction) setTimeout(() => syncUserRecords().catch(error => notify(error.message, true)), 350);
   }, true);
-  ['workspace', 'archives'].forEach(page => $(`.nav-link[data-page="${page}"]`)?.addEventListener('click', () => { refreshSharedRecords().catch(() => {}); }, true));
-  $('#archiveForm').addEventListener('submit', () => setTimeout(() => syncSharedRecords().catch(error => notify(error.message, true)), 0));
-  $('#importFile').addEventListener('change', () => setTimeout(() => syncSharedRecords().catch(error => notify(error.message, true)), 300));
+  $$('.nav-link').forEach(button => button.addEventListener('click', () => setTimeout(() => loadBootstrap().catch(() => {}), 0), true));
+  $('#archiveForm').addEventListener('submit', () => setTimeout(() => syncUserRecords().catch(error => notify(error.message, true)), 0));
+  $('#importFile').addEventListener('change', () => setTimeout(() => syncUserRecords().catch(error => notify(error.message, true)), 300));
   $('#appDialogForm').addEventListener('submit', () => setTimeout(async () => {
     const appState = state(); if (!appState) return;
     const candidate = appState.savedPlans.find(item => !knownPlanIds.has(item.id));
@@ -226,12 +267,14 @@ function bindEvents() {
     try { const remote = await api('/api/plans', { method: 'POST', body: JSON.stringify({ plan: candidate }) }); candidate.id = remote.id; knownPlanIds.add(remote.id); notify('方案已安全保存。'); }
     catch (error) { notify(error.message, true); }
   }, 0));
-  $('#bulkDeletePlans').addEventListener('click', () => setTimeout(() => {
+  const syncPlans = () => setTimeout(() => {
     const appState = state(); if (!appState) return;
     const stillSaved = new Set(appState.savedPlans.map(item => item.id));
     [...knownPlanIds].filter(id => !stillSaved.has(id)).forEach(id => api(`/api/plans/${encodeURIComponent(id)}`, { method: 'DELETE' }).catch(() => {}));
     knownPlanIds = stillSaved;
-  }, 0));
+  }, 0);
+  window.addEventListener('topbox:records-changed', () => syncUserRecords().catch(error => notify(error.message, true)));
+  window.addEventListener('topbox:plans-changed', syncPlans);
 }
 
 async function start() {
@@ -241,8 +284,7 @@ async function start() {
   catch { $('#authGate').classList.add('is-visible'); }
   bindSelectionTooltips();
   setInterval(bindSelectionTooltips, 700);
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshSharedRecords().catch(() => {}); });
-  setInterval(() => { if (document.visibilityState === 'visible') refreshSharedRecords().catch(() => {}); }, 30000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadBootstrap().catch(() => {}); });
 }
 
 start();
