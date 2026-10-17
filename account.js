@@ -1,5 +1,9 @@
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
+// app.js contains a few legacy UI callbacks that are evaluated from a different
+// module scope. Keep a global translation fallback available while the page is
+// being hydrated after sign-in so those callbacks cannot interrupt login.
+globalThis.t ??= text => String(text ?? '');
 let user = null;
 let knownPlanIds = new Set();
 
