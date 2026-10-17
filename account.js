@@ -7,6 +7,7 @@ globalThis.t ??= text => String(text ?? '');
 let user = null;
 let knownPlanIds = new Set();
 let pendingAvatar = '';
+let sharedRecordsSignature = '';
 
 const notify = (message, error = false) => {
   const toast = $('#appToast');
@@ -75,6 +76,7 @@ function applyUser(next) {
 
 async function loadBootstrap() {
   const data = await api('/api/bootstrap');
+  sharedRecordsSignature = JSON.stringify({ containers: data.containers || [], cargo: data.cargo || [] });
   const appState = applySharedRecords(data);
   appState.savedPlans = Array.isArray(data.plans) ? data.plans : [];
   knownPlanIds = new Set(appState.savedPlans.map(item => item.id));
@@ -85,6 +87,9 @@ async function loadBootstrap() {
 async function refreshSharedRecords() {
   if (!user) return;
   const data = await api('/api/shared/records');
+  const signature = JSON.stringify({ containers: data.containers || [], cargo: data.cargo || [] });
+  if (signature === sharedRecordsSignature) return;
+  sharedRecordsSignature = signature;
   applySharedRecords(data);
   rerender();
 }
@@ -237,6 +242,7 @@ async function start() {
   bindSelectionTooltips();
   setInterval(bindSelectionTooltips, 700);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshSharedRecords().catch(() => {}); });
+  setInterval(() => { if (document.visibilityState === 'visible') refreshSharedRecords().catch(() => {}); }, 30000);
 }
 
 start();
