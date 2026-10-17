@@ -34,6 +34,21 @@ const rerender = () => {
   document.querySelector('.nav-link.active')?.click();
 };
 
+function applySharedRecords(data) {
+  const appState = state();
+  if (!appState) throw new Error('页面初始化失败，请刷新后重试。');
+  const quantities = new Map(appState.cargo.map(item => [item.id, { quantity: item.quantity, pieceQuantity: item.pieceQuantity }]));
+  appState.containers = Array.isArray(data.containers) ? data.containers : [];
+  appState.cargo = (Array.isArray(data.cargo) ? data.cargo : []).map(item => ({ ...item, ...(quantities.get(item.id) || {}), quantity: Math.max(1, +(quantities.get(item.id)?.quantity ?? item.quantity) || 1) }));
+  const containerIds = new Set(appState.containers.map(item => item.id));
+  const cargoIds = new Set(appState.cargo.map(item => item.id));
+  appState.selectedContainers = new Set([...appState.selectedContainers].filter(id => containerIds.has(id)));
+  appState.selectedCargo = new Set([...appState.selectedCargo].filter(id => cargoIds.has(id)));
+  if (!appState.selectedContainers.size && appState.containers[0]) appState.selectedContainers.add(appState.containers[0].id);
+  if (!appState.selectedCargo.size && appState.cargo[0]) appState.selectedCargo.add(appState.cargo[0].id);
+  return appState;
+}
+
 function applyUser(next) {
   user = next;
   const name = user?.nickname || user?.username || '登录';
@@ -60,25 +75,24 @@ function applyUser(next) {
 
 async function loadBootstrap() {
   const data = await api('/api/bootstrap');
-  const appState = state();
-  if (!appState) throw new Error('页面初始化失败，请刷新后重试。');
-  appState.containers = Array.isArray(data.containers) ? data.containers : [];
-  appState.cargo = (Array.isArray(data.cargo) ? data.cargo : []).map(item => ({ ...item, quantity: Math.max(1, +item.quantity || 1) }));
+  const appState = applySharedRecords(data);
   appState.savedPlans = Array.isArray(data.plans) ? data.plans : [];
-  const containerIds = new Set(appState.containers.map(item => item.id));
-  const cargoIds = new Set(appState.cargo.map(item => item.id));
-  appState.selectedContainers = new Set([...appState.selectedContainers].filter(id => containerIds.has(id)));
-  appState.selectedCargo = new Set([...appState.selectedCargo].filter(id => cargoIds.has(id)));
-  if (!appState.selectedContainers.size && appState.containers[0]) appState.selectedContainers.add(appState.containers[0].id);
-  if (!appState.selectedCargo.size && appState.cargo[0]) appState.selectedCargo.add(appState.cargo[0].id);
   knownPlanIds = new Set(appState.savedPlans.map(item => item.id));
   applyUser(data.user);
+  requestAnimationFrame(() => { rerender(); requestAnimationFrame(rerender); });
+}
+
+async function refreshSharedRecords() {
+  if (!user) return;
+  const data = await api('/api/shared/records');
+  applySharedRecords(data);
   rerender();
 }
 
 async function syncSharedRecords() {
   if (!canEditRecords() || !state()) return;
   await api('/api/shared/records', { method: 'PUT', body: JSON.stringify({ containers: state().containers, cargo: state().cargo }) });
+  await refreshSharedRecords();
 }
 
 function bindSelectionTooltips() {
@@ -124,10 +138,12 @@ async function renderUsers() {
     $('#adminUsersList').innerHTML = data.users.map(account => {
       // Administrators always retain their management capabilities; feature
       // switches are intentionally scoped to ordinary user accounts.
-      const editable = account.role === 'user';
-      const permissionControls = editable ? `<div class="permission-switches"><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="records" type="checkbox" ${account.permissions?.records ? 'checked' : ''}> 档案维护</label><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="updates" type="checkbox" ${account.permissions?.updates ? 'checked' : ''}> 更新日志</label></div>` : '';
+      const editablePermissions = account.role === 'user';
+      const editableProfile = account.role !== 'super_admin' && (user.role === 'super_admin' || account.role === 'user');
+      const permissionControls = editablePermissions ? `<div class="permission-switches"><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="records" type="checkbox" ${account.permissions?.records ? 'checked' : ''}> 档案维护</label><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="updates" type="checkbox" ${account.permissions?.updates ? 'checked' : ''}> 更新日志</label></div>` : '';
       const roleControl = user.role === 'super_admin' && account.role !== 'super_admin' ? `<select data-user-role="${escapeHtml(account.id)}"><option value="user" ${account.role === 'user' ? 'selected' : ''}>普通用户</option><option value="admin" ${account.role === 'admin' ? 'selected' : ''}>管理员</option></select>` : '';
-      return `<div class="admin-user-row"><div><b>${escapeHtml(account.nickname || account.username)}</b><span> · ${escapeHtml(account.username)} · ${escapeHtml(account.role)}</span>${permissionControls}</div>${roleControl}</div>`;
+      const profileControls = editableProfile ? `<div class="user-edit-fields"><input data-user-username="${escapeHtml(account.id)}" value="${escapeHtml(account.username)}" aria-label="用户名"><input data-user-nickname="${escapeHtml(account.id)}" value="${escapeHtml(account.nickname || '')}" aria-label="昵称"><input data-user-password="${escapeHtml(account.id)}" type="password" placeholder="新密码（留空不修改）" aria-label="新密码"><button type="button" class="button secondary" data-save-user="${escapeHtml(account.id)}">保存用户</button></div>` : '';
+      return `<div class="admin-user-row"><div><b>${escapeHtml(account.nickname || account.username)}</b><span> · ${escapeHtml(account.username)} · ${escapeHtml(account.role)}</span>${profileControls}${permissionControls}</div>${roleControl}</div>`;
     }).join('');
     $$('[data-user-role]').forEach(select => select.addEventListener('change', async () => {
       const permissions = $$(`[data-user-permission="${select.dataset.userRole}"]`).reduce((value, input) => ({ ...value, [input.dataset.permission]: input.checked }), {});
@@ -139,6 +155,12 @@ async function renderUsers() {
       const role = $(`[data-user-role="${input.dataset.userPermission}"]`)?.value;
       try { await api('/api/admin/users', { method: 'PATCH', body: JSON.stringify({ id: input.dataset.userPermission, ...(role ? { role } : {}), permissions }) }); notify('权限已更新。'); renderUsers(); }
       catch (error) { notify(error.message, true); renderUsers(); }
+    }));
+    $$('[data-save-user]').forEach(button => button.addEventListener('click', async () => {
+      const id = button.dataset.saveUser, permissions = $$(`[data-user-permission="${id}"]`).reduce((value, item) => ({ ...value, [item.dataset.permission]: item.checked }), {}), role = $(`[data-user-role="${id}"]`)?.value;
+      const password = $(`[data-user-password="${id}"]`)?.value || '';
+      try { await api('/api/admin/users', { method: 'PATCH', body: JSON.stringify({ id, ...(role ? { role } : {}), username: $(`[data-user-username="${id}"]`)?.value, nickname: $(`[data-user-nickname="${id}"]`)?.value, password, permissions }) }); notify('用户资料已更新。'); renderUsers(); }
+      catch (error) { notify(error.message, true); }
     }));
   } catch (error) { notify(error.message, true); }
 }
@@ -189,6 +211,7 @@ function bindEvents() {
     if (!canEditRecords() && event.target.closest('#archives [data-edit], #archives [data-delete], #addArchive, #bulkDeleteArchive, .file-button')) { event.preventDefault(); event.stopImmediatePropagation(); notify('未获档案维护权限。', true); return; }
     if (canEditRecords() && archiveAction) setTimeout(() => syncSharedRecords().catch(error => notify(error.message, true)), 0);
   }, true);
+  ['workspace', 'archives'].forEach(page => $(`.nav-link[data-page="${page}"]`)?.addEventListener('click', () => { refreshSharedRecords().catch(() => {}); }, true));
   $('#archiveForm').addEventListener('submit', () => setTimeout(() => syncSharedRecords().catch(error => notify(error.message, true)), 0));
   $('#importFile').addEventListener('change', () => setTimeout(() => syncSharedRecords().catch(error => notify(error.message, true)), 300));
   $('#appDialogForm').addEventListener('submit', () => setTimeout(async () => {
@@ -210,9 +233,10 @@ async function start() {
   for (let attempt = 0; attempt < 50 && !window.TopBoxApp; attempt += 1) await new Promise(resolve => setTimeout(resolve, 50));
   bindEvents();
   try { await loadBootstrap(); $('#authGate').classList.add('is-hidden'); }
-  catch { /* No session: the login gate remains visible. */ }
+  catch { $('#authGate').classList.add('is-visible'); }
   bindSelectionTooltips();
   setInterval(bindSelectionTooltips, 700);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshSharedRecords().catch(() => {}); });
 }
 
 start();
