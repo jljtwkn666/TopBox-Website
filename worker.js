@@ -19,12 +19,19 @@ const uniqueRecords = records => [...new Map(records.filter(item => item && type
 const isContainerRecord = item => CONTAINER_TYPES.has(String(item?.type || ''));
 const isCargoRecord = item => CARGO_TYPES.has(String(item?.type || ''));
 const canonicalRecords = raw => {
-  const containers = Array.isArray(raw?.containers) ? raw.containers : [];
-  const cargo = Array.isArray(raw?.cargo) ? raw.cargo : [];
-  const all = [...containers, ...cargo];
-  const cleanContainers = uniqueRecords(all.filter(isContainerRecord));
-  const cleanCargo = uniqueRecords(all.filter(isCargoRecord));
-  return { containers: cleanContainers.length ? cleanContainers : SEED_CONTAINERS, cargo: cleanCargo.length ? cleanCargo : SEED_CARGO };
+  const hasContainers = Array.isArray(raw?.containers), hasCargo = Array.isArray(raw?.cargo);
+  const containers = hasContainers ? raw.containers : [];
+  const cargo = hasCargo ? raw.cargo : [];
+  const contaminatedContainers = containers.some(item => !isContainerRecord(item));
+  const contaminatedCargo = cargo.some(item => !isCargoRecord(item));
+  const cleanContainers = uniqueRecords([...containers.filter(isContainerRecord), ...(contaminatedCargo ? cargo.filter(isContainerRecord) : [])]);
+  const cleanCargo = uniqueRecords([...cargo.filter(isCargoRecord), ...(contaminatedContainers ? containers.filter(isCargoRecord) : [])]);
+  return {
+    // An intentionally empty archive remains empty.  Seed data is used only
+    // for a missing collection or one that has been contaminated by the other type.
+    containers: cleanContainers.length || (hasContainers && !contaminatedContainers) ? cleanContainers : SEED_CONTAINERS,
+    cargo: cleanCargo.length || (hasCargo && !contaminatedCargo) ? cleanCargo : SEED_CARGO
+  };
 };
 async function loadSharedRecords(env, repair = true) {
   const rows = await env.DB.prepare('SELECT record_key, payload FROM shared_records').all();
