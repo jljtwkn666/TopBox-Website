@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="zh-CN">
   <head>
@@ -20,7 +21,7 @@
         <button class="nav-link" data-page="settings">设置</button>
         <button class="nav-link" data-page="updates">更新日志</button>
       </nav>
-      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v2.3.0</span></div>
+      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v2.3.1</span></div>
     </header>
 
     <main>
@@ -68,6 +69,7 @@
 
       <section id="updates" class="page">
         <div class="page-heading"><div><p class="eyebrow">RELEASE NOTES</p><h1>更新日志</h1><p>TOP BOX货物装载配货平台版本记录。</p></div><label class="update-filter">更新日期<select id="updateDateFilter"><option value="all">全部日期</option><option value="2026-10-17">2026-10-17</option><option value="2026-10-16">2026-10-16</option><option value="2026-10-15">2026-10-15</option><option value="2026-10-14">2026-10-14</option></select></label></div>
+        <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.3.1</h2><time>2026-10-17</time></div><ul><li>修复登录成功后页面数据刷新时的翻译函数作用域异常，避免出现“t is not defined”并中断登录。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.3.0</h2><time>2026-10-17</time></div><ul><li>导出方案图片与 PDF 的文件名统一采用“TOP BOX货物装车方案”前缀。</li><li>已选容器／货物标签改为自定义悬浮清单，可直接查看已选择的名称。</li><li>新增图文使用教程、用户登录、账户中心和管理员后台；共享档案与个人方案改由服务端安全保存。</li><li>修复 Cloudflare 密码哈希兼容性问题，默认超级管理员与共享档案初始化已验证。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-16"><div class="release-title"><h2>v2.2.1</h2><time>2026-10-16</time></div><ul><li>档案与方案管理页改为页面本身不滚动，只有列表区域滚动；列头保持固定。</li><li>满载优先的“仅单选货物”提示改为红色；未装载标签固定显示包数与小件数，并强化额外车辆方案入口。</li><li>更新日志按日期自动分组，可折叠展开，并显示每个日期的更新条数。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-16"><div class="release-title"><h2>v2.2.0</h2><time>2026-10-16</time></div><ul><li>档案管理默认打开容器档案；新增档案按容器／货物类型智能隐藏不适用字段。</li><li>档案与方案列表优化为固定列头、勾选列优先，已选数量支持悬浮查看名称。</li><li>未装载标签新增包数与小件数，并提供基于现有车厢档案的额外车辆装载建议。</li><li>补齐顶部菜单、搜索框多语言显示；导出按钮更新为蓝色“导出方案PDF”。</li></ul></article>
@@ -87,7 +89,7 @@
       </section>
 
       <section id="tutorial" class="page">
-        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.3.0 更新</span></div>
+        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.3.1 更新</span></div>
         <div class="tutorial-grid" id="tutorialGrid">
           <article class="tutorial-card"><span class="tutorial-step">01</span><div class="tutorial-graphic account-graphic">◉</div><h2>登录与账户</h2><p>首次由管理员创建账号。登录后可在账户中心修改昵称、头像链接和密码。</p></article>
           <article class="tutorial-card"><span class="tutorial-step">02</span><div class="tutorial-graphic archive-graphic">▤</div><h2>维护共享档案</h2><p>管理员在“档案管理”维护容器和货物；更新后全部用户都会使用同一份档案。</p></article>
