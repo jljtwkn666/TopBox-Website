@@ -11,6 +11,7 @@ let pendingAvatar = '';
 // here avoids the old card renderers in app.js reusing stale selection state.
 const stableArchiveSelection = new Set();
 const stablePlanSelection = new Set();
+let accountConfirmResolver = null;
 
 const notify = (message, error = false) => {
   const toast = $('#appToast');
@@ -112,11 +113,13 @@ function bindSelectionTooltips() {
       const records = badge.id === 'selectedContainerCount' ? appState.containers : appState.cargo;
       const ids = badge.id === 'selectedContainerCount' ? appState.selectedContainers : appState.selectedCargo;
       const names = records.filter(item => ids.has(item.id)).map(item => item.name);
-      return names.join('、') || '暂未选择';
+      return names.join('、');
     };
     const show = event => {
       const rect = badge.getBoundingClientRect(), x = event?.clientX || rect.left + rect.width / 2, y = event?.clientY || rect.bottom;
-      tooltip.textContent = selectionText();
+      const text = selectionText();
+      if (!text) { tooltip.classList.remove('visible'); return; }
+      tooltip.textContent = text;
       tooltip.style.left = `${Math.max(12, Math.min(window.innerWidth - 380, x + 12))}px`;
       tooltip.style.top = `${Math.min(window.innerHeight - 68, y + 12)}px`;
       tooltip.classList.add('visible');
@@ -155,10 +158,11 @@ async function renderUsers() {
       const editableProfile = account.role !== 'super_admin' && (user.role === 'super_admin' || account.role === 'user');
       const permissionControls = editablePermissions ? `<div class="permission-switches"><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="records" type="checkbox" ${account.permissions?.records ? 'checked' : ''}> 档案维护</label><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="updates" type="checkbox" ${account.permissions?.updates ? 'checked' : ''}> 更新日志</label></div>` : '';
       const roleControl = user.role === 'super_admin' && account.role !== 'super_admin' ? `<select data-user-role="${escapeHtml(account.id)}"><option value="user" ${account.role === 'user' ? 'selected' : ''}>普通用户</option><option value="admin" ${account.role === 'admin' ? 'selected' : ''}>管理员</option></select>` : '';
-      const profileControls = editableProfile ? `<div class="user-edit-fields"><input data-user-username="${escapeHtml(account.id)}" value="${escapeHtml(account.username)}" aria-label="用户名"><input data-user-nickname="${escapeHtml(account.id)}" value="${escapeHtml(account.nickname || '')}" aria-label="昵称"><input data-user-password="${escapeHtml(account.id)}" type="password" placeholder="新密码（留空不修改）" aria-label="新密码"><button type="button" class="button secondary" data-save-user="${escapeHtml(account.id)}">保存用户</button></div>` : '';
+      const profileControls = editableProfile ? `<div class="user-edit-fields"><input data-user-username="${escapeHtml(account.id)}" value="${escapeHtml(account.username)}" aria-label="用户名"><input data-user-nickname="${escapeHtml(account.id)}" value="${escapeHtml(account.nickname || '')}" aria-label="昵称"><input data-user-password="${escapeHtml(account.id)}" type="password" placeholder="新密码（留空不修改）" aria-label="新密码"></div>` : '';
+      const saveControl = editableProfile ? `<button type="button" class="button secondary" data-save-user="${escapeHtml(account.id)}">保存用户</button>` : '';
       const deletable = account.role !== 'super_admin' && (user.role === 'super_admin' || account.role === 'user');
       const deleteControl = deletable ? `<button type="button" class="text-button delete-user" data-delete-user="${escapeHtml(account.id)}">删除用户</button>` : '';
-      return `<div class="admin-user-row"><div><b>${escapeHtml(account.nickname || account.username)}</b><span> · ${escapeHtml(account.username)} · ${escapeHtml(account.role)}</span>${profileControls}${permissionControls}</div><div class="user-row-actions">${roleControl}${deleteControl}</div></div>`;
+      return `<div class="admin-user-row"><div><b>${escapeHtml(account.nickname || account.username)}</b><span> · ${escapeHtml(account.username)} · ${escapeHtml(account.role)}</span>${profileControls}${permissionControls}</div><div class="user-row-actions">${roleControl}${saveControl}${deleteControl}</div></div>`;
     }).join('');
     $$('[data-user-role]').forEach(select => select.addEventListener('change', async () => {
       const permissions = $$(`[data-user-permission="${select.dataset.userRole}"]`).reduce((value, input) => ({ ...value, [input.dataset.permission]: input.checked }), {});
@@ -186,6 +190,34 @@ async function renderUsers() {
 }
 
 function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[c]); }
+
+function askAccountConfirm(message, title = '确认删除') {
+  const dialog = $('#appDialog');
+  if (!dialog) return Promise.resolve(false);
+  if (dialog.open) dialog.close();
+  $('#appDialogEyebrow').textContent = 'TOP BOX';
+  $('#appDialogTitle').textContent = title;
+  $('#appDialogMessage').textContent = message;
+  $('#appDialogInputWrap').classList.add('hidden');
+  $('#pdfPreview').classList.add('hidden');
+  $('#pdfDownload').classList.add('hidden');
+  $('#pdfPrint').classList.add('hidden');
+  $('#appDialogCancel').classList.remove('hidden');
+  $('#appDialogConfirm').classList.remove('hidden');
+  $('#appDialogConfirm').textContent = '确定';
+  return new Promise(resolve => { accountConfirmResolver = resolve; dialog.showModal(); });
+}
+
+function settleAccountConfirm(answer) {
+  const resolve = accountConfirmResolver; accountConfirmResolver = null;
+  if (resolve) resolve(answer);
+}
+
+function updateStableBulkButtons() {
+  const archive = $('#bulkDeleteArchive'), plans = $('#bulkDeletePlans');
+  if (archive) { archive.disabled = !stableArchiveSelection.size; archive.textContent = stableArchiveSelection.size ? `批量删除 (${stableArchiveSelection.size})` : '批量删除'; }
+  if (plans) { plans.disabled = !stablePlanSelection.size; plans.textContent = stablePlanSelection.size ? `批量删除 (${stablePlanSelection.size})` : '批量删除'; }
+}
 
 // Management pages used to be rendered by several historical implementations
 // in app.js.  These two renderers deliberately own the complete table markup,
@@ -237,7 +269,7 @@ function renderStableArchives() {
   const pageData = stablePage(filtered, 'archivePage', 'archiveSize');
   const table = rowsNode.closest('table');
   if (!table) return;
-  table.className = 'stable-data-table stable-archive-table';
+  table.className = `stable-data-table stable-archive-table ${isContainer ? 'is-container' : 'is-cargo'}`;
   const columns = isContainer ? 9 : 10;
   const allSelected = filtered.length > 0 && filtered.every(record => stableArchiveSelection.has(record.id));
   const someSelected = filtered.some(record => stableArchiveSelection.has(record.id));
@@ -250,15 +282,12 @@ function renderStableArchives() {
   $('#containerTotal').textContent = appState.containers.length; $('#cargoTotal').textContent = appState.cargo.length;
   $('#archiveCount').textContent = `共 ${filtered.length} 条记录`;
   renderStablePager('archivePager', pageData, filtered.length, 'archivePage', 'archiveSize', renderStableArchives);
+  updateStableBulkButtons();
 }
 
-async function deleteArchivesDirect(ids, button) {
+async function deleteArchivesDirect(ids) {
   if (!ids.length) return;
-  if (button?.dataset.confirming !== 'true') {
-    if (button) { button.dataset.confirming = 'true'; button.textContent = '再次点击确认删除'; setTimeout(() => { if (button.dataset.confirming === 'true') { button.dataset.confirming = ''; button.textContent = '删除'; } }, 3000); }
-    else notify('再次点击“批量删除”确认删除所选档案。', true);
-    return;
-  }
+  if (!await askAccountConfirm(`确定删除已选择的 ${ids.length} 条档案吗？`)) return;
   const appState = state(), remove = new Set(ids);
   appState[appState.archive] = appState[appState.archive].filter(record => !remove.has(record.id));
   ids.forEach(id => { stableArchiveSelection.delete(id); appState.selectedContainers.delete(id); appState.selectedCargo.delete(id); });
@@ -286,15 +315,12 @@ function renderStablePlans() {
   $$('[data-stable-open-plan]').forEach(button => button.addEventListener('click', () => globalThis.openSavedPlan?.(button.dataset.stableOpenPlan)));
   $$('[data-stable-delete-plan]').forEach(button => button.addEventListener('click', () => deletePlansDirect([button.dataset.stableDeletePlan], button)));
   renderStablePager('savedPlansPager', pageData, plans.length, 'savedPlansPage', 'savedPlansSize', renderStablePlans);
+  updateStableBulkButtons();
 }
 
-async function deletePlansDirect(ids, button) {
+async function deletePlansDirect(ids) {
   if (!ids.length) return;
-  if (button?.dataset.confirming !== 'true') {
-    if (button) { button.dataset.confirming = 'true'; button.textContent = '再次点击确认删除'; setTimeout(() => { if (button.dataset.confirming === 'true') { button.dataset.confirming = ''; button.textContent = '删除'; } }, 3000); }
-    else notify('再次点击“批量删除”确认删除所选方案。', true);
-    return;
-  }
+  if (!await askAccountConfirm(`确定删除已选择的 ${ids.length} 个装载方案吗？`)) return;
   try {
     await Promise.all(ids.map(id => api(`/api/plans/${encodeURIComponent(id)}`, { method: 'DELETE' })));
     const remove = new Set(ids); state().savedPlans = state().savedPlans.filter(plan => !remove.has(plan.id)); ids.forEach(id => { stablePlanSelection.delete(id); knownPlanIds.delete(id); });
@@ -416,18 +442,30 @@ function bindEvents() {
     const bulkPlans = event.target.closest('#bulkDeletePlans');
     if (!bulkArchives && !bulkPlans) return;
     event.preventDefault(); event.stopImmediatePropagation();
-    const button = bulkArchives || bulkPlans;
     const selected = bulkArchives ? [...stableArchiveSelection] : [...stablePlanSelection];
     if (!selected.length) { notify(bulkArchives ? '请先选择要删除的档案。' : '请先选择要删除的方案。', true); return; }
-    if (button.dataset.confirming !== 'true') {
-      button.dataset.confirming = 'true'; button.dataset.originalText = button.textContent; button.textContent = '再次点击确认删除';
-      setTimeout(() => { if (button.dataset.confirming === 'true') { button.dataset.confirming = ''; button.textContent = button.dataset.originalText || '批量删除'; } }, 3000);
-      return;
-    }
-    button.dataset.confirming = ''; button.textContent = button.dataset.originalText || '批量删除';
-    if (bulkArchives) deleteArchivesDirect(selected, { dataset: { confirming: 'true' } });
-    else deletePlansDirect(selected, { dataset: { confirming: 'true' } });
+    if (bulkArchives) deleteArchivesDirect(selected);
+    else deletePlansDirect(selected);
   }, true);
+  // The application-level dialog is reused for persistent deletion
+  // confirmation. Capture these events so the older dialog callbacks cannot
+  // close it without resolving the deletion promise.
+  $('#appDialogForm').addEventListener('submit', event => {
+    if (!accountConfirmResolver) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    settleAccountConfirm(true); $('#appDialog').close();
+  }, true);
+  ['#appDialogCancel', '#appDialogClose'].forEach(selector => $(selector)?.addEventListener('click', event => {
+    if (!accountConfirmResolver) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    settleAccountConfirm(false); $('#appDialog').close();
+  }, true));
+  $('#appDialog').addEventListener('cancel', event => {
+    if (!accountConfirmResolver) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    settleAccountConfirm(false); $('#appDialog').close();
+  }, true);
+  $('#appDialog').addEventListener('close', () => settleAccountConfirm(false));
   $('#appDialogForm').addEventListener('submit', () => setTimeout(async () => {
     const appState = state(); if (!appState) return;
     const candidate = appState.savedPlans.find(item => !knownPlanIds.has(item.id));
