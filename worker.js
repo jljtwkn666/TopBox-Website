@@ -147,9 +147,10 @@ async function api(request, env, path) {
     }
   }
   if (path === '/api/shares' && request.method === 'POST') {
-    const body = await readBody(request), kind = String(body?.kind || ''), payload = body?.payload;
+    const body = await readBody(request), kind = String(body?.kind || ''), payload = body?.payload, expiresInHours = Number(body?.expiresInHours ?? 1);
     if (!['containers', 'cargo', 'plans'].includes(kind) || !Array.isArray(payload)) return error('分享数据无效。');
-    const code = newShareCode(), expiresAt = new Date(Date.now() + 30 * 86400000).toISOString();
+    if (!Number.isFinite(expiresInHours) || expiresInHours < 1 || expiresInHours > 8760) return error('分享码有效期需为 1–8760 小时。');
+    const code = newShareCode(), expiresAt = new Date(Date.now() + expiresInHours * 3600000).toISOString();
     await env.DB.prepare('INSERT INTO share_codes (code, owner_id, record_kind, payload, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?)').bind(code, user.id, kind, JSON.stringify(payload), now(), expiresAt).run();
     return json({ code, expiresAt });
   }
