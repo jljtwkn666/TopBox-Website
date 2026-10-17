@@ -115,3 +115,14 @@
 #cargoList .select-row>.quantity>.quantity-total{display:block!important;min-width:0!important;text-align:right!important;white-space:nowrap!important;font-size:11px!important}
 @media(max-width:760px){#containerList.selection-list,#cargoList.selection-list{max-height:520px!important}#cargoList .select-row{grid-template-columns:22px 34px minmax(0,1fr)!important;grid-template-rows:auto auto!important}#cargoList .select-row>.quantity{grid-column:1/-1;grid-row:2;width:auto!important;min-width:0!important;justify-self:stretch!important;padding-left:56px!important}#cargoList .select-row>.quantity>.quantity-total{text-align:left!important}}
 
+/* v2.6 — restore the compact saved-plan card layout. */
+#savedPlansList .saved-plan-list-head{display:none!important}
+#savedPlansList .saved-plan-card{display:grid!important;grid-template-columns:30px 30px minmax(0,1fr) auto!important;align-items:center!important;gap:12px!important;min-height:112px!important;padding:18px 20px!important;margin:0!important}
+#savedPlansList .saved-plan-card .plan-select,#savedPlansList .saved-plan-card .plan-sequence{position:static!important;grid-row:1!important;margin:0!important;align-self:center!important}
+#savedPlansList .saved-plan-card .plan-select{grid-column:1!important}
+#savedPlansList .saved-plan-card .plan-sequence{grid-column:2!important}
+#savedPlansList .saved-plan-card>div:first-of-type{grid-column:3!important;padding:0!important;align-self:center!important}
+#savedPlansList .saved-plan-card .saved-plan-actions{grid-column:4!important;padding:0!important;justify-self:end!important;align-self:center!important}
+.user-row-actions{display:flex;align-items:center;gap:8px}.delete-user{color:#dc2626!important;border:1px solid #fecaca!important;border-radius:7px!important;padding:5px 8px!important}.delete-user:hover{background:#fff1f2!important}
+@media(max-width:720px){#savedPlansList .saved-plan-card{grid-template-columns:28px 28px minmax(0,1fr)!important;align-items:start!important}#savedPlansList .saved-plan-card .saved-plan-actions{grid-column:3!important;justify-self:start!important}}
+
