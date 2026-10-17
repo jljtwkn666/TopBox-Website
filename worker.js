@@ -43,6 +43,14 @@ async function loadSharedRecords(env, repair = true) {
   if (repair && changed) await env.DB.batch(['containers', 'cargo'].map(key => env.DB.prepare('INSERT INTO shared_records (record_key, payload, updated_at, updated_by) VALUES (?, ?, ?, ?) ON CONFLICT(record_key) DO UPDATE SET payload=excluded.payload, updated_at=excluded.updated_at, updated_by=excluded.updated_by').bind(key, JSON.stringify(records[key]), now(), 'system_repair')));
   return records;
 }
+async function loadUserRecords(env, ownerId) {
+  const rows = await env.DB.prepare('SELECT record_key, payload FROM user_records WHERE owner_id = ?').bind(ownerId).all();
+  if ((rows.results || []).length) return canonicalRecords(Object.fromEntries((rows.results || []).map(row => [row.record_key, JSON.parse(row.payload)])));
+  const initial = await loadSharedRecords(env, false);
+  await env.DB.batch(['containers', 'cargo'].map(key => env.DB.prepare('INSERT OR IGNORE INTO user_records (owner_id, record_key, payload, updated_at) VALUES (?, ?, ?, ?)').bind(ownerId, key, JSON.stringify(initial[key]), now())));
+  return initial;
+}
+const newShareCode = () => `TB-${crypto.randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase()}`;
 
 const json = (data, status = 200, headers = {}) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...headers } });
 const error = (message, status = 400) => json({ error: message }, status);
@@ -64,7 +72,9 @@ async function ensureSchema(env) {
     env.DB.prepare('CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, password_salt TEXT NOT NULL, role TEXT NOT NULL, nickname TEXT NOT NULL, avatar TEXT DEFAULT \'\', created_at TEXT NOT NULL, updated_at TEXT NOT NULL)'),
     env.DB.prepare('CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL, expires_at TEXT NOT NULL, created_at TEXT NOT NULL)'),
     env.DB.prepare('CREATE TABLE IF NOT EXISTS shared_records (record_key TEXT PRIMARY KEY, payload TEXT NOT NULL, updated_at TEXT NOT NULL, updated_by TEXT)'),
-    env.DB.prepare('CREATE TABLE IF NOT EXISTS plans (id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, name TEXT NOT NULL, payload TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)')
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS user_records (owner_id TEXT NOT NULL, record_key TEXT NOT NULL, payload TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY (owner_id, record_key))'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS plans (id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, name TEXT NOT NULL, payload TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS share_codes (code TEXT PRIMARY KEY, owner_id TEXT NOT NULL, record_kind TEXT NOT NULL, payload TEXT NOT NULL, created_at TEXT NOT NULL, expires_at TEXT NOT NULL)')
   ]);
   // Existing deployments predate per-user feature permissions. The migration is
   // deliberately idempotent because every Worker isolate can initialize itself.
@@ -108,7 +118,7 @@ async function api(request, env, path) {
   const user = await sessionUser(request, env);
   if (!user) return error('请先登录。', 401);
   if (path === '/api/bootstrap' && request.method === 'GET') {
-    const records = await loadSharedRecords(env);
+    const records = await loadUserRecords(env, user.id);
     const plans = await env.DB.prepare('SELECT id, name, payload, created_at, updated_at FROM plans WHERE owner_id = ? ORDER BY updated_at DESC').bind(user.id).all();
     return json({ user, containers: records.containers, cargo: records.cargo, plans: (plans.results || []).map(row => ({ id: row.id, name: row.name, createdAt: row.created_at, updatedAt: row.updated_at, ...JSON.parse(row.payload) })) });
   }
@@ -127,14 +137,38 @@ async function api(request, env, path) {
     return json({ ok: true });
   }
   if (path === '/api/shared/records') {
-    if (request.method === 'GET') return json(await loadSharedRecords(env));
+    if (request.method === 'GET') return json(await loadUserRecords(env, user.id));
     if (request.method === 'PUT') {
-      if (!canEditRecords(user)) return error('未获档案维护权限。', 403);
-      const body = await readBody(request); if (!Array.isArray(body?.containers) || !Array.isArray(body?.cargo)) return error('共享档案格式无效。');
+      const body = await readBody(request); if (!Array.isArray(body?.containers) || !Array.isArray(body?.cargo)) return error('档案格式无效。');
       if (body.containers.some(item => !isContainerRecord(item)) || body.cargo.some(item => !isCargoRecord(item))) return error('容器与货物档案类型不匹配，已拒绝保存以保护档案数据。');
       const records = { containers: uniqueRecords(body.containers), cargo: uniqueRecords(body.cargo) };
-      await env.DB.batch(['containers', 'cargo'].map(key => env.DB.prepare('INSERT INTO shared_records (record_key, payload, updated_at, updated_by) VALUES (?, ?, ?, ?) ON CONFLICT(record_key) DO UPDATE SET payload=excluded.payload, updated_at=excluded.updated_at, updated_by=excluded.updated_by').bind(key, JSON.stringify(records[key]), now(), user.id)));
+      await env.DB.batch(['containers', 'cargo'].map(key => env.DB.prepare('INSERT INTO user_records (owner_id, record_key, payload, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(owner_id, record_key) DO UPDATE SET payload=excluded.payload, updated_at=excluded.updated_at').bind(user.id, key, JSON.stringify(records[key]), now())));
       return json({ ok: true });
+    }
+  }
+  if (path === '/api/shares' && request.method === 'POST') {
+    const body = await readBody(request), kind = String(body?.kind || ''), payload = body?.payload;
+    if (!['containers', 'cargo', 'plans'].includes(kind) || !Array.isArray(payload)) return error('分享数据无效。');
+    const code = newShareCode(), expiresAt = new Date(Date.now() + 30 * 86400000).toISOString();
+    await env.DB.prepare('INSERT INTO share_codes (code, owner_id, record_kind, payload, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?)').bind(code, user.id, kind, JSON.stringify(payload), now(), expiresAt).run();
+    return json({ code, expiresAt });
+  }
+  if (path.startsWith('/api/shares/')) {
+    const parts = path.slice('/api/shares/'.length).split('/'), code = decodeURIComponent(parts[0]).toUpperCase();
+    const share = await env.DB.prepare('SELECT * FROM share_codes WHERE code = ? AND expires_at > ?').bind(code, now()).first();
+    if (!share) return error('分享码无效或已过期。', 404);
+    const payload = JSON.parse(share.payload);
+    if (parts[1] !== 'import' && request.method === 'GET') return json({ code, kind: share.record_kind, count: payload.length, expiresAt: share.expires_at });
+    if (parts[1] === 'import' && request.method === 'POST') {
+      if (share.record_kind === 'plans') {
+        for (const plan of payload) await env.DB.prepare('INSERT INTO plans (id, owner_id, name, payload, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)').bind(`p_${randomId()}`, user.id, String(plan.name || '导入方案').slice(0, 120), JSON.stringify({ mode: plan.mode || 'specified', plans: plan.plans || [] }), now(), now()).run();
+      } else {
+        const records = await loadUserRecords(env, user.id), key = share.record_kind, ids = new Set(records[key].map(item => item.id));
+        const imported = payload.map(item => ({ ...item, id: ids.has(item.id) ? `${item.id}_${randomId().slice(0, 6)}` : item.id }));
+        records[key] = uniqueRecords([...records[key], ...imported]);
+        await env.DB.prepare('INSERT INTO user_records (owner_id, record_key, payload, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(owner_id, record_key) DO UPDATE SET payload=excluded.payload, updated_at=excluded.updated_at').bind(user.id, key, JSON.stringify(records[key]), now()).run();
+      }
+      return json({ ok: true, kind: share.record_kind, count: payload.length });
     }
   }
   if (path === '/api/plans' && request.method === 'POST') {
@@ -175,6 +209,17 @@ async function api(request, env, path) {
       catch { return error('该账号已存在。'); }
       return json({ ok: true });
     }
+  }
+  if (path.startsWith('/api/admin/users/') && request.method === 'DELETE') {
+    if (!canManageUsers(user)) return error('无用户管理权限。', 403);
+    const id = decodeURIComponent(path.slice('/api/admin/users/'.length)), target = await env.DB.prepare('SELECT id, role FROM users WHERE id = ?').bind(id).first();
+    if (!target || target.id === user.id || target.role === 'super_admin') return error('不能删除该账号。');
+    if (user.role !== 'super_admin' && target.role !== 'user') return error('普通管理员只能删除普通用户。', 403);
+    await env.DB.batch([
+      env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(id), env.DB.prepare('DELETE FROM user_records WHERE owner_id = ?').bind(id),
+      env.DB.prepare('DELETE FROM plans WHERE owner_id = ?').bind(id), env.DB.prepare('DELETE FROM share_codes WHERE owner_id = ?').bind(id), env.DB.prepare('DELETE FROM users WHERE id = ?').bind(id)
+    ]);
+    return json({ ok: true });
   }
   return error('接口不存在。', 404);
 }
