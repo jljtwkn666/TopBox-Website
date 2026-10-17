@@ -75,6 +75,7 @@
 
       <section id="updates" class="page">
         <div class="page-heading"><div><p class="eyebrow">RELEASE NOTES</p><h1>更新日志</h1><p>TOP BOX货物装载配货平台版本记录。</p></div><label class="update-filter">更新日期<select id="updateDateFilter"><option value="all">全部日期</option><option value="2026-10-17">2026-10-17</option><option value="2026-10-16">2026-10-16</option><option value="2026-10-15">2026-10-15</option><option value="2026-10-14">2026-10-14</option></select></label></div>
+        <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.7.3</h2><time>2026-10-17</time></div><ul><li>启动器改为直接读取载荷文件并增加加载校验，进一步增强登录页主程序启动稳定性。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.7.2</h2><time>2026-10-17</time></div><ul><li>主程序改为压缩载荷启动器加载，完全绕过已损坏的旧静态脚本；账号模块会等待主程序就绪后再初始化。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.7.1</h2><time>2026-10-17</time></div><ul><li>登录修复完成发布：更新主脚本版本地址，强制清除此前错误文件的浏览器缓存并加载完整脚本。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.7.0</h2><time>2026-10-17</time></div><ul><li>登录修复改用 Worker 服务端解压并返回完整 JavaScript，消除浏览器对压缩脚本响应的兼容性差异。</li></ul></article>
@@ -111,7 +112,7 @@
       </section>
 
       <section id="tutorial" class="page">
-        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.7.2 更新</span></div>
+        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.7.3 更新</span></div>
         <div class="tutorial-grid" id="tutorialGrid">
           <article class="tutorial-card"><span class="tutorial-step">01</span><div class="tutorial-graphic account-graphic">◉</div><h2>登录与账户</h2><p>首次由管理员创建账号。登录后可在账户中心修改昵称、上传头像图片和修改密码。</p></article>
           <article class="tutorial-card"><span class="tutorial-step">02</span><div class="tutorial-graphic archive-graphic">▤</div><h2>维护个人档案</h2><p>在“档案管理”维护当前账号自己的容器和货物；档案与其他账号互不影响。</p></article>
@@ -150,8 +151,8 @@
         }
       }
     </script>
-    <script type="module" src="app-loader.js?v=2.7.2"></script>
-    <script type="module" src="account.js?v=2.7.2"></script>
+    <script type="module" src="app-loader.js?v=2.7.3"></script>
+    <script type="module" src="account.js?v=2.7.3"></script>
   </body>
 </html>
 
