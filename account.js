@@ -125,6 +125,14 @@ function bindSelectionTooltips() {
   });
 }
 
+function bindUtilizationPrecision() {
+  const target = $('#utilizationPercent'); if (!target || target.dataset.precisionBound) return;
+  target.dataset.precisionBound = 'true';
+  const format = () => { const value = Number.parseFloat(target.textContent); const next = Number.isFinite(value) ? `${value.toFixed(2)}%` : '0.00%'; if (target.textContent !== next) target.textContent = next; };
+  new MutationObserver(format).observe(target, { childList: true, characterData: true, subtree: true });
+  format();
+}
+
 function openAccountPage() {
   $$('.nav-link').forEach(item => item.classList.remove('active'));
   $$('.page').forEach(item => item.classList.toggle('active-page', item.id === 'account'));
@@ -190,10 +198,14 @@ async function regenerateShareCode() {
   const appState = state(); if (!shareAction || !appState) return;
   const payload = shareAction.kind === 'plans' ? appState.savedPlans : appState[shareAction.kind];
   const input = $('#shareCodeInput');
+  const preset = $('#shareExpiryPreset').value;
+  const customHours = (+$('#shareCustomValue').value || 0) * ($('#shareCustomUnit').value === 'day' ? 24 : 1);
+  const expiresInHours = preset === 'custom' ? customHours : +preset;
+  if (!Number.isFinite(expiresInHours) || expiresInHours < 1 || expiresInHours > 8760) throw new Error('自定义有效时长需为 1–8760 小时。');
   $('#shareConfirm').disabled = true;
   $('#shareMessage').textContent = '正在随机生成可用分享码…';
   try {
-    const result = await api('/api/shares', { method: 'POST', body: JSON.stringify({ kind: shareAction.kind, payload }) });
+    const result = await api('/api/shares', { method: 'POST', body: JSON.stringify({ kind: shareAction.kind, payload, expiresInHours }) });
     input.value = result.code; input.readOnly = true;
     $('#shareMessage').textContent = `分享码已生成：${result.code}\n有效至 ${new Date(result.expiresAt).toLocaleString('zh-CN')}。`;
   } finally { $('#shareConfirm').disabled = false; }
@@ -206,6 +218,8 @@ function openShareDialog(mode, kind) {
   input.value = ''; input.readOnly = mode === 'create';
   const appendMode = $('input[name="shareImportMode"][value="append"]'); if (appendMode) appendMode.checked = true;
   $('#shareImportMode').classList.add('hidden');
+  $('#shareExpiryOptions').classList.toggle('hidden', mode !== 'create');
+  $('#shareCustomExpiry').classList.add('hidden');
   $('#shareCopy').classList.toggle('hidden', mode !== 'create');
   $('#shareConfirm').textContent = mode === 'create' ? '随机生成' : '下一步';
   dialog.showModal();
@@ -234,6 +248,7 @@ function bindEvents() {
   $('#shareClose').addEventListener('click', () => $('#shareDialog').close());
   $('#shareCancel').addEventListener('click', () => $('#shareDialog').close());
   $('#shareCopy').addEventListener('click', async () => { const code = $('#shareCodeInput').value; if (!code) return; try { await navigator.clipboard.writeText(code); notify('分享码已复制。'); } catch { $('#shareCodeInput').select(); document.execCommand('copy'); notify('分享码已复制。'); } });
+  $('#shareExpiryPreset').addEventListener('change', event => $('#shareCustomExpiry').classList.toggle('hidden', event.target.value !== 'custom'));
   $('#shareForm').addEventListener('submit', async event => { event.preventDefault(); try { await handleShareDialog(); } catch (error) { notify(error.message, true); } });
   $('#shareArchives').addEventListener('click', () => openShareDialog('create', state()?.archive === 'cargo' ? 'cargo' : 'containers'));
   $('#importArchiveShare').addEventListener('click', () => openShareDialog('import', 'archives'));
@@ -294,6 +309,7 @@ async function start() {
   bindEvents();
   try { await loadBootstrap(); $('#authGate').classList.add('is-hidden'); }
   catch { $('#authGate').classList.add('is-visible'); }
+  bindUtilizationPrecision();
   bindSelectionTooltips();
   setInterval(bindSelectionTooltips, 700);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadBootstrap().catch(() => {}); });
