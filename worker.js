@@ -21,7 +21,7 @@ const randomId = () => crypto.randomUUID().replace(/-/g, '');
 async function sha256(value) { return bytesToBase64(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value)))); }
 async function passwordHash(password, salt) {
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
-  return bytesToBase64(new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: base64ToBytes(salt), iterations: 150000 }, key, 256)));
+  return bytesToBase64(new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: base64ToBytes(salt), iterations: 100000 }, key, 256)));
 }
 async function newPassword(password) { const salt = bytesToBase64(crypto.getRandomValues(new Uint8Array(16))); return { salt, hash: await passwordHash(password, salt) }; }
 
@@ -126,5 +126,5 @@ async function api(request, env, path) {
   return error('接口不存在。', 404);
 }
 
-export default { async fetch(request, env) { const url = new URL(request.url); try { return url.pathname.startsWith('/api/') ? await api(request, env, url.pathname) : env.ASSETS.fetch(request); } catch (cause) { console.error(cause); return error(`服务暂时不可用：${String(cause?.message || cause).slice(0, 180)}`, 500); } } };
+export default { async fetch(request, env) { const url = new URL(request.url); try { return url.pathname.startsWith('/api/') ? await api(request, env, url.pathname) : env.ASSETS.fetch(request); } catch (cause) { console.error(cause); return error('服务暂时不可用，请稍后重试。', 500); } } };
 
