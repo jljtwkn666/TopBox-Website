@@ -6,6 +6,7 @@ const $$ = selector => [...document.querySelectorAll(selector)];
 globalThis.t ??= text => String(text ?? '');
 let user = null;
 let knownPlanIds = new Set();
+let pendingAvatar = '';
 
 const notify = (message, error = false) => {
   const toast = $('#appToast');
@@ -24,6 +25,8 @@ const api = async (path, options = {}) => {
   return data;
 };
 const isAdmin = () => user?.role === 'admin' || user?.role === 'super_admin';
+const canEditRecords = () => isAdmin() || Boolean(user?.permissions?.records);
+const canViewUpdates = () => isAdmin() || Boolean(user?.permissions?.updates);
 
 const state = () => window.TopBoxApp?.state;
 const rerender = () => {
@@ -35,13 +38,24 @@ function applyUser(next) {
   user = next;
   const name = user?.nickname || user?.username || '登录';
   $('#accountName').textContent = name;
-  $('#accountAvatar').textContent = (name.trim()[0] || 'T').toUpperCase();
+  const avatar = user?.avatar || '';
+  const avatarNode = $('#accountAvatar');
+  avatarNode.replaceChildren();
+  if (/^(data:image\/(png|jpe?g|webp);base64,|https:\/\/)/i.test(avatar)) {
+    const image = document.createElement('img'); image.src = avatar; image.alt = ''; avatarNode.append(image);
+  } else avatarNode.textContent = (name.trim()[0] || 'T').toUpperCase();
   $('#profileUsername').value = user?.username || '';
   $('#profileNickname').value = user?.nickname || '';
-  $('#profileAvatar').value = user?.avatar || '';
+  pendingAvatar = avatar;
+  const preview = $('#profileAvatarPreview');
+  preview.src = avatar || ''; preview.classList.toggle('hidden', !avatar);
   $('#adminPanel').classList.toggle('hidden', !isAdmin());
   $('#newAccountRoleWrap').classList.toggle('hidden', user?.role !== 'super_admin');
-  $('#archives').classList.toggle('records-readonly', !isAdmin());
+  $('#archives').classList.toggle('records-readonly', !canEditRecords());
+  const updatesButton = $('.nav-link[data-page="updates"]');
+  updatesButton?.classList.toggle('permission-hidden', !canViewUpdates());
+  $('#updates').classList.toggle('permission-hidden', !canViewUpdates());
+  if (!canViewUpdates() && updatesButton?.classList.contains('active')) $('.nav-link[data-page="workspace"]')?.click();
 }
 
 async function loadBootstrap() {
@@ -63,7 +77,7 @@ async function loadBootstrap() {
 }
 
 async function syncSharedRecords() {
-  if (!isAdmin() || !state()) return;
+  if (!canEditRecords() || !state()) return;
   await api('/api/shared/records', { method: 'PUT', body: JSON.stringify({ containers: state().containers, cargo: state().cargo }) });
 }
 
@@ -74,14 +88,22 @@ function bindSelectionTooltips() {
     if (!badge || badge.dataset.accountTooltipBound) return;
     badge.dataset.accountTooltipBound = 'true';
     badge.title = '';
-    const show = () => {
-      const rect = badge.getBoundingClientRect();
-      tooltip.textContent = badge.dataset.selectionTooltip || '暂未选择';
-      tooltip.style.left = `${Math.max(12, Math.min(window.innerWidth - 380, rect.right - 250))}px`;
-      tooltip.style.top = `${Math.min(window.innerHeight - 72, rect.bottom + 8)}px`;
+    const selectionText = () => {
+      const appState = state(); if (!appState) return '暂未选择';
+      const records = badge.id === 'selectedContainerCount' ? appState.containers : appState.cargo;
+      const ids = badge.id === 'selectedContainerCount' ? appState.selectedContainers : appState.selectedCargo;
+      const names = records.filter(item => ids.has(item.id)).map(item => item.name);
+      return names.join('、') || '暂未选择';
+    };
+    const show = event => {
+      const rect = badge.getBoundingClientRect(), x = event?.clientX || rect.left + rect.width / 2, y = event?.clientY || rect.bottom;
+      tooltip.textContent = selectionText();
+      tooltip.style.left = `${Math.max(12, Math.min(window.innerWidth - 380, x + 12))}px`;
+      tooltip.style.top = `${Math.min(window.innerHeight - 68, y + 12)}px`;
       tooltip.classList.add('visible');
     };
     badge.addEventListener('mouseenter', show);
+    badge.addEventListener('mousemove', show);
     badge.addEventListener('focus', show);
     badge.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
     badge.addEventListener('blur', () => tooltip.classList.remove('visible'));
@@ -99,9 +121,21 @@ async function renderUsers() {
   if (!isAdmin()) return;
   try {
     const data = await api('/api/admin/users');
-    $('#adminUsersList').innerHTML = data.users.map(account => `<div class="admin-user-row"><div><b>${escapeHtml(account.nickname || account.username)}</b><span> · ${escapeHtml(account.username)} · ${escapeHtml(account.role)}</span></div>${user.role === 'super_admin' && account.role !== 'super_admin' ? `<select data-user-role="${escapeHtml(account.id)}"><option value="user" ${account.role === 'user' ? 'selected' : ''}>普通用户</option><option value="admin" ${account.role === 'admin' ? 'selected' : ''}>管理员</option></select>` : ''}</div>`).join('');
+    $('#adminUsersList').innerHTML = data.users.map(account => {
+      const editable = account.role !== 'super_admin' && (user.role === 'super_admin' || account.role === 'user');
+      const permissionControls = editable ? `<div class="permission-switches"><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="records" type="checkbox" ${account.permissions?.records ? 'checked' : ''}> 档案维护</label><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="updates" type="checkbox" ${account.permissions?.updates ? 'checked' : ''}> 更新日志</label></div>` : '';
+      const roleControl = user.role === 'super_admin' && account.role !== 'super_admin' ? `<select data-user-role="${escapeHtml(account.id)}"><option value="user" ${account.role === 'user' ? 'selected' : ''}>普通用户</option><option value="admin" ${account.role === 'admin' ? 'selected' : ''}>管理员</option></select>` : '';
+      return `<div class="admin-user-row"><div><b>${escapeHtml(account.nickname || account.username)}</b><span> · ${escapeHtml(account.username)} · ${escapeHtml(account.role)}</span>${permissionControls}</div>${roleControl}</div>`;
+    }).join('');
     $$('[data-user-role]').forEach(select => select.addEventListener('change', async () => {
-      try { await api('/api/admin/users', { method: 'PATCH', body: JSON.stringify({ id: select.dataset.userRole, role: select.value }) }); notify('权限已更新。'); renderUsers(); }
+      const permissions = $$(`[data-user-permission="${select.dataset.userRole}"]`).reduce((value, input) => ({ ...value, [input.dataset.permission]: input.checked }), {});
+      try { await api('/api/admin/users', { method: 'PATCH', body: JSON.stringify({ id: select.dataset.userRole, role: select.value, permissions }) }); notify('权限已更新。'); renderUsers(); }
+      catch (error) { notify(error.message, true); renderUsers(); }
+    }));
+    $$('[data-user-permission]').forEach(input => input.addEventListener('change', async () => {
+      const permissions = $$(`[data-user-permission="${input.dataset.userPermission}"]`).reduce((value, item) => ({ ...value, [item.dataset.permission]: item.checked }), {});
+      const role = $(`[data-user-role="${input.dataset.userPermission}"]`)?.value;
+      try { await api('/api/admin/users', { method: 'PATCH', body: JSON.stringify({ id: input.dataset.userPermission, ...(role ? { role } : {}), permissions }) }); notify('权限已更新。'); renderUsers(); }
       catch (error) { notify(error.message, true); renderUsers(); }
     }));
   } catch (error) { notify(error.message, true); }
@@ -109,8 +143,19 @@ async function renderUsers() {
 
 function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[c]); }
 
+async function compactAvatar(file) {
+  if (!file || !/^image\/(png|jpe?g|webp)$/.test(file.type)) throw new Error('请选择 PNG、JPG 或 WEBP 图片。');
+  if (file.size > 8 * 1024 * 1024) throw new Error('头像图片不能超过 8 MB。');
+  const source = await new Promise((resolve, reject) => { const image = new Image(), url = URL.createObjectURL(file); image.onload = () => { URL.revokeObjectURL(url); resolve(image); }; image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('头像图片无法读取。')); }; image.src = url; });
+  const scale = Math.min(1, 360 / Math.max(source.naturalWidth, source.naturalHeight)), canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(source.naturalWidth * scale)); canvas.height = Math.max(1, Math.round(source.naturalHeight * scale));
+  canvas.getContext('2d').drawImage(source, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/webp', .82);
+}
+
 function bindEvents() {
   $('#accountMenuButton').addEventListener('click', openAccountPage);
+  $('#toggleLoginPassword').addEventListener('click', () => { const input = $('#loginPassword'), visible = input.type === 'text'; input.type = visible ? 'password' : 'text'; $('#toggleLoginPassword').textContent = visible ? '◉' : '◉̸'; $('#toggleLoginPassword').setAttribute('aria-label', visible ? '显示密码' : '隐藏密码'); });
   $('#loginForm').addEventListener('submit', async event => {
     event.preventDefault();
     $('#loginError').textContent = '';
@@ -122,9 +167,10 @@ function bindEvents() {
   $('#logoutButton').addEventListener('click', async () => { try { await api('/api/auth/logout', { method: 'POST' }); } catch {} location.reload(); });
   $('#profileForm').addEventListener('submit', async event => {
     event.preventDefault();
-    try { const data = await api('/api/profile', { method: 'PATCH', body: JSON.stringify({ nickname: $('#profileNickname').value, avatar: $('#profileAvatar').value }) }); applyUser(data.user); notify('个人资料已保存。'); }
+    try { const data = await api('/api/profile', { method: 'PATCH', body: JSON.stringify({ nickname: $('#profileNickname').value, avatar: pendingAvatar }) }); applyUser(data.user); $('#profileAvatarFile').value = ''; notify('个人资料已保存。'); }
     catch (error) { notify(error.message, true); }
   });
+  $('#profileAvatarFile').addEventListener('change', async event => { try { pendingAvatar = await compactAvatar(event.target.files?.[0]); const preview = $('#profileAvatarPreview'); preview.src = pendingAvatar; preview.classList.remove('hidden'); } catch (error) { event.target.value = ''; notify(error.message, true); } });
   $('#passwordForm').addEventListener('submit', async event => {
     event.preventDefault();
     try { await api('/api/profile/password', { method: 'PATCH', body: JSON.stringify({ oldPassword: $('#oldPassword').value, newPassword: $('#newPassword').value }) }); event.target.reset(); notify('密码已更新。'); }
@@ -138,8 +184,8 @@ function bindEvents() {
   document.addEventListener('click', event => {
     const archiveAction = event.target.closest('#archives [data-delete], #bulkDeleteArchive');
     if (!user) return;
-    if (!isAdmin() && event.target.closest('#archives [data-edit], #archives [data-delete], #addArchive, #bulkDeleteArchive, .file-button')) { event.preventDefault(); event.stopImmediatePropagation(); notify('共享档案仅可由管理员维护。', true); return; }
-    if (isAdmin() && archiveAction) setTimeout(() => syncSharedRecords().catch(error => notify(error.message, true)), 0);
+    if (!canEditRecords() && event.target.closest('#archives [data-edit], #archives [data-delete], #addArchive, #bulkDeleteArchive, .file-button')) { event.preventDefault(); event.stopImmediatePropagation(); notify('未获档案维护权限。', true); return; }
+    if (canEditRecords() && archiveAction) setTimeout(() => syncSharedRecords().catch(error => notify(error.message, true)), 0);
   }, true);
   $('#archiveForm').addEventListener('submit', () => setTimeout(() => syncSharedRecords().catch(error => notify(error.message, true)), 0));
   $('#importFile').addEventListener('change', () => setTimeout(() => syncSharedRecords().catch(error => notify(error.message, true)), 300));
