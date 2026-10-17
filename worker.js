@@ -10,6 +10,33 @@ const SEED_CARGO = [
   { id: 'g4', name: 'C 型纸箱', type: '单体货物', shape: 'box', l: 500, w: 350, h: 300, weight: 8.5, pieces: 12, reserve: 0, price: 64, color: '#8b5cf6', quantity: 1 }
 ];
 
+// Container and cargo records are stored separately.  Keep this validation at
+// the API boundary so a stale browser cannot accidentally save one collection
+// into the other (which previously made both archive tabs display cargo).
+const CONTAINER_TYPES = new Set(['车厢', '箱子', '桶', '托盘']);
+const CARGO_TYPES = new Set(['单体货物', '套装货物']);
+const uniqueRecords = records => [...new Map(records.filter(item => item && typeof item === 'object' && item.id).map(item => [item.id, item])).values()];
+const isContainerRecord = item => CONTAINER_TYPES.has(String(item?.type || ''));
+const isCargoRecord = item => CARGO_TYPES.has(String(item?.type || ''));
+const canonicalRecords = raw => {
+  const containers = Array.isArray(raw?.containers) ? raw.containers : [];
+  const cargo = Array.isArray(raw?.cargo) ? raw.cargo : [];
+  const all = [...containers, ...cargo];
+  const cleanContainers = uniqueRecords(all.filter(isContainerRecord));
+  const cleanCargo = uniqueRecords(all.filter(isCargoRecord));
+  return { containers: cleanContainers.length ? cleanContainers : SEED_CONTAINERS, cargo: cleanCargo.length ? cleanCargo : SEED_CARGO };
+};
+async function loadSharedRecords(env, repair = true) {
+  const rows = await env.DB.prepare('SELECT record_key, payload FROM shared_records').all();
+  const raw = Object.fromEntries((rows.results || []).map(row => {
+    try { return [row.record_key, JSON.parse(row.payload)]; } catch { return [row.record_key, []]; }
+  }));
+  const records = canonicalRecords(raw);
+  const changed = JSON.stringify(raw.containers || []) !== JSON.stringify(records.containers) || JSON.stringify(raw.cargo || []) !== JSON.stringify(records.cargo);
+  if (repair && changed) await env.DB.batch(['containers', 'cargo'].map(key => env.DB.prepare('INSERT INTO shared_records (record_key, payload, updated_at, updated_by) VALUES (?, ?, ?, ?) ON CONFLICT(record_key) DO UPDATE SET payload=excluded.payload, updated_at=excluded.updated_at, updated_by=excluded.updated_by').bind(key, JSON.stringify(records[key]), now(), 'system_repair')));
+  return records;
+}
+
 const json = (data, status = 200, headers = {}) => new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...headers } });
 const error = (message, status = 400) => json({ error: message }, status);
 const now = () => new Date().toISOString();
@@ -74,9 +101,9 @@ async function api(request, env, path) {
   const user = await sessionUser(request, env);
   if (!user) return error('请先登录。', 401);
   if (path === '/api/bootstrap' && request.method === 'GET') {
-    const rows = await env.DB.prepare('SELECT record_key, payload FROM shared_records').all(), records = Object.fromEntries((rows.results || []).map(row => [row.record_key, JSON.parse(row.payload)]));
+    const records = await loadSharedRecords(env);
     const plans = await env.DB.prepare('SELECT id, name, payload, created_at, updated_at FROM plans WHERE owner_id = ? ORDER BY updated_at DESC').bind(user.id).all();
-    return json({ user, containers: records.containers || SEED_CONTAINERS, cargo: records.cargo || SEED_CARGO, plans: (plans.results || []).map(row => ({ id: row.id, name: row.name, createdAt: row.created_at, updatedAt: row.updated_at, ...JSON.parse(row.payload) })) });
+    return json({ user, containers: records.containers, cargo: records.cargo, plans: (plans.results || []).map(row => ({ id: row.id, name: row.name, createdAt: row.created_at, updatedAt: row.updated_at, ...JSON.parse(row.payload) })) });
   }
   if (path === '/api/profile' && request.method === 'PATCH') {
     const body = await readBody(request), nickname = String(body?.nickname || '').trim().slice(0, 40), avatar = String(body?.avatar || '').trim().slice(0, 500000);
@@ -93,11 +120,13 @@ async function api(request, env, path) {
     return json({ ok: true });
   }
   if (path === '/api/shared/records') {
-    if (request.method === 'GET') { const rows = await env.DB.prepare('SELECT record_key, payload FROM shared_records').all(); return json(Object.fromEntries((rows.results || []).map(row => [row.record_key, JSON.parse(row.payload)]))); }
+    if (request.method === 'GET') return json(await loadSharedRecords(env));
     if (request.method === 'PUT') {
       if (!canEditRecords(user)) return error('未获档案维护权限。', 403);
       const body = await readBody(request); if (!Array.isArray(body?.containers) || !Array.isArray(body?.cargo)) return error('共享档案格式无效。');
-      await env.DB.batch(['containers', 'cargo'].map(key => env.DB.prepare('INSERT INTO shared_records (record_key, payload, updated_at, updated_by) VALUES (?, ?, ?, ?) ON CONFLICT(record_key) DO UPDATE SET payload=excluded.payload, updated_at=excluded.updated_at, updated_by=excluded.updated_by').bind(key, JSON.stringify(body[key]), now(), user.id)));
+      if (body.containers.some(item => !isContainerRecord(item)) || body.cargo.some(item => !isCargoRecord(item))) return error('容器与货物档案类型不匹配，已拒绝保存以保护档案数据。');
+      const records = { containers: uniqueRecords(body.containers), cargo: uniqueRecords(body.cargo) };
+      await env.DB.batch(['containers', 'cargo'].map(key => env.DB.prepare('INSERT INTO shared_records (record_key, payload, updated_at, updated_by) VALUES (?, ?, ?, ?) ON CONFLICT(record_key) DO UPDATE SET payload=excluded.payload, updated_at=excluded.updated_at, updated_by=excluded.updated_by').bind(key, JSON.stringify(records[key]), now(), user.id)));
       return json({ ok: true });
     }
   }
