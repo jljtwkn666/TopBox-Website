@@ -231,5 +231,5 @@ async function api(request, env, path) {
   return error('接口不存在。', 404);
 }
 
-export default { async fetch(request, env) { const url = new URL(request.url); try { if (url.pathname === '/app.js') return new Response(base64ToBytes(EMBEDDED_APP_GZIP), { headers: { 'content-type': 'application/javascript; charset=utf-8', 'content-encoding': 'gzip', 'cache-control': 'no-store' } }); return url.pathname.startsWith('/api/') ? await api(request, env, url.pathname) : env.ASSETS.fetch(request); } catch (cause) { console.error(cause); return error('服务暂时不可用，请稍后重试。', 500); } } };
+export default { async fetch(request, env) { const url = new URL(request.url); try { if (url.pathname === '/app.js') { const stream = new Blob([base64ToBytes(EMBEDDED_APP_GZIP)]).stream().pipeThrough(new DecompressionStream('gzip')); return new Response(stream, { headers: { 'content-type': 'application/javascript; charset=utf-8', 'cache-control': 'no-store' } }); } return url.pathname.startsWith('/api/') ? await api(request, env, url.pathname) : env.ASSETS.fetch(request); } catch (cause) { console.error(cause); return error('服务暂时不可用，请稍后重试。', 500); } } };
 
