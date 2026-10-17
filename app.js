@@ -42,6 +42,7 @@ function loadState() {
     };
   } catch { return fallback; }
 }
+
 const state = loadState();
 function persistState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -153,7 +154,7 @@ function renderPlan() {
   $('#activeContainerName').textContent = c.name;
   $('#activeContainerSpecs').textContent = `${c.l} × ${c.w} × ${c.h} mm · 合理装载 ${fmtVolume(plan.available)}`;
   $('#resultDescription').textContent = `已生成 ${state.plan.plans.length} 个容器方案；当前展示 ${state.plan.active + 1} / ${state.plan.plans.length}。`;
-  const percent=Math.round(plan.utilization); $('#utilizationPercent').textContent=`${percent}%`; $('#utilizationRing').style.background=`conic-gradient(var(--blue) ${percent*3.6}deg,#eaf0f6 0deg)`;
+  const percent=Math.max(0,Math.min(100,+plan.utilization||0)); $('#utilizationPercent').textContent=`${percent.toFixed(2)}%`; $('#utilizationRing').style.background=`conic-gradient(var(--blue) ${percent*3.6}deg,#eaf0f6 0deg)`;
   const totalPieces=plan.positions.reduce((s,x)=>s+(+x.pieces||0),0);
   $('#availableVolume').textContent=fmtVolume(plan.available); $('#usedVolume').textContent=fmtVolume(plan.loadedVolume); $('#loadedCount').textContent=`${plan.positions.length} 包 · ${totalPieces.toLocaleString()} 件`; $('#totalWeight').textContent=`${plan.positions.reduce((s,x)=>s+(+x.weight||0),0).toFixed(0)} kg`;
   const details = state.cargo.filter(g=>state.selectedCargo.has(g.id)).map(g=>({g,count:plan.placedCount.get(g.id)||0}));
