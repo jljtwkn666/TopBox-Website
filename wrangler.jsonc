@@ -2,8 +2,10 @@
   "$schema": "https://unpkg.com/wrangler@latest/config-schema.json",
   "name": "topbox-cargo-loading",
   "compatibility_date": "2026-10-15",
-  "assets": {
-    "directory": "."
-  }
+  "main": "worker.js",
+  "assets": { "directory": ".", "binding": "ASSETS" },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "topbox-cargo-data", "database_id": "4071d4c5-8079-4c40-b67c-076fdb14138b" }
+  ]
 }
 
