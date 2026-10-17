@@ -109,7 +109,7 @@ function bindSelectionTooltips() {
     badge.dataset.accountTooltipBound = 'true';
     badge.title = '';
     const selectionText = () => {
-      const appState = state(); if (!appState) return '暂未选择';
+      const appState = state(); if (!appState) return '';
       const records = badge.id === 'selectedContainerCount' ? appState.containers : appState.cargo;
       const ids = badge.id === 'selectedContainerCount' ? appState.selectedContainers : appState.selectedCargo;
       const names = records.filter(item => ids.has(item.id)).map(item => item.name);
@@ -312,7 +312,7 @@ function renderStablePlans() {
   const selectAll = $('#stableSelectAllPlans');
   if (selectAll) { selectAll.checked = allSelected; selectAll.indeterminate = someSelected && !allSelected; selectAll.addEventListener('change', event => { pageData.rows.forEach(plan => event.target.checked ? stablePlanSelection.add(plan.id) : stablePlanSelection.delete(plan.id)); renderStablePlans(); }); }
   $$('[data-stable-plan-select]').forEach(input => input.addEventListener('change', () => { input.checked ? stablePlanSelection.add(input.dataset.stablePlanSelect) : stablePlanSelection.delete(input.dataset.stablePlanSelect); renderStablePlans(); }));
-  $$('[data-stable-open-plan]').forEach(button => button.addEventListener('click', () => globalThis.openSavedPlan?.(button.dataset.stableOpenPlan)));
+  $$('[data-stable-open-plan]').forEach(button => button.addEventListener('click', () => window.TopBoxApp?.openSavedPlan?.(button.dataset.stableOpenPlan)));
   $$('[data-stable-delete-plan]').forEach(button => button.addEventListener('click', () => deletePlansDirect([button.dataset.stableDeletePlan], button)));
   renderStablePager('savedPlansPager', pageData, plans.length, 'savedPlansPage', 'savedPlansSize', renderStablePlans);
   updateStableBulkButtons();
