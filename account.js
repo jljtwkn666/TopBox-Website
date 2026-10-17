@@ -34,6 +34,14 @@ const canEditRecords = () => isAdmin() || Boolean(user?.permissions?.records);
 const canViewUpdates = () => isAdmin() || Boolean(user?.permissions?.updates);
 
 const state = () => window.TopBoxApp?.state;
+const waitForApp = async () => {
+  if (state()) return;
+  await new Promise(resolve => {
+    window.addEventListener('topbox-app-ready', resolve, { once: true });
+    window.setTimeout(resolve, 8000);
+  });
+  if (!state()) throw new Error('页面初始化失败，请刷新后重试。');
+};
 const rerender = () => {
   window.TopBoxApp?.renderSelectors?.();
   renderStableArchives();
@@ -80,6 +88,7 @@ function applyUser(next) {
 }
 
 async function loadBootstrap() {
+  await waitForApp();
   const data = await api('/api/bootstrap');
   const appState = applyUserRecords(data);
   appState.savedPlans = Array.isArray(data.plans) ? data.plans : [];
@@ -90,6 +99,7 @@ async function loadBootstrap() {
 
 async function refreshUserRecords() {
   if (!user) return;
+  await waitForApp();
   const data = await api('/api/shared/records');
   applyUserRecords(data);
   rerender();
