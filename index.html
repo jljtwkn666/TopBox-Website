@@ -10,6 +10,13 @@
     <link rel="stylesheet" href="visual-enhancements.css?v=2.6.5" />
   </head>
   <body>
+    <script>
+      window.addEventListener('error', function (event) {
+        if (String(event.filename || '').includes('/app.js')) {
+          document.documentElement.dataset.appBootError = `${event.message || 'Script error'} @ ${event.lineno || 0}:${event.colno || 0}`;
+        }
+      }, true);
+    </script>
     <header class="topbar">
       <a class="brand" href="#workspace" aria-label="TOP BOX货物装载配货平台首页"><span class="brand-mark">▦</span><span>TOP BOX<small>货物装载配货平台</small></span></a>
       <nav aria-label="主导航">
@@ -68,6 +75,7 @@
 
       <section id="updates" class="page">
         <div class="page-heading"><div><p class="eyebrow">RELEASE NOTES</p><h1>更新日志</h1><p>TOP BOX货物装载配货平台版本记录。</p></div><label class="update-filter">更新日期<select id="updateDateFilter"><option value="all">全部日期</option><option value="2026-10-17">2026-10-17</option><option value="2026-10-16">2026-10-16</option><option value="2026-10-15">2026-10-15</option><option value="2026-10-14">2026-10-14</option></select></label></div>
+        <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.6.7</h2><time>2026-10-17</time></div><ul><li>增强前端启动诊断，精确定位少数浏览器在加载主脚本时的语法报错，确保登录问题可被彻底修复。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.6.6</h2><time>2026-10-17</time></div><ul><li>修复登录后“页面初始化失败”：移除重复的前端初始化逻辑，恢复主程序加载及账号登录。</li><li>保留方案打开、利用率精确显示、已选项目提示和档案保存成功提示等 v2.6.5 功能。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.6.5</h2><time>2026-10-17</time></div><ul><li>所有方案预览、导出方案图片及 PDF 的空间利用率统一按已用容积 ÷ 可用容积计算，显示实际百分比并保留两位小数。</li><li>修复方案管理列表“打开方案”按钮：可正常回到装载方案页并显示对应 3D 方案。</li><li>彻底移除已选项目标签的旧版问号／浏览器提示，只在鼠标附近显示已选择的名称。</li><li>新增容器或货物档案保存完成后，页面会显示成功提示。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.6.4</h2><time>2026-10-17</time></div><ul><li>已选容器／货物悬浮提示仅显示已选择名称；未选择时不再显示“暂未选择”或问号提示。</li><li>档案与装载方案的单条、批量删除统一恢复为居中确认弹窗，确认后才写入服务端；批量删除按钮会随勾选状态正确启用。</li><li>重新分配货物档案所有字段列宽，完善导入按钮字号和后台用户“角色、保存、删除”操作区布局。</li><li>空间利用率和每个装载方案利用率改为已用容积 ÷ 可用容积的真实百分比，保留两位小数。</li></ul></article>
@@ -98,7 +106,7 @@
       </section>
 
       <section id="tutorial" class="page">
-        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.6.6 更新</span></div>
+        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.6.7 更新</span></div>
         <div class="tutorial-grid" id="tutorialGrid">
           <article class="tutorial-card"><span class="tutorial-step">01</span><div class="tutorial-graphic account-graphic">◉</div><h2>登录与账户</h2><p>首次由管理员创建账号。登录后可在账户中心修改昵称、上传头像图片和修改密码。</p></article>
           <article class="tutorial-card"><span class="tutorial-step">02</span><div class="tutorial-graphic archive-graphic">▤</div><h2>维护个人档案</h2><p>在“档案管理”维护当前账号自己的容器和货物；档案与其他账号互不影响。</p></article>
@@ -137,8 +145,8 @@
         }
       }
     </script>
-    <script type="module" src="app.js?v=2.6.6"></script>
-    <script type="module" src="account.js?v=2.6.6"></script>
+    <script type="module" src="app.js?v=2.6.7"></script>
+    <script type="module" src="account.js?v=2.6.7"></script>
   </body>
 </html>
 
