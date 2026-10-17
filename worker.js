@@ -1,4 +1,3 @@
-
 const SEED_CONTAINERS = [
   { id: 'c1', name: '9.6m 厢式货车', type: '车厢', shape: 'box', l: 9600, w: 2400, h: 2500, weight: 6800, pieces: 1, reserve: 5, price: 0, color: '#0f4c81' },
   { id: 'c2', name: '7.6m 厢式货车', type: '车厢', shape: 'box', l: 7600, w: 2300, h: 2300, weight: 5200, pieces: 1, reserve: 4, price: 0, color: '#2563eb' },
@@ -123,14 +122,22 @@ async function api(request, env, path) {
       return json({ ok: true });
     }
     if (request.method === 'PATCH') {
-      const body = await readBody(request), id = String(body?.id || ''), target = await env.DB.prepare('SELECT id, role, permissions FROM users WHERE id = ?').bind(id).first();
+      const body = await readBody(request), id = String(body?.id || ''), target = await env.DB.prepare('SELECT id, username, nickname, role, permissions, password_hash, password_salt FROM users WHERE id = ?').bind(id).first();
       if (!target || target.role === 'super_admin') return error('不能调整该账号。');
       if (user.role !== 'super_admin' && target.role !== 'user') return error('只能调整普通用户权限。', 403);
       const role = user.role === 'super_admin' ? (body?.role === 'admin' ? 'admin' : 'user') : target.role;
       const requested = body?.permissions && typeof body.permissions === 'object' ? body.permissions : permissionsFor(target);
       const permissions = { records: Boolean(requested.records), updates: Boolean(requested.updates) };
+      const username = body?.username === undefined ? target.username : String(body.username || '').trim().toLowerCase();
+      const nickname = body?.nickname === undefined ? target.nickname : String(body.nickname || '').trim().slice(0, 40);
+      if (!/^[a-z0-9_.-]{3,40}$/.test(username) || !nickname) return error('账号需为 3–40 位小写字母、数字、._-，昵称不能为空。');
+      const passwordChanged = String(body?.password || '').length > 0;
+      if (passwordChanged && !assertPassword(body.password)) return error('新密码长度需为 5–128 位。');
       if (role === 'admin' && target.role !== 'admin' && +(await env.DB.prepare('SELECT COUNT(*) AS count FROM users WHERE role = ?').bind('admin').first()).count >= 5) return error('管理员数量最多为 5 个。');
-      await env.DB.prepare('UPDATE users SET role = ?, permissions = ?, updated_at = ? WHERE id = ?').bind(role, JSON.stringify(permissions), now(), id).run(); return json({ ok: true });
+      const password = passwordChanged ? await newPassword(body.password) : { hash: target.password_hash, salt: target.password_salt };
+      try { await env.DB.prepare('UPDATE users SET username = ?, nickname = ?, role = ?, permissions = ?, password_hash = ?, password_salt = ?, updated_at = ? WHERE id = ?').bind(username, nickname, role, JSON.stringify(permissions), password.hash, password.salt, now(), id).run(); }
+      catch { return error('该账号已存在。'); }
+      return json({ ok: true });
     }
   }
   return error('接口不存在。', 404);
