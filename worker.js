@@ -126,5 +126,5 @@ async function api(request, env, path) {
   return error('接口不存在。', 404);
 }
 
-export default { async fetch(request, env) { const url = new URL(request.url); try { return url.pathname.startsWith('/api/') ? await api(request, env, url.pathname) : env.ASSETS.fetch(request); } catch (cause) { console.error(cause); return error('服务暂时不可用，请稍后重试。', 500); } } };
+export default { async fetch(request, env) { const url = new URL(request.url); try { return url.pathname.startsWith('/api/') ? await api(request, env, url.pathname) : env.ASSETS.fetch(request); } catch (cause) { console.error(cause); return error(`服务暂时不可用：${String(cause?.message || cause).slice(0, 180)}`, 500); } } };
 
