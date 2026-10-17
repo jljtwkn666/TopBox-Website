@@ -148,3 +148,33 @@
 .admin-account-layout{display:grid;grid-template-columns:1fr;gap:18px;margin-top:18px}.create-account-card{max-width:680px}.admin-account-layout .account-users{width:100%}.admin-account-layout .admin-users-list{max-height:560px}.admin-account-layout .admin-user-row{grid-template-columns:minmax(0,1fr) auto}.admin-account-layout .user-edit-fields{grid-template-columns:minmax(120px,1fr) minmax(140px,1fr) minmax(190px,1.25fr) auto;max-width:none}.admin-account-layout .user-row-actions{min-width:128px}.share-expiry-options{display:flex;align-items:end;gap:12px;margin:0 28px 18px;padding:13px 14px;border:1px solid #d9e6f3;border-radius:10px;background:#f8fbff}.share-expiry-options label{display:grid;gap:6px;color:#365876;font-size:12px;font-weight:800}.share-expiry-options select,.share-expiry-options input{height:35px;border:1px solid #c9d9e8;border-radius:8px;padding:0 9px;background:#fff;color:#173a5e;font:inherit}.share-custom-expiry{grid-template-columns:auto 84px 76px;align-items:center}.share-custom-expiry input{width:84px}.share-custom-expiry select{width:76px}
 @media(max-width:760px){.create-account-card{max-width:none}.admin-account-layout .admin-user-row{grid-template-columns:1fr}.admin-account-layout .user-row-actions{min-width:0;flex-direction:row}.admin-account-layout .user-edit-fields{grid-template-columns:1fr}.share-expiry-options{display:grid;grid-template-columns:1fr;margin-left:20px;margin-right:20px}.share-custom-expiry{justify-content:start}}
 
+/* v2.6.3 — one source of truth for archive and saved-plan table geometry. */
+#archives .table-wrap{overflow:auto!important;max-height:calc(100vh - 330px)!important;min-height:260px!important}
+#archives .stable-data-table,#savedPlansList .stable-data-table{display:table!important;width:100%!important;min-width:1040px!important;table-layout:fixed!important;border-collapse:collapse!important;background:#fff!important}
+#archives .stable-data-table thead,#savedPlansList .stable-data-table thead{display:table-header-group!important}
+#archives .stable-data-table tbody,#savedPlansList .stable-data-table tbody{display:table-row-group!important}
+#archives .stable-data-table tr,#savedPlansList .stable-data-table tr{display:table-row!important;min-height:0!important}
+#archives .stable-data-table th,#archives .stable-data-table td,#savedPlansList .stable-data-table th,#savedPlansList .stable-data-table td{display:table-cell!important;position:static!important;box-sizing:border-box!important;height:64px!important;padding:12px 14px!important;vertical-align:middle!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;transform:none!important}
+#archives .stable-data-table th,#savedPlansList .stable-data-table th{height:52px!important;position:sticky!important;top:0!important;z-index:3!important;background:#f8fbff!important}
+#archives .stable-archive-table th:nth-child(1),#archives .stable-archive-table td:nth-child(1){width:54px!important;text-align:center!important}
+#archives .stable-archive-table th:nth-child(2),#archives .stable-archive-table td:nth-child(2){width:64px!important;text-align:center!important}
+#archives .stable-archive-table th:nth-child(3),#archives .stable-archive-table td:nth-child(3){width:18%!important}
+#archives .stable-archive-table th:nth-child(4),#archives .stable-archive-table td:nth-child(4){width:12%!important}
+#archives .stable-archive-table th:nth-child(5),#archives .stable-archive-table td:nth-child(5){width:20%!important}
+#archives .stable-archive-table th:nth-child(6),#archives .stable-archive-table td:nth-child(6){width:12%!important}
+#archives .stable-archive-table th:nth-child(7),#archives .stable-archive-table td:nth-child(7){width:11%!important}
+#archives .stable-archive-table th:last-child,#archives .stable-archive-table td:last-child{width:132px!important}
+#savedPlansList{display:block!important;min-height:0!important;padding:0!important;overflow:hidden!important}
+#savedPlansList .stable-list-table-wrap{height:100%!important;min-height:260px!important;max-height:calc(100vh - 310px)!important;overflow:auto!important;border:1px solid #e1eaf2!important;border-radius:13px!important;background:#fff!important}
+#savedPlansList .stable-plan-table th:nth-child(1),#savedPlansList .stable-plan-table td:nth-child(1){width:54px!important;text-align:center!important}
+#savedPlansList .stable-plan-table th:nth-child(2),#savedPlansList .stable-plan-table td:nth-child(2){width:64px!important;text-align:center!important}
+#savedPlansList .stable-plan-table th:nth-child(3),#savedPlansList .stable-plan-table td:nth-child(3){width:27%!important}
+#savedPlansList .stable-plan-table th:nth-child(4),#savedPlansList .stable-plan-table td:nth-child(4){width:19%!important}
+#savedPlansList .stable-plan-table th:nth-child(5),#savedPlansList .stable-plan-table td:nth-child(5){width:14%!important}
+#savedPlansList .stable-plan-table th:nth-child(6),#savedPlansList .stable-plan-table td:nth-child(6){width:17%!important}
+#savedPlansList .stable-plan-table th:last-child,#savedPlansList .stable-plan-table td:last-child{width:142px!important}
+#archives .stable-data-table .row-actions,#savedPlansList .stable-data-table .row-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:10px!important}
+#archives .stable-data-table .type-pill{display:inline-flex!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.stable-pager-controls{display:inline-flex;gap:8px;align-items:center}.stable-pager-controls button{min-width:36px;height:34px;border:1px solid #d5e2ee;border-radius:8px;background:#fff;color:#365876;font-size:20px}.stable-pager-controls button:disabled{opacity:.45}.stable-pager-controls select{height:34px;min-width:72px;border:1px solid #d5e2ee;border-radius:8px;background:#fff;color:#365876;padding:0 8px}
+@media(max-width:760px){#archives .table-wrap{max-height:480px!important}#savedPlansList .stable-list-table-wrap{max-height:480px!important}.stable-pager-controls{gap:5px}}
+
