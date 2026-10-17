@@ -1,6 +1,6 @@
 try {
   document.documentElement.dataset.appLoaderState = 'loading-payload';
-  const response = await fetch(`app-payload.js?v=2.7.3`, { cache: 'no-store' });
+  const response = await fetch(`app-payload.js?v=2.7.4`, { cache: 'no-store' });
   const payloadModule = await response.text();
   const match = payloadModule.match(/compressedApp\s*=\s*'([^']+)'/);
   if (!response.ok || !match) throw new Error('应用载荷不可用');
