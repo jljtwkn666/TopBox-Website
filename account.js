@@ -132,8 +132,10 @@ function bindEvents() {
     catch (error) { notify(error.message, true); }
   });
   document.addEventListener('click', event => {
-    if (!user || isAdmin()) return;
-    if (event.target.closest('#archives [data-edit], #archives [data-delete], #addArchive, #bulkDeleteArchive, .file-button')) { event.preventDefault(); event.stopImmediatePropagation(); notify('共享档案仅可由管理员维护。', true); }
+    const archiveAction = event.target.closest('#archives [data-delete], #bulkDeleteArchive');
+    if (!user) return;
+    if (!isAdmin() && event.target.closest('#archives [data-edit], #archives [data-delete], #addArchive, #bulkDeleteArchive, .file-button')) { event.preventDefault(); event.stopImmediatePropagation(); notify('共享档案仅可由管理员维护。', true); return; }
+    if (isAdmin() && archiveAction) setTimeout(() => syncSharedRecords().catch(error => notify(error.message, true)), 0);
   }, true);
   $('#archiveForm').addEventListener('submit', () => setTimeout(() => syncSharedRecords().catch(error => notify(error.message, true)), 0));
   $('#importFile').addEventListener('change', () => setTimeout(() => syncSharedRecords().catch(error => notify(error.message, true)), 300));
