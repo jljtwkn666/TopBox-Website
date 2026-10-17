@@ -7,6 +7,10 @@ globalThis.t ??= text => String(text ?? '');
 let user = null;
 let knownPlanIds = new Set();
 let pendingAvatar = '';
+// These selections belong to the stable management views below.  Keeping them
+// here avoids the old card renderers in app.js reusing stale selection state.
+const stableArchiveSelection = new Set();
+const stablePlanSelection = new Set();
 
 const notify = (message, error = false) => {
   const toast = $('#appToast');
@@ -31,8 +35,8 @@ const canViewUpdates = () => isAdmin() || Boolean(user?.permissions?.updates);
 const state = () => window.TopBoxApp?.state;
 const rerender = () => {
   window.TopBoxApp?.renderSelectors?.();
-  window.TopBoxApp?.renderArchives?.();
-  window.TopBoxApp?.renderSavedPlans?.();
+  renderStableArchives();
+  renderStablePlans();
 };
 
 function applyUserRecords(data) {
@@ -183,6 +187,121 @@ async function renderUsers() {
 
 function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[c]); }
 
+// Management pages used to be rendered by several historical implementations
+// in app.js.  These two renderers deliberately own the complete table markup,
+// so a head/body column mismatch or an old card renderer cannot return on a
+// refresh.
+function stablePage(items, pageKey, sizeKey) {
+  const appState = state();
+  appState.ui ??= {};
+  const allowed = [20, 30, 50, 100, 200, 500, 1000, 2000];
+  const size = allowed.includes(+appState.ui[sizeKey]) ? +appState.ui[sizeKey] : 50;
+  const pages = Math.max(1, Math.ceil(items.length / size));
+  const page = Math.min(Math.max(1, +appState.ui[pageKey] || 1), pages);
+  appState.ui[sizeKey] = size; appState.ui[pageKey] = page;
+  return { page, size, pages, rows: items.slice((page - 1) * size, page * size) };
+}
+
+function renderStablePager(hostId, pageData, total, pageKey, sizeKey, render) {
+  const host = $("#" + hostId); if (!host) return;
+  const first = total ? (pageData.page - 1) * pageData.size + 1 : 0;
+  const last = Math.min(total, pageData.page * pageData.size);
+  host.innerHTML = `<span>${first}-${last}/${total}</span><span class="stable-pager-controls"><button type="button" data-stable-page="prev" ${pageData.page <= 1 ? 'disabled' : ''}>‹</button><button type="button" data-stable-page="next" ${pageData.page >= pageData.pages ? 'disabled' : ''}>›</button><select data-stable-size>${[20, 30, 50, 100, 200, 500, 1000, 2000].map(size => `<option value="${size}" ${size === pageData.size ? 'selected' : ''}>${size}</option>`).join('')}</select></span>`;
+  host.querySelector('[data-stable-page="prev"]')?.addEventListener('click', () => { state().ui[pageKey] -= 1; render(); });
+  host.querySelector('[data-stable-page="next"]')?.addEventListener('click', () => { state().ui[pageKey] += 1; render(); });
+  host.querySelector('[data-stable-size]')?.addEventListener('change', event => { state().ui[sizeKey] = +event.target.value; state().ui[pageKey] = 1; render(); });
+}
+
+function archiveVolume(record, isContainer) {
+  const value = (+record.l || 0) * (+record.w || 0) * (+record.h || 0) / 1e9;
+  return `${value.toFixed(4)} m³`;
+}
+
+function openStableArchiveEditor(record) {
+  if (!record) return;
+  const dialog = $('#archiveDialog');
+  $('#recordKind').value = state().archive;
+  $('#recordId').value = record.id;
+  const map = { recordName: 'name', recordType: 'type', recordShape: 'shape', recordL: 'l', recordW: 'w', recordH: 'h', recordWeight: 'weight', recordPieces: 'pieces', recordReserve: 'reserve', recordPrice: 'price', recordColor: 'color' };
+  Object.entries(map).forEach(([input, key]) => { const field = $('#' + input); if (field) field.value = record[key] ?? ''; });
+  dialog?.showModal();
+}
+
+function renderStableArchives() {
+  const appState = state(), rowsNode = $('#archiveRows');
+  if (!appState || !rowsNode) return;
+  const isContainer = appState.archive === 'containers';
+  const records = Array.isArray(appState[appState.archive]) ? appState[appState.archive] : [];
+  const query = ($('#archiveSearch')?.value || '').trim().toLowerCase();
+  const filtered = records.filter(record => !query || `${record.name || ''}${record.type || ''}`.toLowerCase().includes(query));
+  const pageData = stablePage(filtered, 'archivePage', 'archiveSize');
+  const table = rowsNode.closest('table');
+  if (!table) return;
+  table.className = 'stable-data-table stable-archive-table';
+  const columns = isContainer ? 9 : 10;
+  const allSelected = filtered.length > 0 && filtered.every(record => stableArchiveSelection.has(record.id));
+  const someSelected = filtered.some(record => stableArchiveSelection.has(record.id));
+  table.innerHTML = `<thead><tr id="archiveTableHead"><th><input id="stableSelectAllArchive" type="checkbox" aria-label="选择全部"></th><th>序号</th><th>名称</th><th>类型</th><th>尺寸（长 × 宽 × 高）</th><th>容积</th><th>重量</th>${isContainer ? '' : '<th>小件数</th>'}<th>颜色</th><th>操作</th></tr></thead><tbody id="archiveRows">${pageData.rows.map((record, index) => `<tr><td><input data-stable-archive-select="${escapeHtml(record.id)}" type="checkbox" ${stableArchiveSelection.has(record.id) ? 'checked' : ''} aria-label="选择 ${escapeHtml(record.name)}"></td><td>${(pageData.page - 1) * pageData.size + index + 1}</td><td><b>${escapeHtml(record.name)}</b></td><td><span class="type-pill">${escapeHtml(record.type)}</span></td><td>${record.l} × ${record.w} × ${record.h} mm</td><td>${archiveVolume(record, isContainer)}</td><td>${+record.weight || 0} kg</td>${isContainer ? '' : `<td>${+record.pieces || 1} 件</td>`}<td><i class="color-pill" style="background:${escapeHtml(record.color || '#2563eb')}"></i></td><td><span class="row-actions"><button type="button" data-stable-edit-archive="${escapeHtml(record.id)}">编辑</button><button type="button" class="delete" data-stable-delete-archive="${escapeHtml(record.id)}">删除</button></span></td></tr>`).join('') || `<tr><td colspan="${columns}"><div class="empty-state">没有匹配的档案</div></td></tr>`}</tbody>`;
+  const selectAll = $('#stableSelectAllArchive');
+  if (selectAll) { selectAll.checked = allSelected; selectAll.indeterminate = someSelected && !allSelected; selectAll.addEventListener('change', event => { filtered.forEach(record => event.target.checked ? stableArchiveSelection.add(record.id) : stableArchiveSelection.delete(record.id)); renderStableArchives(); }); }
+  $$('[data-stable-archive-select]').forEach(input => input.addEventListener('change', () => { input.checked ? stableArchiveSelection.add(input.dataset.stableArchiveSelect) : stableArchiveSelection.delete(input.dataset.stableArchiveSelect); renderStableArchives(); }));
+  $$('[data-stable-edit-archive]').forEach(button => button.addEventListener('click', () => openStableArchiveEditor(records.find(record => record.id === button.dataset.stableEditArchive))));
+  $$('[data-stable-delete-archive]').forEach(button => button.addEventListener('click', () => deleteArchivesDirect([button.dataset.stableDeleteArchive], button)));
+  $('#containerTotal').textContent = appState.containers.length; $('#cargoTotal').textContent = appState.cargo.length;
+  $('#archiveCount').textContent = `共 ${filtered.length} 条记录`;
+  renderStablePager('archivePager', pageData, filtered.length, 'archivePage', 'archiveSize', renderStableArchives);
+}
+
+async function deleteArchivesDirect(ids, button) {
+  if (!ids.length) return;
+  if (button?.dataset.confirming !== 'true') {
+    if (button) { button.dataset.confirming = 'true'; button.textContent = '再次点击确认删除'; setTimeout(() => { if (button.dataset.confirming === 'true') { button.dataset.confirming = ''; button.textContent = '删除'; } }, 3000); }
+    else notify('再次点击“批量删除”确认删除所选档案。', true);
+    return;
+  }
+  const appState = state(), remove = new Set(ids);
+  appState[appState.archive] = appState[appState.archive].filter(record => !remove.has(record.id));
+  ids.forEach(id => { stableArchiveSelection.delete(id); appState.selectedContainers.delete(id); appState.selectedCargo.delete(id); });
+  try { await api('/api/shared/records', { method: 'PUT', body: JSON.stringify({ containers: appState.containers, cargo: appState.cargo }) }); await refreshUserRecords(); notify('档案已删除。'); }
+  catch (error) { notify(error.message, true); await refreshUserRecords(); }
+}
+
+function renderStablePlans() {
+  const appState = state(), host = $('#savedPlansList');
+  if (!appState || !host) return;
+  const plans = Array.isArray(appState.savedPlans) ? appState.savedPlans : [];
+  const pageData = stablePage(plans, 'savedPlansPage', 'savedPlansSize');
+  const allSelected = pageData.rows.length > 0 && pageData.rows.every(plan => stablePlanSelection.has(plan.id));
+  const someSelected = pageData.rows.some(plan => stablePlanSelection.has(plan.id));
+  const rows = pageData.rows.map((plan, index) => {
+    const planItems = Array.isArray(plan.plans) ? plan.plans : [];
+    const packages = planItems.reduce((sum, item) => sum + (Array.isArray(item.positions) ? item.positions.length : 0), 0);
+    const pieces = planItems.reduce((sum, item) => sum + (Array.isArray(item.positions) ? item.positions.reduce((count, position) => count + (+position.pieces || 0), 0) : 0), 0);
+    return `<tr><td><input data-stable-plan-select="${escapeHtml(plan.id)}" type="checkbox" ${stablePlanSelection.has(plan.id) ? 'checked' : ''} aria-label="选择 ${escapeHtml(plan.name)}"></td><td>${(pageData.page - 1) * pageData.size + index + 1}</td><td><b>${escapeHtml(plan.name)}</b></td><td>${escapeHtml(plan.createdAt || '')}</td><td>${planItems.length} 个容器方案</td><td>${packages} 包 / ${pieces.toLocaleString()} 件</td><td><span class="row-actions"><button type="button" data-stable-open-plan="${escapeHtml(plan.id)}">打开方案</button><button type="button" class="delete" data-stable-delete-plan="${escapeHtml(plan.id)}">删除</button></span></td></tr>`;
+  }).join('');
+  host.innerHTML = rows ? `<div class="stable-list-table-wrap"><table class="stable-data-table stable-plan-table"><thead><tr><th><input id="stableSelectAllPlans" type="checkbox" aria-label="选择全部"></th><th>序号</th><th>方案名称</th><th>保存时间</th><th>容器数量</th><th>装载数量</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table></div>` : '<div class="empty-state">还没有保存的装载方案。</div>';
+  const selectAll = $('#stableSelectAllPlans');
+  if (selectAll) { selectAll.checked = allSelected; selectAll.indeterminate = someSelected && !allSelected; selectAll.addEventListener('change', event => { pageData.rows.forEach(plan => event.target.checked ? stablePlanSelection.add(plan.id) : stablePlanSelection.delete(plan.id)); renderStablePlans(); }); }
+  $$('[data-stable-plan-select]').forEach(input => input.addEventListener('change', () => { input.checked ? stablePlanSelection.add(input.dataset.stablePlanSelect) : stablePlanSelection.delete(input.dataset.stablePlanSelect); renderStablePlans(); }));
+  $$('[data-stable-open-plan]').forEach(button => button.addEventListener('click', () => globalThis.openSavedPlan?.(button.dataset.stableOpenPlan)));
+  $$('[data-stable-delete-plan]').forEach(button => button.addEventListener('click', () => deletePlansDirect([button.dataset.stableDeletePlan], button)));
+  renderStablePager('savedPlansPager', pageData, plans.length, 'savedPlansPage', 'savedPlansSize', renderStablePlans);
+}
+
+async function deletePlansDirect(ids, button) {
+  if (!ids.length) return;
+  if (button?.dataset.confirming !== 'true') {
+    if (button) { button.dataset.confirming = 'true'; button.textContent = '再次点击确认删除'; setTimeout(() => { if (button.dataset.confirming === 'true') { button.dataset.confirming = ''; button.textContent = '删除'; } }, 3000); }
+    else notify('再次点击“批量删除”确认删除所选方案。', true);
+    return;
+  }
+  try {
+    await Promise.all(ids.map(id => api(`/api/plans/${encodeURIComponent(id)}`, { method: 'DELETE' })));
+    const remove = new Set(ids); state().savedPlans = state().savedPlans.filter(plan => !remove.has(plan.id)); ids.forEach(id => { stablePlanSelection.delete(id); knownPlanIds.delete(id); });
+    renderStablePlans(); notify('装载方案已删除。');
+  } catch (error) { notify(error.message, true); await loadBootstrap(); }
+}
+
 async function compactAvatar(file) {
   if (!file || !/^image\/(png|jpe?g|webp)$/.test(file.type)) throw new Error('请选择 PNG、JPG 或 WEBP 图片。');
   if (file.size > 8 * 1024 * 1024) throw new Error('头像图片不能超过 8 MB。');
@@ -287,11 +406,33 @@ function bindEvents() {
   $$('.nav-link').forEach(button => button.addEventListener('click', () => setTimeout(() => loadBootstrap().catch(() => {}), 0), true));
   $('#archiveForm').addEventListener('submit', () => setTimeout(() => syncUserRecords().catch(error => notify(error.message, true)), 0));
   $('#importFile').addEventListener('change', () => setTimeout(() => syncUserRecords().catch(error => notify(error.message, true)), 300));
+  // Run after the legacy listeners have changed their state, then restore the
+  // single table implementation.  This is intentionally delegated because
+  // the tables are replaced as users search, page, or switch archive type.
+  $('.archive-tabs')?.addEventListener('click', () => setTimeout(renderStableArchives, 0));
+  $('#archiveSearch')?.addEventListener('input', () => { state().ui.archivePage = 1; setTimeout(renderStableArchives, 0); });
+  document.addEventListener('click', event => {
+    const bulkArchives = event.target.closest('#bulkDeleteArchive');
+    const bulkPlans = event.target.closest('#bulkDeletePlans');
+    if (!bulkArchives && !bulkPlans) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    const button = bulkArchives || bulkPlans;
+    const selected = bulkArchives ? [...stableArchiveSelection] : [...stablePlanSelection];
+    if (!selected.length) { notify(bulkArchives ? '请先选择要删除的档案。' : '请先选择要删除的方案。', true); return; }
+    if (button.dataset.confirming !== 'true') {
+      button.dataset.confirming = 'true'; button.dataset.originalText = button.textContent; button.textContent = '再次点击确认删除';
+      setTimeout(() => { if (button.dataset.confirming === 'true') { button.dataset.confirming = ''; button.textContent = button.dataset.originalText || '批量删除'; } }, 3000);
+      return;
+    }
+    button.dataset.confirming = ''; button.textContent = button.dataset.originalText || '批量删除';
+    if (bulkArchives) deleteArchivesDirect(selected, { dataset: { confirming: 'true' } });
+    else deletePlansDirect(selected, { dataset: { confirming: 'true' } });
+  }, true);
   $('#appDialogForm').addEventListener('submit', () => setTimeout(async () => {
     const appState = state(); if (!appState) return;
     const candidate = appState.savedPlans.find(item => !knownPlanIds.has(item.id));
     if (!candidate) return;
-    try { const remote = await api('/api/plans', { method: 'POST', body: JSON.stringify({ plan: candidate }) }); candidate.id = remote.id; knownPlanIds.add(remote.id); notify('方案已安全保存。'); }
+    try { const remote = await api('/api/plans', { method: 'POST', body: JSON.stringify({ plan: candidate }) }); candidate.id = remote.id; knownPlanIds.add(remote.id); renderStablePlans(); notify('方案已安全保存。'); }
     catch (error) { notify(error.message, true); }
   }, 0));
   const syncPlans = () => setTimeout(() => {
