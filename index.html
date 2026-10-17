@@ -6,8 +6,8 @@
     <meta name="theme-color" content="#0b2545" />
     <title>TOP BOX货物装载配货平台</title>
     <link rel="preconnect" href="https://unpkg.com" />
-    <link rel="stylesheet" href="styles.css?v=2.5.1" />
-    <link rel="stylesheet" href="visual-enhancements.css?v=2.5.1" />
+    <link rel="stylesheet" href="styles.css?v=2.6.0" />
+    <link rel="stylesheet" href="visual-enhancements.css?v=2.6.0" />
   </head>
   <body>
     <header class="topbar">
@@ -20,7 +20,7 @@
         <button class="nav-link" data-page="settings">设置</button>
         <button class="nav-link" data-page="updates">更新日志</button>
       </nav>
-      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v2.5.1</span></div>
+      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v2.6.0</span></div>
     </header>
 
     <main>
@@ -56,18 +56,19 @@
       </section>
 
       <section id="archives" class="page">
-        <div class="page-heading"><div><p class="eyebrow">MASTER DATA</p><h1>容器与货物档案</h1><p>维护装载计算与 3D 可视化所需的基础数据。</p></div><div class="heading-actions"><button class="button secondary" id="downloadTemplate">下载导入模板</button><label class="button secondary file-button">批量导入<input id="importFile" type="file" accept=".csv,text/csv" /></label><button class="button secondary" id="exportArchives">导出表格</button><button class="button secondary" id="bulkDeleteArchive" disabled>批量删除</button><button class="button primary" id="addArchive">新增档案 <span>+</span></button></div></div>
+        <div class="page-heading"><div><p class="eyebrow">MASTER DATA</p><h1>容器与货物档案</h1><p>维护装载计算与 3D 可视化所需的基础数据。</p></div><div class="heading-actions"><button class="button secondary" id="downloadTemplate">下载导入模板</button><label class="button secondary file-button">批量导入<input id="importFile" type="file" accept=".csv,text/csv" /></label><button class="button secondary" id="exportArchives">导出表格</button><button class="button secondary" id="shareArchives">生成分享码</button><button class="button secondary" id="importArchiveShare">导入分享码</button><button class="button secondary" id="bulkDeleteArchive" disabled>批量删除</button><button class="button primary" id="addArchive">新增档案 <span>+</span></button></div></div>
         <div class="archive-tabs" role="tablist"><button class="active" data-archive="containers">容器档案 <span id="containerTotal">0</span></button><button data-archive="cargo">货物档案 <span id="cargoTotal">0</span></button></div>
         <div class="archive-table-card"><div class="archive-toolbar"><div class="search"><span>⌕</span><input id="archiveSearch" placeholder="按名称、类型搜索" /></div><span id="archiveCount" class="muted"></span></div><div class="table-wrap"><table><thead><tr id="archiveTableHead"><th><input id="selectAllArchive" type="checkbox" aria-label="选择全部" /></th><th>序号</th><th>名称</th><th>类型</th><th>尺寸（长 × 宽 × 高）</th><th>容积</th><th>重量</th><th>小件数</th><th>颜色</th><th></th></tr></thead><tbody id="archiveRows"></tbody></table></div><div id="archivePager" class="list-pager table-pager"></div></div>
       </section>
 
       <section id="savedPlans" class="page">
-        <div class="page-heading"><div><p class="eyebrow">SAVED PLANS</p><h1>装载方案管理</h1><p>已保存的方案会保留在当前浏览器，可随时打开、导出或删除。</p></div><div class="heading-actions"><button class="button secondary" id="exportSavedPlans">导出表格</button><button class="button secondary" id="bulkDeletePlans" disabled>批量删除</button></div></div>
+        <div class="page-heading"><div><p class="eyebrow">SAVED PLANS</p><h1>装载方案管理</h1><p>已保存的方案会保留在当前账号，可随时打开、导出或删除。</p></div><div class="heading-actions"><button class="button secondary" id="exportSavedPlans">导出表格</button><button class="button secondary" id="sharePlans">生成分享码</button><button class="button secondary" id="importPlanShare">导入分享码</button><button class="button secondary" id="bulkDeletePlans" disabled>批量删除</button></div></div>
         <div id="savedPlansList" class="saved-plans-list"></div><div id="savedPlansPager" class="list-pager"></div>
       </section>
 
       <section id="updates" class="page">
         <div class="page-heading"><div><p class="eyebrow">RELEASE NOTES</p><h1>更新日志</h1><p>TOP BOX货物装载配货平台版本记录。</p></div><label class="update-filter">更新日期<select id="updateDateFilter"><option value="all">全部日期</option><option value="2026-10-17">2026-10-17</option><option value="2026-10-16">2026-10-16</option><option value="2026-10-15">2026-10-15</option><option value="2026-10-14">2026-10-14</option></select></label></div>
+        <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.6.0</h2><time>2026-10-17</time></div><ul><li>容器档案、货物档案与装载方案改为每个账号独享；首次访问会将原有档案复制到当前账号，之后互不影响。</li><li>修复档案及装载方案删除刷新后恢复的问题；删除完成后立即写入服务端。</li><li>装载方案列表恢复紧凑卡片布局，避免内容被撑开为空白大区域。</li><li>新增分享码：容器档案、货物档案和装载方案可生成 30 天有效分享码，其他账号确认后导入。</li><li>管理员可删除普通用户；超级管理员还可删除普通管理员。顶部菜单会重新读取最新数据。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.5.1</h2><time>2026-10-17</time></div><ul><li>修复共享档案容器／货物串位：服务端现强制校验类型、自动修复已污染的分类，并拒绝错误保存。</li><li>恢复选择容器、选择货物的独立网格行布局，移除导致输入框与文字重叠的绝对定位；两侧列表均可稳定显示五行。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.5.0</h2><time>2026-10-17</time></div><ul><li>共享档案在进入装载方案、档案管理及重新回到页面时自动刷新，其他用户的新增、修改、删除可及时同步。</li><li>已登录用户刷新浏览器不再闪现登录页；货物选择区刷新后强制重绘，并固定显示五行货物，解决错位。</li><li>管理员可直接维护普通用户的用户名、昵称和密码；退出登录按钮改为红色。</li><li>登录页背景更新为扁平化纸箱装载插画。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.4.0</h2><time>2026-10-17</time></div><ul><li>重构货物选择行的固定布局，修复首次进入时数量输入框、货物信息重叠错位的问题。</li><li>账户头像改为图片上传、自动压缩和预览；登录页新增纸箱装载背景、平台标题和密码明文查看按钮。</li><li>后台用户管理新增逐用户“档案维护”和“更新日志”权限开关；未授权用户不再显示更新日志菜单。</li><li>已选项悬浮提示改为实时读取当前选择名称，并跟随鼠标位置显示。</li></ul></article>
@@ -91,13 +92,13 @@
       </section>
 
       <section id="tutorial" class="page">
-        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.5.0 更新</span></div>
+        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.6.0 更新</span></div>
         <div class="tutorial-grid" id="tutorialGrid">
           <article class="tutorial-card"><span class="tutorial-step">01</span><div class="tutorial-graphic account-graphic">◉</div><h2>登录与账户</h2><p>首次由管理员创建账号。登录后可在账户中心修改昵称、上传头像图片和修改密码。</p></article>
-          <article class="tutorial-card"><span class="tutorial-step">02</span><div class="tutorial-graphic archive-graphic">▤</div><h2>维护共享档案</h2><p>管理员在“档案管理”维护容器和货物；更新后全部用户都会使用同一份档案。</p></article>
+          <article class="tutorial-card"><span class="tutorial-step">02</span><div class="tutorial-graphic archive-graphic">▤</div><h2>维护个人档案</h2><p>在“档案管理”维护当前账号自己的容器和货物；档案与其他账号互不影响。</p></article>
           <article class="tutorial-card"><span class="tutorial-step">03</span><div class="tutorial-graphic select-graphic">☑</div><h2>选择装载条件</h2><p>选择容器、货物及数量。指定数量可以混装；满载优先仅能选择一种货物。</p></article>
           <article class="tutorial-card"><span class="tutorial-step">04</span><div class="tutorial-graphic preview-graphic">▦</div><h2>查看 3D 与明细</h2><p>生成后可旋转、缩放、切换视角和全屏查看 3D 布局，并核对装载与未装载明细。</p></article>
-          <article class="tutorial-card"><span class="tutorial-step">05</span><div class="tutorial-graphic export-graphic">⇩</div><h2>保存与导出</h2><p>方案保存后仅当前登录用户可见；可导出带 3D 效果图的图片或 PDF 方案。</p></article>
+          <article class="tutorial-card"><span class="tutorial-step">05</span><div class="tutorial-graphic export-graphic">⇩</div><h2>保存、导出与分享</h2><p>方案保存后仅当前登录用户可见；可导出带 3D 效果图的图片或 PDF，也可用分享码把档案或方案导入其他账号。</p></article>
           <article class="tutorial-card"><span class="tutorial-step">06</span><div class="tutorial-graphic admin-graphic">⚙</div><h2>后台权限</h2><p>超级管理员可创建普通用户和最多 5 名管理员；管理员可为普通用户开启或关闭档案维护、更新日志权限。</p></article>
         </div>
       </section>
@@ -122,6 +123,7 @@
     <dialog id="archiveDialog"><form id="archiveForm" method="dialog"><div class="modal-head"><div><p class="eyebrow" id="modalEyebrow">NEW RECORD</p><h2 id="modalTitle">新增容器</h2></div><button type="button" class="icon-button" id="closeDialog" aria-label="关闭">×</button></div><input id="recordId" type="hidden" /><input id="recordKind" type="hidden" /><div class="form-grid"><label>名称<input required id="recordName" maxlength="30" placeholder="例如：9.6m 厢式车" /></label><label>类型<select id="recordType"><option value="车厢">车厢（方形）</option><option value="箱子">箱子（方形）</option><option value="桶">桶（圆柱形）</option><option value="托盘">托盘</option><option value="单体货物">单体货物</option><option value="套装货物">套装货物</option></select></label><label>形状<select id="recordShape"><option value="box">方形</option><option value="cylinder">圆柱形</option></select></label><label>长度 (mm)<input required id="recordL" type="number" min="1" /></label><label>宽度 / 直径 (mm)<input required id="recordW" type="number" min="1" /></label><label>高度 (mm)<input required id="recordH" type="number" min="1" /></label><label>单件重量 (kg)<input id="recordWeight" type="number" min="0" step="0.1" value="0" /></label><label id="recordPiecesField">小件数 (件)<input required id="recordPieces" type="number" min="1" value="1" /></label><label id="recordReserveField">装载余量 (%)<input id="recordReserve" type="number" min="0" max="90" value="0" /></label><label>价格 (元)<input id="recordPrice" type="number" min="0" step="0.01" value="0" /></label><label>显示颜色<input id="recordColor" type="color" value="#2563eb" /></label></div><p class="form-note">尺寸为外部尺寸；容器的合理装载体积会依尺寸与装载余量自动计算。</p><div class="modal-actions"><button type="button" class="button secondary" id="cancelDialog">取消</button><button class="button primary" value="default">保存档案</button></div></form></dialog>
     <dialog id="archiveDialog"><form id="archiveForm" method="dialog"><div class="modal-head"><div><p class="eyebrow" id="modalEyebrow">NEW RECORD</p><h2 id="modalTitle">新增容器</h2></div><button type="button" class="icon-button" id="closeDialog" aria-label="关闭">×</button></div><input id="recordId" type="hidden" /><input id="recordKind" type="hidden" /><div class="form-grid"><label>名称<input required id="recordName" maxlength="30" placeholder="例如：9.6m 厢式车" /></label><label>类型<select id="recordType"><option value="车厢">车厢（方形）</option><option value="箱子">箱子（方形）</option><option value="桶">桶（圆柱形）</option><option value="托盘">托盘</option><option value="单体货物">单体货物</option><option value="套装货物">套装货物</option></select></label><label>形状<select id="recordShape"><option value="box">方形</option><option value="cylinder">圆柱形</option></select></label><label>长度 (mm)<input required id="recordL" type="number" min="1" /></label><label>宽度 / 直径 (mm)<input required id="recordW" type="number" min="1" /></label><label>高度 (mm)<input required id="recordH" type="number" min="1" /></label><label>单件重量 (kg)<input id="recordWeight" type="number" min="0" step="0.1" value="0" /></label><label>小件数 (件)<input required id="recordPieces" type="number" min="1" value="1" /></label><label>装载余量 (%)<input id="recordReserve" type="number" min="0" max="90" value="0" /></label><label>价格 (元)<input id="recordPrice" type="number" min="0" step="0.01" value="0" /></label><label>显示颜色<input id="recordColor" type="color" value="#2563eb" /></label></div><p class="form-note">尺寸为外部尺寸；容器的合理装载体积会依尺寸与装载余量自动计算。</p><div class="modal-actions"><button type="button" class="button secondary" id="cancelDialog">取消</button><button class="button primary" value="default">保存档案</button></div></form></dialog>
     <dialog id="appDialog" class="app-dialog"><form id="appDialogForm" method="dialog"><div class="modal-head"><div><p class="eyebrow" id="appDialogEyebrow">TOP BOX</p><h2 id="appDialogTitle">提示</h2></div><button type="button" class="icon-button" id="appDialogClose" aria-label="关闭">×</button></div><p id="appDialogMessage" class="app-dialog-message"></p><label id="appDialogInputWrap" class="dialog-input hidden"><span id="appDialogInputLabel">方案名称</span><input id="appDialogInput" maxlength="60" /></label><div id="pdfPreview" class="pdf-preview hidden"></div><div class="modal-actions"><button type="button" class="button secondary" id="appDialogCancel">取消</button><button type="button" class="button secondary hidden" id="pdfDownload">下载 PDF</button><button type="button" class="button secondary hidden" id="pdfPrint">打印 PDF</button><button type="submit" class="button primary" id="appDialogConfirm">确定</button></div></form></dialog>
+    <dialog id="shareDialog" class="app-dialog"><form id="shareForm" method="dialog"><div class="modal-head"><div><p class="eyebrow">TOP BOX</p><h2 id="shareTitle">数据分享</h2></div><button type="button" class="icon-button" id="shareClose" aria-label="关闭">×</button></div><p id="shareMessage" class="app-dialog-message"></p><label class="dialog-input"><span>分享码</span><input id="shareCodeInput" maxlength="32" /></label><div class="modal-actions"><button type="button" class="button secondary" id="shareCancel">取消</button><button type="submit" class="button primary" id="shareConfirm">确定</button></div></form></dialog>
     <template id="emptyTemplate"><div class="empty-state">暂无档案，点击右上方“新增档案”创建。</div></template>
     <script type="importmap">
       {
@@ -130,8 +132,8 @@
         }
       }
     </script>
-    <script type="module" src="app.js?v=2.5.1"></script>
-    <script type="module" src="account.js?v=2.5.1"></script>
+    <script type="module" src="app.js?v=2.6.0"></script>
+    <script type="module" src="account.js?v=2.6.0"></script>
   </body>
 </html>
 
