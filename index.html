@@ -16,10 +16,11 @@
         <button class="nav-link active" data-page="workspace">装载方案</button>
         <button class="nav-link" data-page="archives">档案管理</button>
         <button class="nav-link" data-page="savedPlans">方案管理</button>
+        <button class="nav-link" data-page="tutorial">使用教程</button>
         <button class="nav-link" data-page="settings">设置</button>
         <button class="nav-link" data-page="updates">更新日志</button>
       </nav>
-      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><span class="status-dot"></span><span>v2.2.1</span></div>
+      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v2.3.0</span></div>
     </header>
 
     <main>
@@ -66,7 +67,8 @@
       </section>
 
       <section id="updates" class="page">
-        <div class="page-heading"><div><p class="eyebrow">RELEASE NOTES</p><h1>更新日志</h1><p>TOP BOX货物装载配货平台版本记录。</p></div><label class="update-filter">更新日期<select id="updateDateFilter"><option value="all">全部日期</option><option value="2026-10-16">2026-10-16</option><option value="2026-10-15">2026-10-15</option><option value="2026-10-14">2026-10-14</option></select></label></div>
+        <div class="page-heading"><div><p class="eyebrow">RELEASE NOTES</p><h1>更新日志</h1><p>TOP BOX货物装载配货平台版本记录。</p></div><label class="update-filter">更新日期<select id="updateDateFilter"><option value="all">全部日期</option><option value="2026-10-17">2026-10-17</option><option value="2026-10-16">2026-10-16</option><option value="2026-10-15">2026-10-15</option><option value="2026-10-14">2026-10-14</option></select></label></div>
+        <article class="release-latest" data-release-date="2026-10-17"><div class="release-title"><h2>v2.3.0</h2><time>2026-10-17</time></div><ul><li>导出方案图片与 PDF 的文件名统一采用“TOP BOX货物装车方案”前缀。</li><li>已选容器／货物标签改为自定义悬浮清单，可直接查看已选择的名称。</li><li>新增图文使用教程、用户登录、账户中心和管理员后台；共享档案与个人方案改由服务端安全保存。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-16"><div class="release-title"><h2>v2.2.1</h2><time>2026-10-16</time></div><ul><li>档案与方案管理页改为页面本身不滚动，只有列表区域滚动；列头保持固定。</li><li>满载优先的“仅单选货物”提示改为红色；未装载标签固定显示包数与小件数，并强化额外车辆方案入口。</li><li>更新日志按日期自动分组，可折叠展开，并显示每个日期的更新条数。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-16"><div class="release-title"><h2>v2.2.0</h2><time>2026-10-16</time></div><ul><li>档案管理默认打开容器档案；新增档案按容器／货物类型智能隐藏不适用字段。</li><li>档案与方案列表优化为固定列头、勾选列优先，已选数量支持悬浮查看名称。</li><li>未装载标签新增包数与小件数，并提供基于现有车厢档案的额外车辆装载建议。</li><li>补齐顶部菜单、搜索框多语言显示；导出按钮更新为蓝色“导出方案PDF”。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-15"><div class="release-title"><h2>v2.1.7</h2><time>2026-10-15</time></div><ul><li>货物选择区新增“重置”：清空全部货物勾选、将包数恢复为 1，并切回按包数输入。</li><li>指定数量允许多选与数量编辑；满载优先仅可单选并锁定数量输入。</li><li>按比例满载、尾货满载暂标记为“开发中”并禁用。</li></ul></article>
@@ -84,12 +86,32 @@
         <div class="changelog-card"><article data-release-date="2026-10-14"><div class="release-title"><h2>v1.7.0</h2><time>2026-10-14</time></div><ul><li>修复自定义每页条数弹窗标题与输入字段，避免误显示保存方案文案。</li><li>3D 预览改为左键旋转、右键平移，中键不再平移。</li><li>修复 3D 画布首次进入时未铺满预览区域的问题。</li><li>未装载空间仅保留容器内长、宽、高三个方向的剩余长度。</li></ul></article><article data-release-date="2026-10-14"><div class="release-title"><h2>v1.6.0</h2><time>2026-10-14</time></div><ul><li>优化语言选择器外观，并继续补充中、英、泰框架文字翻译。</li><li>PDF 预览弹窗采用固定头部与底部操作栏，仅预览内容区域滚动。</li><li>修复初始化时误弹出提示框；导入模板增加容器、货物示例区分。</li></ul></article><article data-release-date="2026-10-14"><div class="release-title"><h2>v1.5.0</h2><time>2026-10-14</time></div><ul><li>全站提示、确认和输入改为居中应用弹窗；刷新页面按钮取代初始化重置。</li><li>新增档案和已保存方案的批量删除，以及多容器 PDF 预览。</li><li>优化满载与未装载统计口径。</li></ul></article><article data-release-date="2026-10-14"><div class="release-title"><h2>v1.4.0</h2><time>2026-10-14</time></div><ul><li>新增未装载空间明细、图例点击显隐、多关键字货物搜索与选择列表分页。</li><li>支持多个容器方案在 3D 区域左右切换，圆柱货物可竖放或横放且不超出容器。</li></ul></article><article data-release-date="2026-10-14"><div class="release-title"><h2>v1.3.2</h2><time>2026-10-14</time></div><ul><li>扩大 3D 预览区域，并让全屏模式保留视角、重置和退出按钮。</li><li>新增返回顶部/底部浮动按钮及初始化重置按钮。</li><li>新增设置页，可开启或关闭悬停显示 3D 货物名称。</li><li>档案类型标签采用不同颜色区分。</li></ul></article><article data-release-date="2026-10-14"><div class="release-title"><h2>v1.3.0</h2><time>2026-10-14</time></div><ul><li>新增方案保存与方案管理。</li><li>支持多容器独立生成方案，并汇总展示所有容器结果。</li><li>新增容器与货物搜索、PDF 导出与打印方案分离。</li><li>3D 视图支持鼠标中键平移，并改善全屏恢复后的尺寸适配。</li></ul></article><article data-release-date="2026-10-14"><div class="release-title"><h2>v1.2.0</h2><time>2026-10-14</time></div><ul><li>档案在同一浏览器刷新后保留。</li><li>标准方案导出包含 3D 效果图、小件数与摆放明细。</li><li>新增 3D 全屏、单体外框与装载方向统计。</li></ul></article><article data-release-date="2026-10-14"><div class="release-title"><h2>v1.0.0</h2><time>2026-10-14</time></div><ul><li>首次发布车辆装载优化、档案管理及 3D 预览功能。</li></ul></article></div>
       </section>
 
+      <section id="tutorial" class="page">
+        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.3.0 更新</span></div>
+        <div class="tutorial-grid" id="tutorialGrid">
+          <article class="tutorial-card"><span class="tutorial-step">01</span><div class="tutorial-graphic account-graphic">◉</div><h2>登录与账户</h2><p>首次由管理员创建账号。登录后可在账户中心修改昵称、头像链接和密码。</p></article>
+          <article class="tutorial-card"><span class="tutorial-step">02</span><div class="tutorial-graphic archive-graphic">▤</div><h2>维护共享档案</h2><p>管理员在“档案管理”维护容器和货物；更新后全部用户都会使用同一份档案。</p></article>
+          <article class="tutorial-card"><span class="tutorial-step">03</span><div class="tutorial-graphic select-graphic">☑</div><h2>选择装载条件</h2><p>选择容器、货物及数量。指定数量可以混装；满载优先仅能选择一种货物。</p></article>
+          <article class="tutorial-card"><span class="tutorial-step">04</span><div class="tutorial-graphic preview-graphic">▦</div><h2>查看 3D 与明细</h2><p>生成后可旋转、缩放、切换视角和全屏查看 3D 布局，并核对装载与未装载明细。</p></article>
+          <article class="tutorial-card"><span class="tutorial-step">05</span><div class="tutorial-graphic export-graphic">⇩</div><h2>保存与导出</h2><p>方案保存后仅当前登录用户可见；可导出带 3D 效果图的图片或 PDF 方案。</p></article>
+          <article class="tutorial-card"><span class="tutorial-step">06</span><div class="tutorial-graphic admin-graphic">⚙</div><h2>后台权限</h2><p>超级管理员可创建普通用户和最多 5 名管理员；管理员负责共享档案维护。</p></article>
+        </div>
+      </section>
+
+      <section id="account" class="page">
+        <div class="page-heading"><div><p class="eyebrow">ACCOUNT</p><h1>账户中心</h1><p>管理个人资料、安全密码及账号权限。</p></div><button id="logoutButton" class="button secondary" type="button">退出登录</button></div>
+        <div class="account-layout"><section class="account-card"><h2>个人资料</h2><form id="profileForm" class="account-form"><label>账号<input id="profileUsername" disabled /></label><label>昵称<input id="profileNickname" required maxlength="40" /></label><label>头像链接（可选）<input id="profileAvatar" type="url" maxlength="500" placeholder="https://…" /></label><button class="button primary">保存资料</button></form></section><section class="account-card"><h2>修改密码</h2><form id="passwordForm" class="account-form"><label>旧密码<input id="oldPassword" type="password" required autocomplete="current-password" /></label><label>新密码<input id="newPassword" type="password" required minlength="5" autocomplete="new-password" /></label><button class="button primary">更新密码</button></form></section></div>
+        <section id="adminPanel" class="admin-panel hidden"><div class="detail-head"><div><h2>后台用户与权限</h2><p>超级管理员可添加管理员（最多 5 名）；管理员可创建普通用户。</p></div></div><div class="account-layout"><section class="account-card"><h2>创建账号</h2><form id="createUserForm" class="account-form"><label>账号<input id="newAccountUsername" required pattern="[a-z0-9_.-]{3,40}" /></label><label>昵称<input id="newAccountNickname" required maxlength="40" /></label><label>初始密码<input id="newAccountPassword" type="password" required minlength="5" /></label><label id="newAccountRoleWrap">账号角色<select id="newAccountRole"><option value="user">普通用户</option><option value="admin">管理员</option></select></label><button class="button primary">创建账号</button></form></section><section class="account-card account-users"><h2>用户列表</h2><div id="adminUsersList" class="admin-users-list"></div></section></div></section>
+      </section>
+
       <section id="settings" class="page">
         <div class="page-heading"><div><p class="eyebrow">SETTINGS</p><h1>显示设置</h1><p>设置会保留在当前浏览器。</p></div></div>
         <section class="settings-card"><div><h2>显示控制已移至 3D 预览</h2><p>生成方案后，点击 3D 预览右上角的“显示设置”即可控制货物名称提示和容器尺寸标注。</p></div></section>
       </section>
     </main>
 
+    <div id="authGate" class="auth-gate" aria-live="polite"><form id="loginForm" class="login-card"><p class="eyebrow">TOP BOX</p><h1>欢迎登录</h1><p>请输入管理员创建的账号和密码。</p><label>账号<input id="loginUsername" required autocomplete="username" autofocus /></label><label>密码<input id="loginPassword" type="password" required autocomplete="current-password" /></label><p id="loginError" class="login-error" role="alert"></p><button class="button primary" type="submit">登录平台</button><small>首次登录：管理员账号 admin，初始密码 12345。</small></form></div>
+    <div id="selectionNameTooltip" class="selection-name-tooltip" role="tooltip"></div>
     <div class="page-jump" aria-label="页面快速跳转"><button id="scrollTop" title="返回顶部" aria-label="返回顶部">↑</button><button id="scrollBottom" title="前往底部" aria-label="前往底部">↓</button></div>
     <div id="appToast" class="app-toast" role="status" aria-live="polite"></div>
 
@@ -105,6 +127,7 @@
       }
     </script>
     <script type="module" src="app.js"></script>
+    <script type="module" src="account.js"></script>
   </body>
 </html>
 
