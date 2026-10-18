@@ -29,7 +29,7 @@
         <button class="nav-link" data-page="settings">设置</button>
         <button class="nav-link" data-page="updates">更新日志</button>
       </nav>
-      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v2.9.7</span></div>
+      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v2.9.8</span></div>
     </header>
 
     <main>
@@ -77,7 +77,8 @@
 
       <section id="updates" class="page">
         <div class="page-heading"><div><p class="eyebrow">RELEASE NOTES</p><h1>更新日志</h1><p>TOP BOX货物装载配货平台版本记录。</p></div><label class="update-filter">更新日期<select id="updateDateFilter"><option value="all">全部日期</option><option value="2026-10-18">2026-10-18</option><option value="2026-10-17">2026-10-17</option><option value="2026-10-16">2026-10-16</option><option value="2026-10-15">2026-10-15</option><option value="2026-10-14">2026-10-14</option></select></label></div>
-        <article class="release-latest" data-release-date="2026-10-18"><div class="release-title"><h2>v2.9.7</h2><time>2026-10-18</time></div><ul><li>修复登录初始化：恢复主程序的模块化启动方式，账号页面可正常读取主程序并完成登录。</li></ul></article>
+        <article class="release-latest" data-release-date="2026-10-18"><div class="release-title"><h2>v2.9.8</h2><time>2026-10-18</time></div><ul><li>容器档案与货物档案顶部菜单改由独立导航接管：点击后不再跳回“档案管理”，标题始终对应当前档案。</li></ul></article>
+        <article data-release-date="2026-10-18"><div class="release-title"><h2>v2.9.7</h2><time>2026-10-18</time></div><ul><li>修复登录初始化：恢复主程序的模块化启动方式，账号页面可正常读取主程序并完成登录。</li></ul></article>
         <article data-release-date="2026-10-18"><div class="release-title"><h2>v2.9.6</h2><time>2026-10-18</time></div><ul><li>直接接管“指定数量／满载优先”切换和货物重置动作，阻止历史列表渲染覆盖新列表。</li><li>新增货物列表守护：任何旧行结构被写入时会立即恢复为统一的四列布局，始终保留蓝色“共 X 件／折合 X 包”结果列。</li></ul></article>
         <article data-release-date="2026-10-18"><div class="release-title"><h2>v2.9.5</h2><time>2026-10-18</time></div><ul><li>进一步收紧数量输入区，给规格信息列保留稳定空间；切换装载方式、重置与切换输入方式后均保持同一行结构。</li><li>蓝色“共 X 件／折合 X 包”结果列始终预留显示，不会被输入框挤掉。</li></ul></article>
         <article data-release-date="2026-10-18"><div class="release-title"><h2>v2.9.4</h2><time>2026-10-18</time></div><ul><li>货物选择行在所有桌面与平板宽度保持同一四列布局，不再因切换装载方式或输入方式改变结构。</li><li>缩小字号与行高以匹配选择容器列表，固定保留“共 X 件／折合 X 包”的蓝色结果列，并可显示五行。</li></ul></article>
@@ -135,7 +136,7 @@
       </section>
 
       <section id="tutorial" class="page">
-      <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.9.7 更新</span></div>
+      <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.9.8 更新</span></div>
         <div class="tutorial-grid" id="tutorialGrid">
           <article class="tutorial-card"><span class="tutorial-step">01</span><div class="tutorial-graphic account-graphic">◉</div><h2>登录与账户</h2><p>首次由管理员创建账号。登录后可在账户中心修改昵称、上传头像图片和修改密码。</p></article>
           <article class="tutorial-card"><span class="tutorial-step">02</span><div class="tutorial-graphic archive-graphic">▤</div><h2>维护个人档案</h2><p>在“档案管理”维护当前账号自己的容器和货物；档案与其他账号互不影响。</p></article>
@@ -175,7 +176,7 @@
       }
     </script>
     <script type="module" src="app-loader-v297.js"></script>
-    <script type="module" src="account.js?v=2.9.0"></script>
+    <script type="module" src="account.js?v=2.9.8"></script>
   </body>
 </html>
 
