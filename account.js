@@ -106,7 +106,7 @@ async function refreshUserRecords() {
 }
 
 async function syncUserRecords() {
-  if (!state()) return;
+  if (!state() || !canEditRecords()) return;
   await api('/api/shared/records', { method: 'PUT', body: JSON.stringify({ containers: state().containers, cargo: state().cargo }) });
   await refreshUserRecords();
 }
@@ -261,9 +261,13 @@ function archiveVolume(record, isContainer) {
 
 function openStableArchiveEditor(record) {
   if (!record) return;
+  if (!canEditRecords()) { notify('未获档案维护权限。', true); return; }
   const dialog = $('#archiveDialog');
+  const isContainer = state().archive === 'containers';
   $('#recordKind').value = state().archive;
   $('#recordId').value = record.id;
+  $('#modalTitle').textContent = isContainer ? '修改容器' : '修改货物';
+  $('#modalEyebrow').textContent = 'EDIT RECORD';
   const map = { recordName: 'name', recordType: 'type', recordShape: 'shape', recordL: 'l', recordW: 'w', recordH: 'h', recordWeight: 'weight', recordPieces: 'pieces', recordReserve: 'reserve', recordPrice: 'price', recordColor: 'color' };
   Object.entries(map).forEach(([input, key]) => { const field = $('#' + input); if (field) field.value = record[key] ?? ''; });
   dialog?.showModal();
@@ -296,6 +300,7 @@ function renderStableArchives() {
 }
 
 async function deleteArchivesDirect(ids) {
+  if (!canEditRecords()) { notify('未获档案维护权限。', true); return; }
   if (!ids.length) return;
   if (!await askAccountConfirm(`确定删除已选择的 ${ids.length} 条档案吗？`)) return;
   const appState = state(), remove = new Set(ids);
@@ -366,6 +371,7 @@ async function regenerateShareCode() {
   } finally { $('#shareConfirm').disabled = false; }
 }
 function openShareDialog(mode, kind) {
+  if (mode === 'import' && kind === 'archives' && !canEditRecords()) { notify('未获档案维护权限，不能导入档案分享码。', true); return; }
   const dialog = $('#shareDialog'), input = $('#shareCodeInput');
   shareAction = { mode, kind };
   $('#shareTitle').textContent = mode === 'create' ? '生成数据分享码' : '导入数据分享码';
@@ -389,10 +395,12 @@ async function handleShareDialog() {
   if (shareAction.mode === 'import') {
     const code = input.value.trim(); if (!code) throw new Error('请输入分享码。');
     const preview = await api(`/api/shares/${encodeURIComponent(code)}`);
+    if ((preview.kind === 'containers' || preview.kind === 'cargo') && !canEditRecords()) throw new Error('未获档案维护权限，不能导入档案分享码。');
     shareAction = { mode: 'confirm', code, kind: preview.kind };
     $('#shareMessage').textContent = `即将导入 ${preview.count} 条${preview.kind === 'plans' ? '装车方案' : preview.kind === 'containers' ? '容器档案' : '货物档案'}。确认后将加入当前账号的数据。`;
     input.readOnly = true; $('#shareImportMode').classList.remove('hidden'); $('#shareConfirm').textContent = '确认导入'; return;
   }
+  if ((shareAction.kind === 'containers' || shareAction.kind === 'cargo') && !canEditRecords()) throw new Error('未获档案维护权限，不能导入档案分享码。');
   const importMode = $('input[name="shareImportMode"]:checked')?.value || 'append';
   const result = await api(`/api/shares/${encodeURIComponent(shareAction.code)}/import`, { method: 'POST', body: JSON.stringify({ mode: importMode }) });
   $('#shareDialog').close(); await loadBootstrap(); notify(`已导入 ${result.count} 条数据。`);
@@ -435,9 +443,29 @@ function bindEvents() {
     try { await api('/api/admin/users', { method: 'POST', body: JSON.stringify({ username: $('#newAccountUsername').value, nickname: $('#newAccountNickname').value, password: $('#newAccountPassword').value, role: user?.role === 'super_admin' ? $('#newAccountRole').value : 'user' }) }); event.target.reset(); notify('账号已创建。'); renderUsers(); }
     catch (error) { notify(error.message, true); }
   });
+  const denyRecordEdit = event => {
+    if (!user || canEditRecords()) return false;
+    const action = event.target.closest('#archives [data-edit], #archives [data-delete], #archives [data-stable-edit-archive], #archives [data-stable-delete-archive], #addArchive, #bulkDeleteArchive, #importArchiveShare, .file-button, #importFile');
+    if (!action) return false;
+    event.preventDefault(); event.stopImmediatePropagation();
+    notify('未获档案维护权限。', true);
+    return true;
+  };
+  document.addEventListener('click', denyRecordEdit, true);
+  document.addEventListener('change', event => {
+    if (!user || canEditRecords() || !event.target.matches('#importFile')) return;
+    event.preventDefault(); event.stopImmediatePropagation(); event.target.value = '';
+    notify('未获档案维护权限。', true);
+  }, true);
+  document.addEventListener('submit', event => {
+    if (!user || canEditRecords() || !event.target.matches('#archiveForm')) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    notify('未获档案维护权限。', true);
+  }, true);
   document.addEventListener('click', event => {
-    if (!user) return;
-    if (!canEditRecords() && event.target.closest('#archives [data-edit], #archives [data-delete], #addArchive, #bulkDeleteArchive, .file-button')) { event.preventDefault(); event.stopImmediatePropagation(); notify('未获档案维护权限。', true); return; }
+    if (!event.target.closest('.nav-link[data-page="archives"], [data-go-archives]')) return;
+    stableArchiveSelection.clear();
+    setTimeout(() => { renderStableArchives(); updateStableBulkButtons(); }, 0);
   }, true);
   $$('.nav-link').forEach(button => button.addEventListener('click', () => setTimeout(() => loadBootstrap().catch(() => {}), 0), true));
   $('#archiveForm').addEventListener('submit', () => setTimeout(() => syncUserRecords().catch(error => notify(error.message, true)), 0));
