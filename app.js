@@ -1,5 +1,5 @@
-Warning: truncated output (original token count: 37966)
-Total output lines: 687
+Warning: truncated output (original token count: 38204)
+Total output lines: 707
 
 import * as THREE from 'https://unpkg.com/three@0.162.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.162.0/examples/jsm/controls/OrbitControls.js';
@@ -291,9 +291,7 @@ function bind(){
   $$('.nav-link').forEach(b=>b.addEventListener('click',()=>{const page=b.dataset.page;$$('.nav-link').forEach(x=>x.classList.toggle('active',x===b));$$('.page').forEach(x=>x.classList.toggle('active-page',x.id===page));window.scrollTo({top:0,behavior:'smooth'});if(page==='archives')renderArchives();if(page==='savedPlans')renderSavedPlans();if(page==='settings')renderSettings();}));
   $$('[data-go-archives]').forEach(b=>b.addEventListener('click',()=>{state.archive=b.dataset.goArchives;persistState();$('.nav-link[data-page="archives"]').click();$$('.archive-tabs button').forEach(x=>x.classList.toggle('active',x.dataset.archive===state.archive));renderArchives();}));
   $$('input[name="mode"]').forEach(x=>x.addEventListener('change',()=>$$('.mode-option').forEach(l=>l.classList.toggle('selected',l.querySelector('input').checked))));$('#calculate').addEventListener('click',generatePlan);$('#resetWorkspace').addEventListener('click',resetWorkspace);$('#containerSearch').addEventListener('input',renderSelectors);$('#cargoSearch').addEventListener('input',renderSelectors);
-  $$('.view-buttons [data-view]').forEach(b=>b.addEventListener('click',()=>setCamera(b.dataset.view)));$('#resetCamera').addEventListener('click',()=>setCamera('iso'));$('#prevPlan').addEventListener('click',()=>{if(state.plan?.active>0){state.plan.active--;renderPlan();}});$('#nextPlan').addEventListener('click',()=>{if(state.plan&&state.plan.active<state.plan.plans.length-1){state.plan.active++;renderPlan();}});$('#fullscreenView').addEventListener('click',()=>{const target=$('#visualCard');if(document.fullscreenElement)document.exitFullscreen();else target.requestFullscreen?.();});document.addEventListener('fullscreenchange',()=>{const isFull=Boolean(document.fullscreenElement),button=$('#fullscreenView');button.textContent=isFull?'×':'⛶';button.title=isFull?'退出全屏':'全屏放大';button.setAttribute('aria-label',button.title);fitThree();if(!isFull&&state.plan)setTimeout(()=>{fitThree();setCamera('iso');},120);});window.addEventListener('resize',fitThree);$('#savePlan').addEven…11966 tokens truncated…dataset.goArchives;selectedArchiveIds.clear();persistState();$('.nav-link[data-page="archives"]').click();$$('.archive-tabs button').forEach(x=>x.classList.toggle('active',x.dataset.archive===state.archive));renderArchives();}));
-  $$('input[name="mode"]').forEach(x=>x.addEventListener('change',()=>$$('.mode-option').forEach(l=>l.classList.toggle('selected',l.querySelector('input').checked))));$('#calculate').addEventListener('click',generatePlan);$('#refreshPage').addEventListener('click',()=>location.reload());$('#containerSearch').addEventListener('input',requestSelectorRender);$('#cargoSearch').addEventListener('input',requestSelectorRender);
-  $('#selectAllContainers').addEventListener('click',()=>{state.containers.forEach(c=>state.selectedContainers.add(c.id));persistState();renderSelectors();});$('#clearAllContainers').addEventListener('click',()=>{state.selectedContainers.clear();persistState();renderSelectors();});$('#resetContainers')?.addEventListener('click',()=>{state.selectedContainers.clear();persistState();renderSelectors();});$('#selectAllCargo').addEventListener('click',()=>{state.cargo.forEach(g=>state.selectedCargo.add(g.id));persistState();renderSelectors();});$('#clearAllCargo').addEventListener('click',()=>{state.selectedCargo.clear();persistState();renderSelectors();});
+  $$('.view-buttons [data-view]').forEach(b=>b.addEventListener('click',()=>setCamera(b.dataset.view)));$('#resetCamera').addEventListener('click',()=>setCamera('iso'));$('#prevPlan').addEventListener('click',()=>{if(state.plan?.active>0){state.plan.active--;renderPlan();}});$('#nextPlan').addEventListener('click',()=>{if(state.plan&&state.plan.active<state.plan.plans.length-1){state.plan.active++;renderPlan();}});$('#fullscreenView').addEventListener('click',()=>{const target=$('#visualCard');if(document.fullscreenElement)document.exitFullscreen();else target.requestFullscreen?.();});document.addEventListener('fullscreenchange',()=>{const isFull=Boolean(document.fullscreenElement),button=$('#fullscreenView');button.textContent=isFull?'×':'⛶';button.title=isFull?'退出全屏':'全屏放大';button.setAttribute('aria-label',button.title);fitThree();if(!isFull&&state.plan)setTimeout(()=>{fitThree();setCamera('iso');},120);});window.addEventListener('resize',fitThree);$('#savePlan').addEven…12204 tokens truncated…ers')?.addEventListener('click',()=>{state.selectedContainers.clear();persistState();renderSelectors();});$('#selectAllCargo').addEventListener('click',()=>{state.cargo.forEach(g=>state.selectedCargo.add(g.id));persistState();renderSelectors();});$('#clearAllCargo').addEventListener('click',()=>{state.selectedCargo.clear();persistState();renderSelectors();});
   $$('.view-buttons [data-view]').forEach(b=>b.addEventListener('click',()=>setCamera(b.dataset.view)));$('#resetCamera').addEventListener('click',()=>setCamera('iso'));$('#prevPlan').addEventListener('click',()=>{if(state.plan?.active>0){state.plan.active--;renderPlan();}});$('#nextPlan').addEventListener('click',()=>{if(state.plan&&state.plan.active<state.plan.plans.length-1){state.plan.active++;renderPlan();}});$('#fullscreenView').addEventListener('click',()=>{const target=$('#visualCard');if(document.fullscreenElement)document.exitFullscreen();else target.requestFullscreen?.();});document.addEventListener('fullscreenchange',()=>{const full=Boolean(document.fullscreenElement),button=$('#fullscreenView');button.textContent=full?'×':'⛶';button.title=full?t('退出全屏'):t('全屏放大');button.setAttribute('aria-label',button.title);fitThree();if(!full&&state.plan)setTimeout(()=>{fitThree();setCamera('iso');},120);});window.addEventListener('resize',fitThree);$('#savePlan').addEventListener('click',saveCurrentPlan);$('#exportImage').addEventListener('click',exportImage);$('#exportPdf').addEventListener('click',exportPdf);
   $('#tooltipToggle').addEventListener('change',event=>{state.settings.showCargoTooltip=event.target.checked;persistState();renderSettings();if(!event.target.checked)hideCargoHover();});$('#dimensionToggle').addEventListener('change',event=>{state.settings.showContainerDimensions=event.target.checked;persistState();renderSettings();if(state.plan)renderPlan();});$('#languageSelect').addEventListener('change',event=>{state.settings.language=event.target.value;persistState();applyLanguage();renderSelectors();if(state.plan)renderPlan();});$('#scrollTop').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));$('#scrollBottom').addEventListener('click',()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'}));
   $$('.archive-tabs button').forEach(b=>b.addEventListener('click',()=>{state.archive=b.dataset.archive;selectedArchiveIds.clear();persistState();$$('.archive-tabs button').forEach(x=>x.classList.toggle('active',x===b));renderArchives();}));$('#archiveSearch').addEventListener('input',renderArchives);$('#addArchive').addEventListener('click',()=>openDialog());$('#closeDialog').addEventListener('click',()=>$('#archiveDialog').close());$('#cancelDialog').addEventListener('click',()=>$('#archiveDialog').close());$('#archiveForm').addEventListener('submit',event=>{saveDialog(event);showSuccess(t('档案已保存。'));});$('#downloadTemplate').addEventListener('click',downloadTemplate);$('#importFile').addEventListener('change',e=>e.target.files[0]&&importCSV(e.target.files[0]));$('#selectAllArchive').addEventListener('change',e=>{const query=$('#archiveSearch').value.trim().toLowerCase(),filtered=state[state.archive].filter(r=>!query||`${r.name}${r.type}`.toLowerCase().includes(query));filtered.forEach(r=>e.target.checked?selectedArchiveIds.add(r.id):selectedArchiveIds.delete(r.id));renderArchives();});$('#bulkDeleteArchive').addEventListener('click',()=>removeArchives([...selectedArchiveIds]));$('#bulkDeletePlans').addEventListener('click',()=>removeSavedPlans([...selectedSavedPlanIds]));
@@ -393,6 +391,17 @@ window.TopBoxApp.renderSelectors=()=>renderSelectors();
 window.TopBoxApp.generatePlan=()=>generatePlan();
 renderSelectors();
 renderExactUtilization();
+/* The mode controls belong to the standalone selector too.  Capture this
+   before older compatibility listeners can redraw an obsolete cargo row. */
+document.addEventListener('click',event=>{
+  const button=event.target.closest('#quantityInputMode [data-quantity-mode]');
+  if(!button||button.disabled)return;
+  event.preventDefault();event.stopImmediatePropagation();
+  const next=button.dataset.quantityMode;
+  if(next===state.settings.quantityInputMode)return;
+  state.settings.quantityInputMode=next;
+  persistState();renderSelectors();
+},true);
 
 /* v2.9.0 — standalone cargo selector.
    This deliberately does not reuse the historical .select-row markup.  It is
@@ -597,4 +606,13 @@ window.TopBoxApp.renderSelectors=()=>renderSelectors();
 window.TopBoxApp.generatePlan=()=>generatePlan();
 renderSelectors();
 renderExactUtilization();
+document.addEventListener('click',event=>{
+  const button=event.target.closest('#quantityInputMode [data-quantity-mode]');
+  if(!button||button.disabled)return;
+  event.preventDefault();event.stopImmediatePropagation();
+  const next=button.dataset.quantityMode;
+  if(next===state.settings.quantityInputMode)return;
+  state.settings.quantityInputMode=next;
+  persistState();renderSelectors();
+},true);
 
