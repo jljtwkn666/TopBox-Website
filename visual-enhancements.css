@@ -216,3 +216,15 @@
 .app-dialog .modal-actions #pdfPrint{background:#eff6ff!important;border-color:#bfdbfe!important;color:#1d4ed8!important}
 .app-dialog .modal-actions #pdfDownload{background:#0b2545!important;border-color:#0b2545!important;color:#fff!important}
 
+/* v2.8.1 — reserve a visible, fixed area for quantity conversion text. */
+#cargoList .select-row{grid-template-columns:22px 34px minmax(270px,1fr) 382px!important}
+#cargoList .select-row>.record-main{min-width:270px!important}
+#cargoList .select-row>.quantity{display:grid!important;grid-template-columns:156px 26px minmax(176px,1fr)!important;width:382px!important;min-width:382px!important;gap:8px!important}
+#cargoList .select-row>.quantity>.quantity-total{display:block!important;min-width:176px!important;color:#456583!important;font-size:13px!important;font-weight:800!important;text-align:left!important;white-space:nowrap!important}
+@media(max-width:760px){#cargoList .select-row>.quantity{grid-template-columns:132px 20px minmax(0,1fr)!important;width:auto!important;min-width:0!important}#cargoList .select-row>.quantity>.quantity-total{min-width:0!important;font-size:12px!important}}
+
+/* v2.8.4 — the package/piece conversion is a required output, never an
+   optional decoration.  These final rules win over all previous compact-row
+   compatibility rules. */
+#cargoList .select-row>.quantity>.quantity-total{display:block!important;visibility:visible!important;opacity:1!important;overflow:visible!important;color:#365b7c!important;font-size:13px!important;font-weight:800!important}
+
