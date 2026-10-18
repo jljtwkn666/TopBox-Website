@@ -1,5 +1,5 @@
-Warning: truncated output (original token count: 36618)
-Total output lines: 595
+Warning: truncated output (original token count: 37940)
+Total output lines: 684
 
 import * as THREE from 'https://unpkg.com/three@0.162.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.162.0/examples/jsm/controls/OrbitControls.js';
@@ -258,7 +258,38 @@ function reportCanvas(report){
   const metrics=[['空间利用率',`${actualUtilization(plan).toFixed(2)}%`],['已装载',`${plan.positions.length} 包 / ${totalPieces.toLocaleString()} 件`],['已用容积',fmtVolume(actualUsedVolume(plan))],['总重量',`${plan.positions.reduce((s,p)=>s+(+p.weight||0),0).toFixed(0)} kg`]];
   metrics.forEach(([label,value],i)=>{const y=282+i*112;ctx.fillStyle='#edf4fb';ctx.fillRect(1040,y,440,86);ctx.fillStyle='#54718d';ctx.font='17px sans-serif';ctx.fillText(label,1068,y+32);ctx.fillStyle='#0b2545';ctx.font='bold 26px sans-serif';ctx.fillText(value,1068,y+66);});
   const startY=824;ctx.fillStyle='#0b2545';ctx.font='bold 25px sans-serif';ctx.fillText('各品装载明细',64,startY);const headers=['货物','装载数量','小件数','装载容积','摆放明细'];const columns=[64,390,570,720,930];ctx.fillStyle='#e1ebf5';ctx.fillRect(54,startY+24,1492,48);ctx.fillStyle='#365876';ctx.font='bold 16px sans-serif';headers.forEach((h,i)=>ctx.fillText(h,columns[i]+14,startY+55));
-  rows.forEach((row,i)=>{const y=startY+72+i*92;ctx.fillStyle=i%2?'#ffffff':'#f8fbfe';ctx.fillRect(54,y,1492,92);ctx.strokeStyle='#e3ebf2';ctx.strokeRect(54,y,1492,92);ctx.fillStyle='#173a5e';ctx.font='bold 17px sans-serif';ctx.fillText(row.name.slice(0,19),78,y+34);ctx.font='16px sans-serif';ctx.fillStyle='#405b74';ctx.fillText(`${row.count} 包`,404,y+34);ctx.fillText(`${row.pieces.toLocaleString()} 件`,584,y+34);ctx.fillText(fmtVolume(row.volume),73…14618 tokens truncated…ent.target.checked)hideCargoHover();});$('#dimensionToggle').addEventListener('change',event=>{state.settings.showContainerDimensions=event.target.checked;persistState();renderSettings();if(state.plan)renderPlan();});$('#languageSelect').addEventListener('change',event=>{state.settings.language=event.target.value;persistState();applyLanguage();renderSelectors();if(state.plan)renderPlan();});$('#scrollTop').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));$('#scrollBottom').addEventListener('click',()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'}));
+  rows.forEach((row,i)=>{const y=startY+72+i*92;ctx.fillStyle=i%2?'#ffffff':'#f8fbfe';ctx.fillRect(54,y,1492,92);ctx.strokeStyle='#e3ebf2';ctx.strokeRect(54,y,1492,92);ctx.fillStyle='#173a5e';ctx.font='bold 17px sans-serif';ctx.fillText(row.name.slice(0,19),78,y+34);ctx.font='16px sans-serif';ctx.fillStyle='#405b74';ctx.fillText(`${row.count} 包`,404,y+34);ctx.fillText(`${row.pieces.toLocaleString()} 件`,584,y+34);ctx.fillText(fmtVolume(row.volume),734,y+34);ctx.font='14px sans-serif';ctx.fillText(row.placement,944,y+34,560);});
+  ctx.fillStyle='#6a8298';ctx.font='14px sans-serif';ctx.fillText('说明：横向为沿车厢宽度，纵向为沿车厢长度，竖向为堆叠层数。',64,height-36);
+  return canvas;
+}
+function exportSerial(){const now=new Date(),date=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`,key=`topbox-export-sequence-${date}`,next=(Number(localStorage.getItem(key))||0)+1;localStorage.setItem(key,String(next));return `${date}${String(next).padStart(3,'0')}`;}
+function exportFileName(prefix,extension){return `${prefix}-${exportSerial()}.${extension}`;}
+function exportImage(){if(!renderer||!state.plan)return;const canvas=reportCanvas(activeReport()),a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=exportFileName('TOP BOX货物装车方案','png');a.click();}
+async function exportPdf(){
+  if(!renderer||!state.plan)return;
+  try{
+    const {jsPDF}=await import('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm');
+    const canvas=reportCanvas(activeReport()),pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'}),pageW=pdf.internal.pageSize.getWidth(),pageH=pdf.internal.pageSize.getHeight(),margin=10,ratio=canvas.width/canvas.height;
+    let drawW=pageW-margin*2,drawH=drawW/ratio;if(drawH>pageH-margin*2){drawH=pageH-margin*2;drawW=drawH*ratio;}
+    pdf.addImage(canvas.toDataURL('image/png'),'PNG',(pageW-drawW)/2,(pageH-drawH)/2,drawW,drawH,undefined,'FAST');pdf.save(exportFileName('TOP BOX货物装车方案','pdf'));
+  }catch(error){console.error(error);alert('PDF 组件加载失败，请检查网络后重试，或使用“打印方案”另存为 PDF。');}
+}
+function printPlan(){
+  if(!renderer||!state.plan)return;
+  const report=activeReport(), image=reportCanvas(report).toDataURL('image/png'), {plan,rows,totalPieces,createdAt}=report;
+  const rowHtml=rows.map(row=>`<tr><td>${escapeHtml(row.name)}</td><td>${row.count} 包</td><td>${row.pieces.toLocaleString()} 件</td><td>${fmtVolume(row.volume)}</td><td>${escapeHtml(row.placement)}</td></tr>`).join('');
+  const page=window.open('','_blank'); if(!page){alert('浏览器阻止了导出窗口，请允许弹出窗口后重试。');return;}
+  page.document.write(`<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>标准车辆装车方案</title><style>body{margin:0;background:#eef3f8;color:#173a5e;font:14px Arial,"Microsoft YaHei",sans-serif}.sheet{max-width:1000px;margin:22px auto;background:#fff;padding:34px;box-sizing:border-box}.head{border-bottom:3px solid #0b2545;padding-bottom:18px}.head h1{margin:0 0 8px;font-size:28px;color:#0b2545}.muted{color:#60788f}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:22px 0}.metric{background:#f1f6fb;padding:14px;border-radius:6px}.metric b{display:block;margin-top:6px;font-size:17px;color:#0b2545}.render{width:100%;border:1px solid #d8e3ed;display:block;margin:18px 0 26px}table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid #dce6ee;text-align:left;vertical-align:top}th{background:#e9f1f8;color:#254d70}@media print{body{background:#fff}.sheet{margin:0;max-width:none;padding:0}.no-print{display:none}}</style></head><body><main class="sheet"><section class="head"><h1>标准车辆装车方案</h1><div class="muted">容器：${escapeHtml(plan.container.name)} ｜ ${plan.container.l} × ${plan.container.w} × ${plan.container.h} mm ｜ 生成时间：${escapeHtml(createdAt)}</div></section><section class="summary"><div class="metric">空间利用率<b>${actualUtilization(plan).toFixed(2)}%</b></div><div class="metric">装载数量<b>${plan.positions.length} 包 / ${totalPieces.toLocaleString()} 件</b></div><div class="metric">已用容积<b>${fmtVolume(plan.loadedVolume)}</b></div><div class="metric">总重量<b>${plan.positions.reduce((s,p)=>s+(+p.weight||0),0).toFixed(0)} kg</b></div></section><img class="render" src="${image}" alt="车辆装载三维效果图"><h2>每品装载明细</h2><table><thead><tr><th>货物</th><th>装载数量</th><th>小件数</th><th>装载容积</th><th>摆放明细</th></tr></thead><tbody>${rowHtml}</tbody></table><p class="muted">说明：横向为沿车厢宽度，纵向为沿车厢长度，竖向为堆叠层数。</p><button class="no-print" onclick="print()">打印 / 另存为 PDF</button></main></body></html>`);
+  page.document.close();page.focus();setTimeout(()=>page.print(),250);
+}
+
+let toastTimer, selectorRenderTimer;
+function showSuccess(message){const toast=$('#appToast');if(!toast)return;toast.textContent=message;toast.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('visible'),2000);}
+function requestSelectorRender(){clearTimeout(selectorRenderTimer);selectorRenderTimer=setTimeout(renderSelectors,90);}
+const renderSelectorsBase=renderSelectors;renderSelectors=function(){renderSelectorsBase();$$('.cargo-quantity').forEach(input=>{const cargo=state.cargo.find(item=>item.id===input.dataset.id),row=input.closest('.select-row'),main=row?.querySelector('.record-main'),quantity=row?.querySelector('.quantity');if(!cargo||!row||!main||!quantity)return;let perPackage=main.querySelector('.cargo-piece-note');if(!perPackage){perPackage=document.createElement('small');perPackage.className='cargo-piece-note';main.append(perPackage);}perPackage.textContent=`${t('每包')} ${(+cargo.pieces||1).toLocaleString()} ${t('件')}`;let total=quantity.querySelector('.quantity-pieces');if(!total){total=document.createElement('b');total.className='quantity-pieces';quantity.append(total);}const updatePieces=()=>{const bags=Math.max(1,+input.value||1);total.textContent=`${t('共')} ${(bags*(+cargo.pieces||1)).toLocaleString()} ${t('件')}`;};updatePieces();input.addEventListener('input',updatePieces);});};
+function bind(){
+  $$('.nav-link').forEach(b=>b.addEventListener('click',()=>{const page=b.dataset.page;$$(…12940 tokens truncated…?.();});document.addEventListener('fullscreenchange',()=>{const full=Boolean(document.fullscreenElement),button=$('#fullscreenView');button.textContent=full?'×':'⛶';button.title=full?t('退出全屏'):t('全屏放大');button.setAttribute('aria-label',button.title);fitThree();if(!full&&state.plan)setTimeout(()=>{fitThree();setCamera('iso');},120);});window.addEventListener('resize',fitThree);$('#savePlan').addEventListener('click',saveCurrentPlan);$('#exportImage').addEventListener('click',exportImage);$('#exportPdf').addEventListener('click',exportPdf);
+  $('#tooltipToggle').addEventListener('change',event=>{state.settings.showCargoTooltip=event.target.checked;persistState();renderSettings();if(!event.target.checked)hideCargoHover();});$('#dimensionToggle').addEventListener('change',event=>{state.settings.showContainerDimensions=event.target.checked;persistState();renderSettings();if(state.plan)renderPlan();});$('#languageSelect').addEventListener('change',event=>{state.settings.language=event.target.value;persistState();applyLanguage();renderSelectors();if(state.plan)renderPlan();});$('#scrollTop').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));$('#scrollBottom').addEventListener('click',()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'}));
   $$('.archive-tabs button').forEach(b=>b.addEventListener('click',()=>{state.archive=b.dataset.archive;selectedArchiveIds.clear();persistState();$$('.archive-tabs button').forEach(x=>x.classList.toggle('active',x===b));renderArchives();}));$('#archiveSearch').addEventListener('input',renderArchives);$('#addArchive').addEventListener('click',()=>openDialog());$('#closeDialog').addEventListener('click',()=>$('#archiveDialog').close());$('#cancelDialog').addEventListener('click',()=>$('#archiveDialog').close());$('#archiveForm').addEventListener('submit',event=>{saveDialog(event);showSuccess(t('档案已保存。'));});$('#downloadTemplate').addEventListener('click',downloadTemplate);$('#importFile').addEventListener('change',e=>e.target.files[0]&&importCSV(e.target.files[0]));$('#selectAllArchive').addEventListener('change',e=>{const query=$('#archiveSearch').value.trim().toLowerCase(),filtered=state[state.archive].filter(r=>!query||`${r.name}${r.type}`.toLowerCase().includes(query));filtered.forEach(r=>e.target.checked?selectedArchiveIds.add(r.id):selectedArchiveIds.delete(r.id));renderArchives();});$('#bulkDeleteArchive').addEventListener('click',()=>removeArchives([...selectedArchiveIds]));$('#bulkDeletePlans').addEventListener('click',()=>removeSavedPlans([...selectedSavedPlanIds]));
   $('#appDialogForm').addEventListener('submit',event=>{event.preventDefault();const kind=$('#appDialog').dataset.kind;finishDialog(kind==='text'?$('#appDialogInput').value:true);});$('#appDialogClose').addEventListener('click',()=>finishDialog(false));$('#appDialogCancel').addEventListener('click',()=>finishDialog(false));$('#appDialog').addEventListener('cancel',event=>{event.preventDefault();finishDialog(false);});$('#pdfDownload').addEventListener('click',downloadPreviewPdf);$('#pdfPrint').addEventListener('click',printPreviewPdf);
 }
@@ -352,6 +383,85 @@ const renderSelectorsV284Base=renderSelectors;
 renderSelectors=function(){renderSelectorsV284Base();reconcileCalculatedOutputs();};
 const renderPlanV284Base=renderPlan;
 renderPlan=function(){renderPlanV284Base();reconcileCalculatedOutputs();};
+window.TopBoxApp.renderSelectors=()=>renderSelectors();
+window.TopBoxApp.generatePlan=()=>generatePlan();
+renderSelectors();
+renderExactUtilization();
+
+/* v2.9.0 — standalone cargo selector.
+   This deliberately does not reuse the historical .select-row markup.  It is
+   installed after every compatibility renderer, so no legacy quantity note or
+   absolute-position rule can appear in the cargo list. */
+function renderStandaloneCargoRows(){
+  const host=$('#cargoList');
+  if(!host)return;
+  const ids=[...host.querySelectorAll('[data-id]')].map(node=>node.dataset.id).filter((id,index,list)=>id&&list.indexOf(id)===index);
+  const rows=ids.map(id=>state.cargo.find(item=>item.id===id)).filter(Boolean);
+  if(!rows.length)return;
+  const pieceMode=state.settings.quantityInputMode==='pieces';
+  const enabled=useSpecifiedQuantity();
+  host.innerHTML=rows.map(cargo=>{
+    const perPackage=Math.max(1,+cargo.pieces||1);
+    const bags=Math.max(1,+cargo.quantity||1);
+    const pieces=Math.max(1,+cargo.pieceQuantity||bags*perPackage);
+    const value=pieceMode?pieces:bags;
+    const unit=pieceMode?t('件'):t('包');
+    const result=pieceMode
+      ? `${t('折合')} ${Math.ceil(pieces/perPackage).toLocaleString()} ${t('包')}`
+      : `${t('共')} ${(bags*perPackage).toLocaleString()} ${t('件')}`;
+    return `<div class="cargo-fresh-row ${state.selectedCargo.has(cargo.id)?'checked':''}" data-cargo-row="${cargo.id}">
+      <input class="cargo-fresh-check" data-id="${cargo.id}" type="checkbox" ${state.selectedCargo.has(cargo.id)?'checked':''} aria-label="${t('选择')} ${escapeHtml(cargo.name)}">
+      <span class="cargo-fresh-color" style="background:${cargo.color}"></span>
+      <span class="cargo-fresh-info"><b>${escapeHtml(cargo.name)}</b><small>${cargo.l} × ${cargo.w} × ${cargo.h} mm · ${cubicMeters(cargo).toFixed(4)} m³</small><small>${perPackage.toLocaleString()} ${t('件')}/${t('包')}</small></span>
+      <span class="cargo-fresh-control"><input class="cargo-fresh-input" data-id="${cargo.id}" type="number" min="1" value="${value}" aria-label="${escapeHtml(cargo.name)} ${pieceMode?t('小件数'):t('包数')}" ${enabled?'':'disabled'}><span>${unit}</span><strong>${result}</strong></span>
+    </div>`;
+  }).join('');
+  $$('.cargo-fresh-check',host).forEach(checkbox=>checkbox.addEventListener('change',()=>{
+    const id=checkbox.dataset.id;
+    if(checkbox.checked&&!useSpecifiedQuantity()){state.selectedCargo.clear();state.selectedCargo.add(id);}
+    else if(checkbox.checked)state.selectedCargo.add(id);
+    else state.selectedCargo.delete(id);
+    persistState();renderSelectors();
+  }));
+  $$('.cargo-fresh-input',host).forEach(input=>{
+    const update=()=>{
+      const cargo=state.cargo.find(item=>item.id===input.dataset.id);
+      const perPackage=Math.max(1,+cargo?.pieces||1);
+      const value=Math.max(1,+input.value||1);
+      const result=input.closest('.cargo-fresh-control')?.querySelector('strong');
+      if(result)result.textContent=pieceMode?`${t('折合')} ${Math.ceil(value/perPackage).toLocaleString()} ${t('包')}`:`${t('共')} ${(value*perPackage).toLocaleString()} ${t('件')}`;
+    };
+    input.addEventListener('input',update);
+    input.addEventListener('change',()=>{
+      const cargo=state.cargo.find(item=>item.id===input.dataset.id);
+      if(!cargo)return;
+      const perPackage=Math.max(1,+cargo.pieces||1),value=Math.max(1,+input.value||1);
+      if(pieceMode){cargo.pieceQuantity=value;cargo.quantity=Math.ceil(value/perPackage);}
+      else {cargo.quantity=value;cargo.pieceQuantity=value*perPackage;}
+      input.value=value;persistState();update();
+    });
+  });
+}
+function renderExactUtilization(){
+  const plan=state.plan?.plans?.[state.plan.active];
+  if(!plan?.container||!Array.isArray(plan.positions))return;
+  const byId=new Map(state.cargo.map(item=>[item.id,item]));
+  const used=plan.positions.reduce((sum,item)=>sum+cubicMeters(byId.get(item.id)||item),0);
+  const available=usableVolume(plan.container);
+  const percent=available>0?Math.max(0,Math.min(100,used/available*100)):0;
+  const text=`${percent.toFixed(2)}%`;
+  const label=$('#utilizationPercent');
+  if(label)label.textContent=text;
+  const ring=$('#utilizationRing');
+  if(ring)ring.style.background=`conic-gradient(var(--blue) ${percent*3.6}deg,#eaf0f6 0deg)`;
+  const availableNode=$('#availableVolume'),usedNode=$('#usedVolume');
+  if(availableNode)availableNode.textContent=fmtVolume(available);
+  if(usedNode)usedNode.textContent=fmtVolume(used);
+}
+const renderSelectorsV290Base=renderSelectors;
+renderSelectors=function(){renderSelectorsV290Base();renderStandaloneCargoRows();renderExactUtilization();};
+const renderPlanV290Base=renderPlan;
+renderPlan=function(){renderPlanV290Base();renderExactUtilization();};
 window.TopBoxApp.renderSelectors=()=>renderSelectors();
 window.TopBoxApp.generatePlan=()=>generatePlan();
 
@@ -468,4 +578,14 @@ new MutationObserver(scheduleFinalOutputGuard).observe(document.body,{childList:
 scheduleFinalOutputGuard();
 window.TopBoxApp.renderSelectors=()=>renderSelectors();
 window.TopBoxApp.generatePlan=()=>generatePlan();
+
+/* v2.9.0 final installation: runs after every retired compatibility layer. */
+const renderSelectorsV290FinalBase=renderSelectors;
+renderSelectors=function(){renderSelectorsV290FinalBase();renderStandaloneCargoRows();renderExactUtilization();};
+const renderPlanV290FinalBase=renderPlan;
+renderPlan=function(){renderPlanV290FinalBase();renderExactUtilization();};
+window.TopBoxApp.renderSelectors=()=>renderSelectors();
+window.TopBoxApp.generatePlan=()=>generatePlan();
+renderSelectors();
+renderExactUtilization();
 
