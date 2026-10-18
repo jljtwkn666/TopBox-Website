@@ -7,7 +7,7 @@
     <title>TOP BOX货物装载配货平台</title>
     <link rel="preconnect" href="https://unpkg.com" />
     <link rel="stylesheet" href="styles.css?v=2.6.5" />
-    <link rel="stylesheet" href="visual-enhancements.css?v=2.8.7" />
+    <link rel="stylesheet" href="visual-enhancements.css?v=2.9.0" />
   </head>
   <body>
     <script>
@@ -28,7 +28,7 @@
         <button class="nav-link" data-page="settings">设置</button>
         <button class="nav-link" data-page="updates">更新日志</button>
       </nav>
-      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v2.8.7</span></div>
+      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v2.9.0</span></div>
     </header>
 
     <main>
@@ -76,7 +76,8 @@
 
       <section id="updates" class="page">
         <div class="page-heading"><div><p class="eyebrow">RELEASE NOTES</p><h1>更新日志</h1><p>TOP BOX货物装载配货平台版本记录。</p></div><label class="update-filter">更新日期<select id="updateDateFilter"><option value="all">全部日期</option><option value="2026-10-18">2026-10-18</option><option value="2026-10-17">2026-10-17</option><option value="2026-10-16">2026-10-16</option><option value="2026-10-15">2026-10-15</option><option value="2026-10-14">2026-10-14</option></select></label></div>
-        <article class="release-latest" data-release-date="2026-10-18"><div class="release-title"><h2>v2.8.7</h2><time>2026-10-18</time></div><ul><li>服务端统一关闭首页、脚本和样式缓存，避免旧页面与新程序混用造成货物选择区域重复显示或错位。</li><li>货物选择行由最终渲染器统一输出：按包数显示“共 X 件”，按小件数显示“折合 X 包”，初始化默认按包数且不会重复。</li><li>空间利用率按已用容积÷可用容积实时计算并保留两位小数。</li></ul></article>
+        <article class="release-latest" data-release-date="2026-10-18"><div class="release-title"><h2>v2.9.0</h2><time>2026-10-18</time></div><ul><li>选择货物改为独立组件，不再继承历史货物行、数量标签或定位样式；按包数仅显示“共 X 件”，按小件数仅显示“折合 X 包”。</li><li>切换浏览器窗口时不再自动初始化页面，避免当前选择和输入状态被重载。</li><li>空间利用率仍按已用容积÷可用容积精确计算并保留两位小数。</li></ul></article>
+        <article data-release-date="2026-10-18"><div class="release-title"><h2>v2.8.7</h2><time>2026-10-18</time></div><ul><li>服务端统一关闭首页、脚本和样式缓存，避免旧页面与新程序混用造成货物选择区域重复显示或错位。</li><li>货物选择行由最终渲染器统一输出：按包数显示“共 X 件”，按小件数显示“折合 X 包”，初始化默认按包数且不会重复。</li><li>空间利用率按已用容积÷可用容积实时计算并保留两位小数。</li></ul></article>
         <article data-release-date="2026-10-18"><div class="release-title"><h2>v2.8.6</h2><time>2026-10-18</time></div><ul><li>货物选择行改为渲染后完全重建的唯一结构，清除遗留的重复“共 X 件”标签和旧版绝对定位。</li><li>输入框调整为 156px，保证六位数可完整显示，同时为尺寸、容积与小件数说明预留独立空间；取消横向滚动。</li></ul></article>
         <article data-release-date="2026-10-18"><div class="release-title"><h2>v2.8.5</h2><time>2026-10-18</time></div><ul><li>选择货物改为单一固定四栏布局：尺寸与容积、小件数换行显示；输入框、单位与蓝色换算结果同一行。</li></ul></article>
         <article data-release-date="2026-10-18"><div class="release-title"><h2>v2.8.4</h2><time>2026-10-18</time></div><ul><li>在页面最终输出层强制统一货物数量换算与空间利用率，杜绝历史渲染逻辑覆盖结果。</li></ul></article>
@@ -126,7 +127,7 @@
       </section>
 
       <section id="tutorial" class="page">
-      <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.8.7 更新</span></div>
+      <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.9.0 更新</span></div>
         <div class="tutorial-grid" id="tutorialGrid">
           <article class="tutorial-card"><span class="tutorial-step">01</span><div class="tutorial-graphic account-graphic">◉</div><h2>登录与账户</h2><p>首次由管理员创建账号。登录后可在账户中心修改昵称、上传头像图片和修改密码。</p></article>
           <article class="tutorial-card"><span class="tutorial-step">02</span><div class="tutorial-graphic archive-graphic">▤</div><h2>维护个人档案</h2><p>在“档案管理”维护当前账号自己的容器和货物；档案与其他账号互不影响。</p></article>
@@ -165,8 +166,8 @@
         }
       }
     </script>
-    <script type="module" src="app-loader.js?v=2.8.7"></script>
-    <script type="module" src="account.js?v=2.8.7"></script>
+    <script type="module" src="app-loader.js?v=2.9.0"></script>
+    <script type="module" src="account.js?v=2.9.0"></script>
   </body>
 </html>
 
