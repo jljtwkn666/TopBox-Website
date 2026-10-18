@@ -143,6 +143,7 @@ async function api(request, env, path) {
   if (path === '/api/shared/records') {
     if (request.method === 'GET') return json(await loadUserRecords(env, user.id));
     if (request.method === 'PUT') {
+      if (!canEditRecords(user)) return error('未获档案维护权限。', 403);
       const body = await readBody(request); if (!Array.isArray(body?.containers) || !Array.isArray(body?.cargo)) return error('档案格式无效。');
       if (body.containers.some(item => !isContainerRecord(item)) || body.cargo.some(item => !isCargoRecord(item))) return error('容器与货物档案类型不匹配，已拒绝保存以保护档案数据。');
       const records = { containers: uniqueRecords(body.containers), cargo: uniqueRecords(body.cargo) };
@@ -170,6 +171,7 @@ async function api(request, env, path) {
         if (importMode === 'overwrite') await env.DB.prepare('DELETE FROM plans WHERE owner_id = ?').bind(user.id).run();
         for (const plan of payload) await env.DB.prepare('INSERT INTO plans (id, owner_id, name, payload, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)').bind(`p_${randomId()}`, user.id, String(plan.name || '导入方案').slice(0, 120), JSON.stringify({ mode: plan.mode || 'specified', plans: plan.plans || [] }), now(), now()).run();
       } else {
+        if (!canEditRecords(user)) return error('未获档案维护权限。', 403);
         const records = await loadUserRecords(env, user.id), key = share.record_kind, ids = new Set(records[key].map(item => item.id));
         const imported = payload.map(item => ({ ...item, id: ids.has(item.id) ? `${item.id}_${randomId().slice(0, 6)}` : item.id }));
         records[key] = importMode === 'overwrite' ? uniqueRecords(imported) : uniqueRecords([...records[key], ...imported]);
