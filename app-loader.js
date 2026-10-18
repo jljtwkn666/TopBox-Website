@@ -1,6 +1,6 @@
 try {
   document.documentElement.dataset.appLoaderState = 'loading-payload';
-  const response = await fetch(`app-payload.js?v=2.7.7`, { cache: 'no-store' });
+  const response = await fetch(`app-payload.js?v=2.7.8`, { cache: 'no-store' });
   const payloadModule = await response.text();
   const match = payloadModule.match(/compressedApp\s*=\s*'([^']+)'/);
   const chunks = [...payloadModule.matchAll(/'([A-Za-z0-9+/=]+)'/g)].map(item => item[1]);
