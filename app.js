@@ -1,5 +1,5 @@
-Warning: truncated output (original token count: 36495)
-Total output lines: 582
+Warning: truncated output (original token count: 36618)
+Total output lines: 595
 
 import * as THREE from 'https://unpkg.com/three@0.162.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.162.0/examples/jsm/controls/OrbitControls.js';
@@ -258,8 +258,7 @@ function reportCanvas(report){
   const metrics=[['空间利用率',`${actualUtilization(plan).toFixed(2)}%`],['已装载',`${plan.positions.length} 包 / ${totalPieces.toLocaleString()} 件`],['已用容积',fmtVolume(actualUsedVolume(plan))],['总重量',`${plan.positions.reduce((s,p)=>s+(+p.weight||0),0).toFixed(0)} kg`]];
   metrics.forEach(([label,value],i)=>{const y=282+i*112;ctx.fillStyle='#edf4fb';ctx.fillRect(1040,y,440,86);ctx.fillStyle='#54718d';ctx.font='17px sans-serif';ctx.fillText(label,1068,y+32);ctx.fillStyle='#0b2545';ctx.font='bold 26px sans-serif';ctx.fillText(value,1068,y+66);});
   const startY=824;ctx.fillStyle='#0b2545';ctx.font='bold 25px sans-serif';ctx.fillText('各品装载明细',64,startY);const headers=['货物','装载数量','小件数','装载容积','摆放明细'];const columns=[64,390,570,720,930];ctx.fillStyle='#e1ebf5';ctx.fillRect(54,startY+24,1492,48);ctx.fillStyle='#365876';ctx.font='bold 16px sans-serif';headers.forEach((h,i)=>ctx.fillText(h,columns[i]+14,startY+55));
-  rows.forEach((row,i)=>{const y=startY+72+i*92;ctx.fillStyle=i%2?'#ffffff':'#f8fbfe';ctx.fillRect(54,y,1492,92);ctx.strokeStyle='#e3ebf2';ctx.strokeRect(54,y,1492,92);ctx.fillStyle='#173a5e';ctx.font='bold 17px sans-serif';ctx.fillText(row.name.slice(0,19),78,y+34);ctx.font='16px sans-serif';ctx.fillStyle='#405b74';ctx.fillText(`${row.count} 包`,404,y+34);ctx.fillText(`${row.pieces.toLocaleString()} 件`,584,y+34);ctx.fillText(fmtVolume(row.volume),73…14495 tokens truncated…');button.setAttribute('aria-label',button.title);fitThree();if(!full&&state.plan)setTimeout(()=>{fitThree();setCamera('iso');},120);});window.addEventListener('resize',fitThree);$('#savePlan').addEventListener('click',saveCurrentPlan);$('#exportImage').addEventListener('click',exportImage);$('#exportPdf').addEventListener('click',exportPdf);
-  $('#tooltipToggle').addEventListener('change',event=>{state.settings.showCargoTooltip=event.target.checked;persistState();renderSettings();if(!event.target.checked)hideCargoHover();});$('#dimensionToggle').addEventListener('change',event=>{state.settings.showContainerDimensions=event.target.checked;persistState();renderSettings();if(state.plan)renderPlan();});$('#languageSelect').addEventListener('change',event=>{state.settings.language=event.target.value;persistState();applyLanguage();renderSelectors();if(state.plan)renderPlan();});$('#scrollTop').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));$('#scrollBottom').addEventListener('click',()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'}));
+  rows.forEach((row,i)=>{const y=startY+72+i*92;ctx.fillStyle=i%2?'#ffffff':'#f8fbfe';ctx.fillRect(54,y,1492,92);ctx.strokeStyle='#e3ebf2';ctx.strokeRect(54,y,1492,92);ctx.fillStyle='#173a5e';ctx.font='bold 17px sans-serif';ctx.fillText(row.name.slice(0,19),78,y+34);ctx.font='16px sans-serif';ctx.fillStyle='#405b74';ctx.fillText(`${row.count} 包`,404,y+34);ctx.fillText(`${row.pieces.toLocaleString()} 件`,584,y+34);ctx.fillText(fmtVolume(row.volume),73…14618 tokens truncated…ent.target.checked)hideCargoHover();});$('#dimensionToggle').addEventListener('change',event=>{state.settings.showContainerDimensions=event.target.checked;persistState();renderSettings();if(state.plan)renderPlan();});$('#languageSelect').addEventListener('change',event=>{state.settings.language=event.target.value;persistState();applyLanguage();renderSelectors();if(state.plan)renderPlan();});$('#scrollTop').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));$('#scrollBottom').addEventListener('click',()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'}));
   $$('.archive-tabs button').forEach(b=>b.addEventListener('click',()=>{state.archive=b.dataset.archive;selectedArchiveIds.clear();persistState();$$('.archive-tabs button').forEach(x=>x.classList.toggle('active',x===b));renderArchives();}));$('#archiveSearch').addEventListener('input',renderArchives);$('#addArchive').addEventListener('click',()=>openDialog());$('#closeDialog').addEventListener('click',()=>$('#archiveDialog').close());$('#cancelDialog').addEventListener('click',()=>$('#archiveDialog').close());$('#archiveForm').addEventListener('submit',event=>{saveDialog(event);showSuccess(t('档案已保存。'));});$('#downloadTemplate').addEventListener('click',downloadTemplate);$('#importFile').addEventListener('change',e=>e.target.files[0]&&importCSV(e.target.files[0]));$('#selectAllArchive').addEventListener('change',e=>{const query=$('#archiveSearch').value.trim().toLowerCase(),filtered=state[state.archive].filter(r=>!query||`${r.name}${r.type}`.toLowerCase().includes(query));filtered.forEach(r=>e.target.checked?selectedArchiveIds.add(r.id):selectedArchiveIds.delete(r.id));renderArchives();});$('#bulkDeleteArchive').addEventListener('click',()=>removeArchives([...selectedArchiveIds]));$('#bulkDeletePlans').addEventListener('click',()=>removeSavedPlans([...selectedSavedPlanIds]));
   $('#appDialogForm').addEventListener('submit',event=>{event.preventDefault();const kind=$('#appDialog').dataset.kind;finishDialog(kind==='text'?$('#appDialogInput').value:true);});$('#appDialogClose').addEventListener('click',()=>finishDialog(false));$('#appDialogCancel').addEventListener('click',()=>finishDialog(false));$('#appDialog').addEventListener('cancel',event=>{event.preventDefault();finishDialog(false);});$('#pdfDownload').addEventListener('click',downloadPreviewPdf);$('#pdfPrint').addEventListener('click',printPreviewPdf);
 }
@@ -355,6 +354,19 @@ const renderPlanV284Base=renderPlan;
 renderPlan=function(){renderPlanV284Base();reconcileCalculatedOutputs();};
 window.TopBoxApp.renderSelectors=()=>renderSelectors();
 window.TopBoxApp.generatePlan=()=>generatePlan();
+
+/* v2.8.7: this is deliberately the final selector hook.  Earlier releases
+   layered legacy renderers around one another; owning the last paint here
+   prevents a stale renderer from putting a second quantity total back. */
+const renderSelectorsV287Base=renderSelectors;
+renderSelectors=function(){
+  renderSelectorsV287Base();
+  requestAnimationFrame(()=>{
+    rebuildStableCargoRows();
+    enforceFinalCalculatedOutputs();
+  });
+};
+window.TopBoxApp.renderSelectors=()=>renderSelectors();
 
 /* v2.8.6 — replace, rather than decorate, cargo rows after legacy rendering.
    This prevents a legacy quantity label from surviving beside the current one. */
