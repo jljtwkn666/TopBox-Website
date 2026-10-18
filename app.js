@@ -1,5 +1,5 @@
-Warning: truncated output (original token count: 35600)
-Total output lines: 531
+Warning: truncated output (original token count: 36495)
+Total output lines: 582
 
 import * as THREE from 'https://unpkg.com/three@0.162.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.162.0/examples/jsm/controls/OrbitControls.js';
@@ -235,7 +235,31 @@ function csvEscape(value){return `"${String(value).replaceAll('"','""')}"`;}
 function downloadTemplate(){const fields=['kind','name','type','shape','l','w','h','weight','pieces','reserve','price','color','quantity'];const example=['containers','示例车厢','车厢','box',9600,2400,2500,0,1,5,0,'#2563eb',1];const csv=[fields,example].map(row=>row.map(csvEscape).join(',')).join('\n');downloadBlob(csv,'装载档案导入模板.csv','text/csv;charset=utf-8');}
 function downloadBlob(content,name,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
 function parseCSV(text){const rows=[];let row=[],cell='',quote=false;for(let i=0;i<text.length;i++){const ch=text[i];if(ch==='"'){if(quote&&text[i+1]==='"'){cell+='"';i++;}else quote=!quote;}else if(ch===','&&!quote){row.push(cell);cell='';}else if((ch==='\n'||ch==='\r')&&!quote){if(ch==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(v=>v.trim()))rows.push(row);row=[];cell='';}else cell+=ch;}row.push(cell);if(row.some(v=>v.trim()))rows.push(row);return rows;}
-function importCSV(file){const reader=new FileReader();reader.onload=()=>{try{const [head,...rows]=parseCSV(reader.result),keys=head.map(x=>x.trim());let count=0;rows.forEach(row=>{const x=Object.fromEntries(keys.map((k,i)=>[k,row[i]??'']));const kind=x.kind==='containers'?'containers':'cargo';if(!x.name||!x.l||!x.w||!x.h)return;state[kind].push({id:uid(kind==='containers'?'c':'g'),name:x.name,type:x.type||(kind==='containers'?'车厢':'单体货物'),shape:x.shape==='cylinder'?'cylinder':'box',l:+x.l,w:+x.w,h:+x.h,weight…15600 tokens truncated…wCargoTooltip=event.target.checked;persistState();renderSettings();if(!event.target.checked)hideCargoHover();});$('#dimensionToggle').addEventListener('change',event=>{state.settings.showContainerDimensions=event.target.checked;persistState();renderSettings();if(state.plan)renderPlan();});$('#languageSelect').addEventListener('change',event=>{state.settings.language=event.target.value;persistState();applyLanguage();renderSelectors();if(state.plan)renderPlan();});$('#scrollTop').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));$('#scrollBottom').addEventListener('click',()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'}));
+function importCSV(file){const reader=new FileReader();reader.onload=()=>{try{const [head,...rows]=parseCSV(reader.result),keys=head.map(x=>x.trim());let count=0;rows.forEach(row=>{const x=Object.fromEntries(keys.map((k,i)=>[k,row[i]??'']));const kind=x.kind==='containers'?'containers':'cargo';if(!x.name||!x.l||!x.w||!x.h)return;state[kind].push({id:uid(kind==='containers'?'c':'g'),name:x.name,type:x.type||(kind==='containers'?'车厢':'单体货物'),shape:x.shape==='cylinder'?'cylinder':'box',l:+x.l,w:+x.w,h:+x.h,weight:+x.weight||0,pieces:+x.pieces||1,reserve:+x.reserve||0,price:+x.price||0,color:x.color||COLORS[(state[kind].length)%COLORS.length],quantity:+x.quantity||1});count++;});persistState();renderArchives();renderSelectors();alert(`已导入 ${count} 条档案。`);}catch{alert('导入失败，请使用下载的 CSV 模板。');}};reader.readAsText(file,'utf-8');}
+function escapeHtml(value){return String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+function activeReport(){
+  const plan=state.plan.plans[state.plan.active], totalPieces=plan.positions.reduce((sum,p)=>sum+(+p.pieces||0),0);
+  const rows=state.cargo.filter(g=>state.selectedCargo.has(g.id)).map(g=>{
+    const count=plan.placedCount.get(g.id)||0;
+    return {name:g.name,count,pieces:count*(+g.pieces||0),volume:cubicMeters(g)*count,placement:placementDetail(g,plan)||'未装载'};
+  });
+  return {plan,totalPieces,rows,createdAt:new Date().toLocaleString('zh-CN',{hour12:false})};
+}
+function reportCanvas(report){
+  const previousActive=state.plan?.active??0,targetActive=state.plan?.plans.indexOf(report.plan)??-1;if(targetActive>=0)state.plan.active=targetActive;drawScene(report.plan);renderer.render(scene,camera);if(state.plan)state.plan.active=previousActive;
+  const {plan,rows,totalPieces,createdAt}=report, width=1600, height=Math.max(1260,920+rows.length*92), canvas=document.createElement('canvas');
+  canvas.width=width;canvas.height=height;const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#f5f8fc';ctx.fillRect(0,0,width,height);ctx.fillStyle='#0b2545';ctx.fillRect(0,0,width,118);
+  ctx.fillStyle='#ffffff';ctx.font='bold 38px sans-serif';ctx.fillText('TOP BOX货物装车方案',64,67);ctx.font='18px sans-serif';ctx.fillStyle='#c9d9e8';ctx.fillText(`生成时间：${createdAt}`,64,96);
+  ctx.fillStyle='#ffffff';ctx.fillRect(54,150,1492,620);ctx.strokeStyle='#d7e2ee';ctx.lineWidth=2;ctx.strokeRect(54,150,1492,620);
+  ctx.fillStyle='#173a5e';ctx.font='bold 27px sans-serif';ctx.fillText(plan.container.name,86,198);ctx.font='18px sans-serif';ctx.fillStyle='#59718a';ctx.fillText(`${plan.container.l} × ${plan.container.w} × ${plan.container.h} mm  ·  合理装载 ${fmtVolume(plan.available)}`,86,231);
+  const source=renderer.domElement, maxW=900,maxH=465,ratio=source.width/source.height||1;let imageW=maxW,imageH=maxW/ratio;if(imageH>maxH){imageH=maxH;imageW=maxH*ratio;}
+  ctx.fillStyle='#edf3f8';ctx.fillRect(86,264,maxW,maxH);ctx.drawImage(source,86+(maxW-imageW)/2,264+(maxH-imageH)/2,imageW,imageH);
+  const metrics=[['空间利用率',`${actualUtilization(plan).toFixed(2)}%`],['已装载',`${plan.positions.length} 包 / ${totalPieces.toLocaleString()} 件`],['已用容积',fmtVolume(actualUsedVolume(plan))],['总重量',`${plan.positions.reduce((s,p)=>s+(+p.weight||0),0).toFixed(0)} kg`]];
+  metrics.forEach(([label,value],i)=>{const y=282+i*112;ctx.fillStyle='#edf4fb';ctx.fillRect(1040,y,440,86);ctx.fillStyle='#54718d';ctx.font='17px sans-serif';ctx.fillText(label,1068,y+32);ctx.fillStyle='#0b2545';ctx.font='bold 26px sans-serif';ctx.fillText(value,1068,y+66);});
+  const startY=824;ctx.fillStyle='#0b2545';ctx.font='bold 25px sans-serif';ctx.fillText('各品装载明细',64,startY);const headers=['货物','装载数量','小件数','装载容积','摆放明细'];const columns=[64,390,570,720,930];ctx.fillStyle='#e1ebf5';ctx.fillRect(54,startY+24,1492,48);ctx.fillStyle='#365876';ctx.font='bold 16px sans-serif';headers.forEach((h,i)=>ctx.fillText(h,columns[i]+14,startY+55));
+  rows.forEach((row,i)=>{const y=startY+72+i*92;ctx.fillStyle=i%2?'#ffffff':'#f8fbfe';ctx.fillRect(54,y,1492,92);ctx.strokeStyle='#e3ebf2';ctx.strokeRect(54,y,1492,92);ctx.fillStyle='#173a5e';ctx.font='bold 17px sans-serif';ctx.fillText(row.name.slice(0,19),78,y+34);ctx.font='16px sans-serif';ctx.fillStyle='#405b74';ctx.fillText(`${row.count} 包`,404,y+34);ctx.fillText(`${row.pieces.toLocaleString()} 件`,584,y+34);ctx.fillText(fmtVolume(row.volume),73…14495 tokens truncated…');button.setAttribute('aria-label',button.title);fitThree();if(!full&&state.plan)setTimeout(()=>{fitThree();setCamera('iso');},120);});window.addEventListener('resize',fitThree);$('#savePlan').addEventListener('click',saveCurrentPlan);$('#exportImage').addEventListener('click',exportImage);$('#exportPdf').addEventListener('click',exportPdf);
+  $('#tooltipToggle').addEventListener('change',event=>{state.settings.showCargoTooltip=event.target.checked;persistState();renderSettings();if(!event.target.checked)hideCargoHover();});$('#dimensionToggle').addEventListener('change',event=>{state.settings.showContainerDimensions=event.target.checked;persistState();renderSettings();if(state.plan)renderPlan();});$('#languageSelect').addEventListener('change',event=>{state.settings.language=event.target.value;persistState();applyLanguage();renderSelectors();if(state.plan)renderPlan();});$('#scrollTop').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));$('#scrollBottom').addEventListener('click',()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'}));
   $$('.archive-tabs button').forEach(b=>b.addEventListener('click',()=>{state.archive=b.dataset.archive;selectedArchiveIds.clear();persistState();$$('.archive-tabs button').forEach(x=>x.classList.toggle('active',x===b));renderArchives();}));$('#archiveSearch').addEventListener('input',renderArchives);$('#addArchive').addEventListener('click',()=>openDialog());$('#closeDialog').addEventListener('click',()=>$('#archiveDialog').close());$('#cancelDialog').addEventListener('click',()=>$('#archiveDialog').close());$('#archiveForm').addEventListener('submit',event=>{saveDialog(event);showSuccess(t('档案已保存。'));});$('#downloadTemplate').addEventListener('click',downloadTemplate);$('#importFile').addEventListener('change',e=>e.target.files[0]&&importCSV(e.target.files[0]));$('#selectAllArchive').addEventListener('change',e=>{const query=$('#archiveSearch').value.trim().toLowerCase(),filtered=state[state.archive].filter(r=>!query||`${r.name}${r.type}`.toLowerCase().includes(query));filtered.forEach(r=>e.target.checked?selectedArchiveIds.add(r.id):selectedArchiveIds.delete(r.id));renderArchives();});$('#bulkDeleteArchive').addEventListener('click',()=>removeArchives([...selectedArchiveIds]));$('#bulkDeletePlans').addEventListener('click',()=>removeSavedPlans([...selectedSavedPlanIds]));
   $('#appDialogForm').addEventListener('submit',event=>{event.preventDefault();const kind=$('#appDialog').dataset.kind;finishDialog(kind==='text'?$('#appDialogInput').value:true);});$('#appDialogClose').addEventListener('click',()=>finishDialog(false));$('#appDialogCancel').addEventListener('click',()=>finishDialog(false));$('#appDialog').addEventListener('cancel',event=>{event.preventDefault();finishDialog(false);});$('#pdfDownload').addEventListener('click',downloadPreviewPdf);$('#pdfPrint').addEventListener('click',printPreviewPdf);
 }
@@ -332,6 +356,55 @@ renderPlan=function(){renderPlanV284Base();reconcileCalculatedOutputs();};
 window.TopBoxApp.renderSelectors=()=>renderSelectors();
 window.TopBoxApp.generatePlan=()=>generatePlan();
 
+/* v2.8.6 — replace, rather than decorate, cargo rows after legacy rendering.
+   This prevents a legacy quantity label from surviving beside the current one. */
+function rebuildStableCargoRows(){
+  const pieceMode=state.settings.quantityInputMode==='pieces';
+  $$('#cargoList .select-row').forEach(row=>{
+    const legacyInput=$('.cargo-quantity, .cargo-pieces',row);
+    const id=legacyInput?.dataset.id;
+    const cargo=state.cargo.find(item=>item.id===id);
+    if(!cargo)return;
+    const mode=pieceMode?'pieces':'bags';
+    if(row.dataset.stableCargoId===id&&row.dataset.stableCargoMode===mode&&$$('.quantity-total',row).length===1)return;
+    const perPackage=Math.max(1,+cargo.pieces||1);
+    const bags=Math.max(1,+cargo.quantity||1);
+    const pieces=Math.max(1,+cargo.pieceQuantity||bags*perPackage);
+    const inputValue=pieceMode?pieces:bags;
+    const unit=pieceMode?t('件'):t('包');
+    const conversion=pieceMode
+      ? `${t('折合')} ${Math.ceil(pieces/perPackage).toLocaleString()} ${t('包')}`
+      : `${t('共')} ${(bags*perPackage).toLocaleString()} ${t('件')}`;
+    row.dataset.stableCargoId=id;
+    row.dataset.stableCargoMode=mode;
+    row.classList.add('cargo-row-stable');
+    row.innerHTML=`<input class="cargo-check" data-id="${id}" type="checkbox" ${state.selectedCargo.has(id)?'checked':''} aria-label="${t('选择')} ${escapeHtml(cargo.name)}"><span class="color-square" style="background:${cargo.color}"></span><span class="record-main"><b>${escapeHtml(cargo.name)}</b><small class="cargo-spec-line">${cargo.l} × ${cargo.w} × ${cargo.h} mm · ${cubicMeters(cargo).toFixed(4)} m³</small><small class="cargo-piece-line">${perPackage.toLocaleString()} ${t('件')}/${t('包')}</small></span><span class="quantity stable-quantity"><input class="${pieceMode?'cargo-pieces':'cargo-quantity'}" data-id="${id}" type="number" min="1" value="${inputValue}" aria-label="${escapeHtml(cargo.name)} ${pieceMode?t('小件数'):t('包数')}" ${useSpecifiedQuantity()?'':'disabled'}><span class="quantity-unit">${unit}</span><span class="quantity-total">${conversion}</span></span>`;
+    const checkbox=$('.cargo-check',row);
+    checkbox.addEventListener('change',()=>{
+      if(checkbox.checked&&!useSpecifiedQuantity()){state.selectedCargo.clear();state.selectedCargo.add(id);}
+      else if(checkbox.checked)state.selectedCargo.add(id);
+      else state.selectedCargo.delete(id);
+      persistState();renderSelectors();
+    });
+    const input=$('.cargo-quantity, .cargo-pieces',row),total=$('.quantity-total',row);
+    const update=()=>{
+      const value=Math.max(1,+input.value||1);
+      total.textContent=pieceMode?`${t('折合')} ${Math.ceil(value/perPackage).toLocaleString()} ${t('包')}`:`${t('共')} ${(value*perPackage).toLocaleString()} ${t('件')}`;
+    };
+    input.addEventListener('input',update);
+    input.addEventListener('change',()=>{
+      const value=Math.max(1,+input.value||1);
+      if(pieceMode){cargo.pieceQuantity=value;cargo.quantity=Math.ceil(value/perPackage);}
+      else {cargo.quantity=value;cargo.pieceQuantity=value*perPackage;}
+      input.value=value;persistState();update();
+    });
+  });
+}
+const renderSelectorsV286Base=renderSelectors;
+renderSelectors=function(){renderSelectorsV286Base();requestAnimationFrame(rebuildStableCargoRows);};
+requestAnimationFrame(rebuildStableCargoRows);
+window.TopBoxApp.renderSelectors=()=>renderSelectors();
+
 /* v2.8.5 — final, post-render presentation guard.
    Some legacy integrations can render after the main functions above.  Watch
    their DOM output and normalise the two calculated areas on the next frame. */
@@ -365,8 +438,10 @@ function enforceFinalCalculatedOutputs(){
   if(percentage&&percentage.textContent!==value)percentage.textContent=value;
   const ring=$('#utilizationRing');
   if(ring)ring.style.background=`conic-gradient(var(--blue) ${percent*3.6}deg,#eaf0f6 0deg)`;
-  if($('#availableVolume'))$('#availableVolume').textContent=fmtVolume(available);
-  if($('#usedVolume'))$('#usedVolume').textContent=fmtVolume(used);
+  const availableNode=$('#availableVolume'),usedNode=$('#usedVolume');
+  const availableText=fmtVolume(available),usedText=fmtVolume(used);
+  if(availableNode&&availableNode.textContent!==availableText)availableNode.textContent=availableText;
+  if(usedNode&&usedNode.textContent!==usedText)usedNode.textContent=usedText;
 }
 let finalOutputFrame=0;
 function scheduleFinalOutputGuard(){
