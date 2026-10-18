@@ -7,7 +7,7 @@
     <title>TOP BOX货物装载配货平台</title>
     <link rel="preconnect" href="https://unpkg.com" />
     <link rel="stylesheet" href="styles.css?v=2.6.5" />
-    <link rel="stylesheet" href="visual-enhancements.css?v=2.8.0" />
+    <link rel="stylesheet" href="visual-enhancements.css?v=2.8.4" />
   </head>
   <body>
     <script>
@@ -28,7 +28,7 @@
         <button class="nav-link" data-page="settings">设置</button>
         <button class="nav-link" data-page="updates">更新日志</button>
       </nav>
-      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v2.8.3</span></div>
+      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v2.8.4</span></div>
     </header>
 
     <main>
@@ -76,6 +76,7 @@
 
       <section id="updates" class="page">
         <div class="page-heading"><div><p class="eyebrow">RELEASE NOTES</p><h1>更新日志</h1><p>TOP BOX货物装载配货平台版本记录。</p></div><label class="update-filter">更新日期<select id="updateDateFilter"><option value="all">全部日期</option><option value="2026-10-18">2026-10-18</option><option value="2026-10-17">2026-10-17</option><option value="2026-10-16">2026-10-16</option><option value="2026-10-15">2026-10-15</option><option value="2026-10-14">2026-10-14</option></select></label></div>
+        <article class="release-latest" data-release-date="2026-10-18"><div class="release-title"><h2>v2.8.4</h2><time>2026-10-18</time></div><ul><li>在页面最终输出层强制统一货物数量换算与空间利用率，杜绝历史渲染逻辑覆盖结果。</li><li>按包数输入固定显示“共 X 件”，按小件数输入固定显示“折合 X 包”；空间利用率改为实际已用容积 ÷ 可用容积，并固定保留两位小数。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-18"><div class="release-title"><h2>v2.8.3</h2><time>2026-10-18</time></div><ul><li>修复账户数据加载后旧版渲染入口覆盖新版界面的根因；货物数量换算与利用率现统一由新版渲染器输出。</li><li>按包数输入显示“共 X 件”，按小件数输入显示“折合 X 包”；空间利用率按实际原始体积计算并保留两位小数。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-18"><div class="release-title"><h2>v2.8.2</h2><time>2026-10-18</time></div><ul><li>货物数量换算文案精简：按包数输入仅显示“共 X 件”，按小件数输入仅显示“折合 X 包”。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-18"><div class="release-title"><h2>v2.8.1</h2><time>2026-10-18</time></div><ul><li>货物信息统一显示为“尺寸 · 容积”及单独一行“件/包”；包数、小件数输入均固定显示实时换算结果。</li><li>利用率改为逐个实际装载货物按原始尺寸求和，再除以容器原始可用容积，避免任何中间值取整。</li></ul></article>
@@ -122,7 +123,7 @@
       </section>
 
       <section id="tutorial" class="page">
-        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.8.3 更新</span></div>
+        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v2.8.4 更新</span></div>
         <div class="tutorial-grid" id="tutorialGrid">
           <article class="tutorial-card"><span class="tutorial-step">01</span><div class="tutorial-graphic account-graphic">◉</div><h2>登录与账户</h2><p>首次由管理员创建账号。登录后可在账户中心修改昵称、上传头像图片和修改密码。</p></article>
           <article class="tutorial-card"><span class="tutorial-step">02</span><div class="tutorial-graphic archive-graphic">▤</div><h2>维护个人档案</h2><p>在“档案管理”维护当前账号自己的容器和货物；档案与其他账号互不影响。</p></article>
@@ -161,8 +162,8 @@
         }
       }
     </script>
-    <script type="module" src="app-loader.js?v=2.8.3"></script>
-    <script type="module" src="account.js?v=2.8.3"></script>
+    <script type="module" src="app-loader.js?v=2.8.4"></script>
+    <script type="module" src="account.js?v=2.8.4"></script>
   </body>
 </html>
 
