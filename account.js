@@ -528,10 +528,52 @@ async function start() {
   catch { $('#authGate').classList.add('is-visible'); }
   bindUtilizationPrecision();
   bindSelectionTooltips();
+  bindArchiveNavigationV298();
   setInterval(bindSelectionTooltips, 700);
   // Keep the current workspace stable when the browser regains focus.  Data is
   // refreshed through the existing menu actions instead of re-initialising the
   // page whenever the user switches applications.
+}
+
+/* v2.9.8: the two archive entries are independent destinations.  This handler
+   owns their navigation before old generic "archives" listeners can turn them
+   back into a combined archive page. */
+function bindArchiveNavigationV298() {
+  const labels = { containers: '容器档案', cargo: '货物档案' };
+  const paint = kind => {
+    const appState = state();
+    if (!appState) return;
+    const archive = kind === 'cargo' ? 'cargo' : 'containers';
+    appState.archive = archive;
+    stableArchiveSelection.clear();
+    $$('.nav-link').forEach(item => item.classList.toggle('active', item.dataset.archiveTarget === archive));
+    $$('.page').forEach(item => item.classList.toggle('active-page', item.id === 'archives'));
+    $$('.archive-tabs button').forEach(tab => tab.classList.toggle('active', tab.dataset.archive === archive));
+    const heading = $('#archives .page-heading h1');
+    const description = $('#archives .page-heading p');
+    if (heading) heading.textContent = labels[archive];
+    if (description) description.textContent = '维护装载计算与 3D 可视化所需的基础数据。';
+    renderStableArchives();
+  };
+  const pinLabels = () => $$('.nav-link[data-page="archives"][data-archive-target]').forEach(button => {
+    const label = labels[button.dataset.archiveTarget] || labels.containers;
+    if (button.textContent !== label) button.textContent = label;
+  });
+  pinLabels();
+  const nav = document.querySelector('.topbar nav');
+  if (nav) new MutationObserver(pinLabels).observe(nav, { childList: true, subtree: true, characterData: true });
+  document.addEventListener('click', event => {
+    const button = event.target.closest('.nav-link[data-page="archives"][data-archive-target]');
+    if (!button) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const kind = button.dataset.archiveTarget === 'cargo' ? 'cargo' : 'containers';
+    paint(kind);
+    Promise.resolve(loadBootstrap()).catch(() => {}).finally(() => {
+      paint(kind);
+      requestAnimationFrame(() => paint(kind));
+    });
+  }, true);
 }
 
 start();
