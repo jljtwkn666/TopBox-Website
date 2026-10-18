@@ -529,7 +529,9 @@ async function start() {
   bindUtilizationPrecision();
   bindSelectionTooltips();
   setInterval(bindSelectionTooltips, 700);
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadBootstrap().catch(() => {}); });
+  // Keep the current workspace stable when the browser regains focus.  Data is
+  // refreshed through the existing menu actions instead of re-initialising the
+  // page whenever the user switches applications.
 }
 
 start();
