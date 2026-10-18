@@ -233,5 +233,26 @@ async function api(request, env, path) {
   return error('接口不存在。', 404);
 }
 
-export default { async fetch(request, env) { const url = new URL(request.url); try { if (url.pathname === '/app.js') { const stream = new Blob([base64ToBytes(EMBEDDED_APP_GZIP)]).stream().pipeThrough(new DecompressionStream('gzip')); return new Response(stream, { headers: { 'content-type': 'application/javascript; charset=utf-8', 'cache-control': 'no-store' } }); } return url.pathname.startsWith('/api/') ? await api(request, env, url.pathname) : env.ASSETS.fetch(request); } catch (cause) { console.error(cause); return error('服务暂时不可用，请稍后重试。', 500); } } };
+export default { async fetch(request, env) {
+  const url = new URL(request.url);
+  try {
+    if (url.pathname === '/app.js') {
+      const stream = new Blob([base64ToBytes(EMBEDDED_APP_GZIP)]).stream().pipeThrough(new DecompressionStream('gzip'));
+      return new Response(stream, { headers: { 'content-type': 'application/javascript; charset=utf-8', 'cache-control': 'no-store' } });
+    }
+    if (url.pathname.startsWith('/api/')) return await api(request, env, url.pathname);
+    const asset = await env.ASSETS.fetch(request);
+    /* These shell files must always move together.  An old cached index can
+       otherwise request an old payload/style version and produce mixed UI. */
+    if (['/','/index.html','/app-loader.js','/app-payload.js','/visual-enhancements.css','/account.js'].includes(url.pathname)) {
+      const headers = new Headers(asset.headers);
+      headers.set('cache-control', 'no-store, no-cache, must-revalidate, max-age=0');
+      return new Response(asset.body, { status: asset.status, statusText: asset.statusText, headers });
+    }
+    return asset;
+  } catch (cause) {
+    console.error(cause);
+    return error('服务暂时不可用，请稍后重试。', 500);
+  }
+}};
 
