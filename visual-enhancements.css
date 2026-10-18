@@ -204,3 +204,15 @@
 .admin-account-layout .user-row-actions .button{grid-area:save!important;width:100%!important;min-width:0!important;height:34px!important}
 @media(max-width:760px){.admin-account-layout .user-row-actions{grid-template-columns:1fr 1fr!important;min-width:0!important;width:100%}}
 
+/* v2.8.0 — stable cargo selection columns. */
+#cargoList .select-row{grid-template-columns:22px 34px minmax(300px,1fr) 334px!important;column-gap:12px!important}
+#cargoList .select-row>.record-main{min-width:300px!important;overflow:hidden!important}
+#cargoList .record-main .cargo-spec-line,#cargoList .record-main .cargo-piece-line{display:block!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+#cargoList .record-main .cargo-piece-line{margin-top:3px!important}
+#cargoList .select-row>.quantity{justify-self:end!important;width:334px!important}
+@media(max-width:760px){#cargoList .select-row{grid-template-columns:22px 34px minmax(0,1fr)!important}#cargoList .select-row>.record-main{min-width:0!important}#cargoList .select-row>.quantity{grid-column:3!important;grid-row:2!important;justify-self:stretch!important;width:auto!important}}
+
+/* PDF actions follow the requested order: print secondary, download primary. */
+.app-dialog .modal-actions #pdfPrint{background:#eff6ff!important;border-color:#bfdbfe!important;color:#1d4ed8!important}
+.app-dialog .modal-actions #pdfDownload{background:#0b2545!important;border-color:#0b2545!important;color:#fff!important}
+
