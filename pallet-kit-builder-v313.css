@@ -1,0 +1,5 @@
+/* TOP BOX v3.1.3: the pallet designer is a real modal only. */
+dialog.pallet-kit-dialog:not([open]){display:none!important}
+dialog.pallet-kit-dialog[open]{position:fixed;inset:4vh auto auto 50%;transform:translateX(-50%);margin:0;z-index:10000}
+@media(max-width:720px){dialog.pallet-kit-dialog[open]{inset:0;transform:none;width:100vw;height:100vh}}
+
