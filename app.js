@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 38204)
-Total output lines: 707
-
 import * as THREE from 'https://unpkg.com/three@0.162.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.162.0/examples/jsm/controls/OrbitControls.js';
 
@@ -96,7 +93,7 @@ function packContainer(c, selected, mode) {
   let positions = []; const unplaced = [], placedCount = new Map(), candidates = expandRequested(selected, c, mode),isPallet=c.type==='托盘',baseZ=isPallet?Math.max(1,c.h):0;
   const spaces = [{x:0,y:0,z:baseZ,l:c.l,w:c.w,h:isPallet?Number.POSITIVE_INFINITY:c.h}];
   const rotationsFor = item => {
-    const values=item.shape==='cylinder' ? [[item.l,item.w,item.h,'upright'],[item.h,item.w,item.l,'lyingLength'],[item.l,item.h,item.w,'lyingWidth']] : [[item.l,item.w,item.h,'longitudinal'],[item.w,item.l,item.h,'transverse'],[item.l,item.h,item.w,'onSideLength'],[item.h,item.l,item.w,'onSideWidth'],[item.w,item.h,item.l,'verticalLength'],[item.h,item.w,item.l,'verticalWidth']];
+    const values=item.kit ? [[item.l,item.w,item.h,'kitFixed']] : item.shape==='cylinder' ? [[item.l,item.w,item.h,'upright'],[item.h,item.w,item.l,'lyingLength'],[item.l,item.h,item.w,'lyingWidth']] : [[item.l,item.w,item.h,'longitudinal'],[item.w,item.l,item.h,'transverse'],[item.l,item.h,item.w,'onSideLength'],[item.h,item.l,item.w,'onSideWidth'],[item.w,item.h,item.l,'verticalLength'],[item.h,item.w,item.l,'verticalWidth']];
     return [...new Map(values.map(rotation=>[rotation.slice(0,3).join('×'),rotation])).values()];
   };
   const hasCollision = (x,y,z,l,w,h) => positions.some(p=>x<p.x+p.l&&x+l>p.x&&y<p.y+p.w&&y+w>p.y&&z<p.z+p.h&&z+h>p.z);
@@ -286,12 +283,104 @@ function printPlan(){
 let toastTimer, selectorRenderTimer;
 function showSuccess(message){const toast=$('#appToast');if(!toast)return;toast.textContent=message;toast.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('visible'),2000);}
 function requestSelectorRender(){clearTimeout(selectorRenderTimer);selectorRenderTimer=setTimeout(renderSelectors,90);}
-const renderSelectorsBase=renderSelectors;renderSelectors=function(){renderSelectorsBase();$$('.cargo-quantity').forEach(input=>{const cargo=state.cargo.find(item=>item.id===input.dataset.id),row=input.closest('.select-row'),main=row?.querySelector('.record-main'),quantity=row?.querySelector('.quantity');if(!cargo||!row||!main||!quantity)return;let perPackage=main.querySelector('.cargo-piece-note');if(!perPackage){perPackage=document.createElement('small');perPackage.className='cargo-piece-note';main.append(perPackage);}perPackage.textContent=`${t('每包')} ${(+cargo.pieces||1).toLocaleString()} ${t('件')}`;let total=quantity.querySelector('.quantity-pieces');if(!total){total=document.createElement('b');total.className='quantity-pieces';quantity.append(total);}const updatePieces=()=>{const bags=Math.max(1,+input.value||1);total.textContent=`${t('共')} ${(bags*(+cargo.pieces||1)).toLocaleString()} ${t('件')}`;};updatePieces();input.addEventListener('input',updatePieces);});};
+const renderSelectorsBase=renderSelectors;renderSelectors=function(){renderSelectorsBase();$$('.cargo-quantity').forEach(input=>{const cargo=state.cargo.find(item=>item.id===input.dataset.id),row=input.closest('.select-row'),main=row?.querySelector('.record-main'),quantity=row?.querySelector('.quantity');if(!cargo||!row||!main||!quantity)return;let perPackage=main.querySelector('.cargo-piece-note');if(!perPackage){perPackage=document.createElement('small');perPackage.className='cargo-piece-note';main.append(perPackage);}perPackage.textContent=`每包 ${(+cargo.pieces||1).toLocaleString()} 件`;let total=quantity.querySelector('.quantity-pieces');if(!total){total=document.createElement('b');total.className='quantity-pieces';quantity.append(total);}const updatePieces=()=>{const bags=Math.max(1,+input.value||1);total.textContent=`共 ${(bags*(+cargo.pieces||1)).toLocaleString()} 件`;};updatePieces();input.addEventListener('input',updatePieces);});};
 function bind(){
   $$('.nav-link').forEach(b=>b.addEventListener('click',()=>{const page=b.dataset.page;$$('.nav-link').forEach(x=>x.classList.toggle('active',x===b));$$('.page').forEach(x=>x.classList.toggle('active-page',x.id===page));window.scrollTo({top:0,behavior:'smooth'});if(page==='archives')renderArchives();if(page==='savedPlans')renderSavedPlans();if(page==='settings')renderSettings();}));
   $$('[data-go-archives]').forEach(b=>b.addEventListener('click',()=>{state.archive=b.dataset.goArchives;persistState();$('.nav-link[data-page="archives"]').click();$$('.archive-tabs button').forEach(x=>x.classList.toggle('active',x.dataset.archive===state.archive));renderArchives();}));
   $$('input[name="mode"]').forEach(x=>x.addEventListener('change',()=>$$('.mode-option').forEach(l=>l.classList.toggle('selected',l.querySelector('input').checked))));$('#calculate').addEventListener('click',generatePlan);$('#resetWorkspace').addEventListener('click',resetWorkspace);$('#containerSearch').addEventListener('input',renderSelectors);$('#cargoSearch').addEventListener('input',renderSelectors);
-  $$('.view-buttons [data-view]').forEach(b=>b.addEventListener('click',()=>setCamera(b.dataset.view)));$('#resetCamera').addEventListener('click',()=>setCamera('iso'));$('#prevPlan').addEventListener('click',()=>{if(state.plan?.active>0){state.plan.active--;renderPlan();}});$('#nextPlan').addEventListener('click',()=>{if(state.plan&&state.plan.active<state.plan.plans.length-1){state.plan.active++;renderPlan();}});$('#fullscreenView').addEventListener('click',()=>{const target=$('#visualCard');if(document.fullscreenElement)document.exitFullscreen();else target.requestFullscreen?.();});document.addEventListener('fullscreenchange',()=>{const isFull=Boolean(document.fullscreenElement),button=$('#fullscreenView');button.textContent=isFull?'×':'⛶';button.title=isFull?'退出全屏':'全屏放大';button.setAttribute('aria-label',button.title);fitThree();if(!isFull&&state.plan)setTimeout(()=>{fitThree();setCamera('iso');},120);});window.addEventListener('resize',fitThree);$('#savePlan').addEven…12204 tokens truncated…ers')?.addEventListener('click',()=>{state.selectedContainers.clear();persistState();renderSelectors();});$('#selectAllCargo').addEventListener('click',()=>{state.cargo.forEach(g=>state.selectedCargo.add(g.id));persistState();renderSelectors();});$('#clearAllCargo').addEventListener('click',()=>{state.selectedCargo.clear();persistState();renderSelectors();});
+  $$('.view-buttons [data-view]').forEach(b=>b.addEventListener('click',()=>setCamera(b.dataset.view)));$('#resetCamera').addEventListener('click',()=>setCamera('iso'));$('#prevPlan').addEventListener('click',()=>{if(state.plan?.active>0){state.plan.active--;renderPlan();}});$('#nextPlan').addEventListener('click',()=>{if(state.plan&&state.plan.active<state.plan.plans.length-1){state.plan.active++;renderPlan();}});$('#fullscreenView').addEventListener('click',()=>{const target=$('#visualCard');if(document.fullscreenElement)document.exitFullscreen();else target.requestFullscreen?.();});document.addEventListener('fullscreenchange',()=>{const isFull=Boolean(document.fullscreenElement),button=$('#fullscreenView');button.textContent=isFull?'×':'⛶';button.title=isFull?'退出全屏':'全屏放大';button.setAttribute('aria-label',button.title);fitThree();if(!isFull&&state.plan)setTimeout(()=>{fitThree();setCamera('iso');},120);});window.addEventListener('resize',fitThree);$('#savePlan').addEventListener('click',saveCurrentPlan);$('#exportImage').addEventListener('click',exportImage);$('#exportPdf').addEventListener('click',exportPdf);$('#printPlan').addEventListener('click',printPlan);
+  $('#tooltipToggle').addEventListener('change',event=>{state.settings.showCargoTooltip=event.target.checked;persistState();renderSettings();if(!event.target.checked)hideCargoHover();});$('#languageSelect').addEventListener('change',event=>{state.settings.language=event.target.value;persistState();applyLanguage();});$('#scrollTop').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));$('#scrollBottom').addEventListener('click',()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'}));
+  $$('.archive-tabs button').forEach(b=>b.addEventListener('click',()=>{state.archive=b.dataset.archive;persistState();$$('.archive-tabs button').forEach(x=>x.classList.toggle('active',x===b));renderArchives();}));$('#archiveSearch').addEventListener('input',renderArchives);$('#addArchive').addEventListener('click',()=>openDialog());$('#closeDialog').addEventListener('click',()=>$('#archiveDialog').close());$('#cancelDialog').addEventListener('click',()=>$('#archiveDialog').close());$('#archiveForm').addEventListener('submit',saveDialog);$('#downloadTemplate').addEventListener('click',downloadTemplate);$('#importFile').addEventListener('change',e=>e.target.files[0]&&importCSV(e.target.files[0]));
+}
+// The enhanced application bridge is exported at the end of this module.
+// Keep this legacy fallback passive so it can never replace the enhanced renderer.
+setTimeout(()=>{if(!window.TopBoxApp)window.TopBoxApp={state,renderSelectors:()=>renderSelectors(),renderArchives:()=>renderArchives(),renderSavedPlans:()=>renderSavedPlans(),generatePlan:()=>generatePlan(),openSavedPlan:id=>openSavedPlan(id)};},0);
+
+{
+// v1.5 — application dialogs, complete framework translations and batch actions.
+const selectedArchiveIds = new Set(), selectedSavedPlanIds = new Set();
+let dialogResolver = null, previewReports = [];
+const I18N = {
+  en: {'创建装载方案':'Create load plan','选择容器和货物，快速计算装载明细并查看空间布局。':'Select containers and cargo to calculate loading details and review the 3D layout.','刷新页面':'Refresh page','生成最优方案':'Generate optimal plan','选择装载方式':'Choose loading method','决定数量与满载规则':'Set quantity and full-load rules','指定数量':'Specified quantity','按填写数量装载':'Load the entered quantity','满载优先':'Full-load priority','尽可能填满容器':'Fill the container as much as possible','按比例满载':'Proportional full load','按需求比例配载':'Load by requested ratio','尾货满载':'Last item full load','最后一款自动补满':'Automatically fill the final item','选择容器':'Select containers','可多选，分别生成每个容器的方案':'Multiple selection creates an independent plan for each container.','管理档案':'Manage records','搜索容器名称或类型':'Search container name or type','选择货物':'Select cargo','填写每种货物的计划数量':'Enter the planned quantity for each cargo.','多个关键词以英文逗号分隔':'Separate multiple keywords with commas','装载优化结果':'Loading results','保存方案':'Save plan','导出方案图片':'Export plan image','导出 PDF':'Export PDF','打印方案':'Print plan','空间利用率':'Space utilization','可用容积':'Available volume','已用容积':'Used volume','总装载数量':'Total loaded','总重量':'Total weight','装载明细':'Loaded details','未装载':'Unloaded','未装载空间':'Free spaces','全部容器装载方案':'All container loading plans','容器与货物档案':'Container & cargo records','维护装载计算与 3D 可视化所需的基础数据。':'Maintain master data for loading calculations and 3D visualization.','下载导入模板':'Download import template','批量导入':'Bulk import','批量删除':'Delete selected','新增档案':'New record','容器档案':'Container records','货物档案':'Cargo records','按名称、类型搜索':'Search name or type','名称':'Name','类型':'Type','尺寸（长 × 宽 × 高）':'Dimensions (L × W × H)','容积':'Volume','重量':'Weight','小件数':'Pieces','颜色':'Color','装载方案管理':'Saved plan management','已保存的方案会保留在当前浏览器，可随时打开、导出或删除。':'Saved plans remain in this browser and can be opened, exported or deleted anytime.','更新日志':'Release notes','显示设置':'Display settings','设置会保留在当前浏览器。':'Settings remain in this browser.','3D 货物名称提示':'3D cargo name tooltip','鼠标悬停在 3D 货物颜色块上时显示货物名称。':'Show the cargo name when hovering over a 3D cargo block.','开启':'On','关闭':'Off','取消':'Cancel','确定':'OK','下载 PDF':'Download PDF','打印 PDF':'Print PDF','方案名称':'Plan name','提示':'Notice','确认删除':'Confirm deletion','关闭':'Close','打开方案':'Open plan','删除':'Delete','编辑':'Edit','没有匹配的档案':'No matching records','没有匹配的容器':'No matching containers','没有匹配的货物':'No matching cargo','无可装载货物':'No cargo can be loaded','所有计划货物均已装载':'All planned cargo is loaded','无可用剩余空间':'No remaining usable space','未装载':'Unloaded','包':'packages','件':'pieces','处':'spaces','已装':'loaded','未装':'unloaded','选择全部':'Select all','保存档案':'Save record'},
+  th: {'创建装载方案':'สร้างแผนการบรรทุก','选择容器和货物，快速计算装载明细并查看空间布局。':'เลือกภาชนะและสินค้าเพื่อคำนวณรายละเอียดและดูผัง 3 มิติ','刷新页面':'รีเฟรชหน้า','生成最优方案':'สร้างแผนที่เหมาะสม','选择装载方式':'เลือกวิธีการบรรทุก','决定数量与满载规则':'กำหนดจำนวนและกฎการบรรทุกเต็ม','指定数量':'ตามจำนวนที่กำหนด','按填写数量装载':'บรรทุกตามจำนวนที่ระบุ','满载优先':'เน้นบรรทุกเต็ม','尽可能填满容器':'บรรทุกให้เต็มภาชนะมากที่สุด','按比例满载':'บรรทุกเต็มตามสัดส่วน','按需求比例配载':'บรรทุกตามสัดส่วนความต้องการ','尾货满载':'สินค้า cuốiเต็มคัน','最后一款自动补满':'เติมสินค้าอันดับสุดท้ายโดยอัตโนมัติ','选择容器':'เลือกภาชนะ','可多选，分别生成每个容器的方案':'เลือกได้หลายรายการ และสร้างแผนอิสระสำหรับแต่ละภาชนะ','管理档案':'จัดการข้อมูล','搜索容器名称或类型':'ค้นหาชื่อหรือประเภทภาชนะ','选择货物':'เลือกสินค้า','填写每种货物的计划数量':'ระบุจำนวนสินค้าที่วางแผนไว้','多个关键词以英文逗号分隔':'คั่นคำค้นหาหลายคำด้วยเครื่องหมายจุลภาค','装载优化结果':'ผลการจัดบรรทุก','保存方案':'บันทึกแผน','导出方案图片':'ส่งออกรูปแผน','导出 PDF':'ส่งออก PDF','打印方案':'พิมพ์แผน','空间利用率':'อัตราใช้พื้นที่','可用容积':'ปริมาตรที่ใช้ได้','已用容积':'ปริมาตรที่ใช้แล้ว','总装载数量':'จำนวนที่บรรทุกทั้งหมด','总重量':'น้ำหนักรวม','装载明细':'รายละเอียดการบรรทุก','未装载':'ไม่ได้บรรทุก','未装载空间':'พื้นที่ว่าง','全部容器装载方案':'แผนบรรทุกทุกภาชนะ','容器与货物档案':'ข้อมูลภาชนะและสินค้า','维护装载计算与 3D 可视化所需的基础数据。':'จัดการข้อมูลพื้นฐานสำหรับการคำนวณและภาพ 3 มิติ','下载导入模板':'ดาวน์โหลดเทมเพลตนำเข้า','批量导入':'นำเข้าหลายรายการ','批量删除':'ลบที่เลือก','新增档案':'เพิ่มข้อมูล','容器档案':'ข้อมูลภาชนะ','货物档案':'ข้อมูลสินค้า','按名称、类型搜索':'ค้นหาชื่อหรือประเภท','名称':'ชื่อ','类型':'ประเภท','尺寸（长 × 宽 × 高）':'ขนาด (ย × ก × ส)','容积':'ปริมาตร','重量':'น้ำหนัก','小件数':'จำนวนชิ้น','颜色':'สี','装载方案管理':'จัดการแผนบรรทุก','已保存的方案会保留在当前浏览器，可随时打开、导出或删除。':'แผนที่บันทึกจะอยู่ในเบราว์เซอร์นี้ และสามารถเปิด ส่งออก หรือลบได้ทุกเมื่อ','更新日志':'บันทึกการอัปเดต','显示设置':'ตั้งค่าการแสดงผล','设置会保留在当前浏览器。':'การตั้งค่าจะถูกเก็บในเบราว์เซอร์นี้','3D 货物名称提示':'ชื่อสินค้าในภาพ 3 มิติ','鼠标悬停在 3D 货物颜色块上时显示货物名称。':'แสดงชื่อสินค้าเมื่อวางเมาส์บนกล่องสินค้า 3 มิติ','开启':'เปิด','关闭':'ปิด','取消':'ยกเลิก','确定':'ตกลง','下载 PDF':'ดาวน์โหลด PDF','打印 PDF':'พิมพ์ PDF','方案名称':'ชื่อแผน','提示':'แจ้งเตือน','确认删除':'ยืนยันการลบ','打开方案':'เปิดแผน','删除':'ลบ','编辑':'แก้ไข','没有匹配的档案':'ไม่พบข้อมูลที่ตรงกัน','没有匹配的容器':'ไม่พบภาชนะที่ตรงกัน','没有匹配的货物':'ไม่พบสินค้าที่ตรงกัน','无可装载货物':'ไม่มีสินค้าที่บรรทุกได้','所有计划货物均已装载':'สินค้าที่วางแผนทั้งหมดถูกบรรทุกแล้ว','无可用剩余空间':'ไม่มีพื้นที่ว่างที่ใช้ได้','包':'แพ็ก','件':'ชิ้น','处':'ตำแหน่ง','已装':'บรรทุกแล้ว','未装':'ไม่ได้บรรทุก','选择全部':'เลือกทั้งหมด','保存档案':'บันทึกข้อมูล'}
+};
+Object.assign(I18N.en,{'导出方案':'Export plan','每包':'Per package','已生成最优装载方案。':'Optimal loading plan generated.','档案已保存。':'Record saved.','档案已删除。':'Record deleted.','方案已保存。':'Plan saved.','主导航':'Main navigation','语言':'Language','TOP BOX货物装载配货平台':'TOP BOX Cargo Loading & Allocation Platform','纵向（长边沿车长）':'Lengthwise (long edge along vehicle length)','横向（长边沿车宽）':'Widthwise (long edge along vehicle width)','侧放（长边沿车长）':'Sideways (long edge along vehicle length)','侧放（长边沿车宽）':'Sideways (long edge along vehicle width)','竖放（长边竖直）':'Upright (long edge vertical)','竖放（宽边竖直）':'Upright (width edge vertical)','自动旋转':'Auto rotated'});Object.assign(I18N.th,{'导出方案':'ส่งออกแผน','每包':'ต่อแพ็ก','已生成最优装载方案。':'สร้างแผนการบรรทุกที่เหมาะสมแล้ว','档案已保存。':'บันทึกข้อมูลแล้ว','档案已删除。':'ลบข้อมูลแล้ว','方案已保存。':'บันทึกแผนแล้ว','主导航':'เมนูหลัก','语言':'ภาษา','TOP BOX货物装载配货平台':'TOP BOX แพลตฟอร์มจัดการบรรทุกสินค้า','纵向（长边沿车长）':'ตามยาว (ด้านยาวตามความยาวรถ)','横向（长边沿车宽）':'ตามกว้าง (ด้านยาวตามความกว้างรถ)','侧放（长边沿车长）':'วางตะแคง (ด้านยาวตามความยาวรถ)','侧放（长边沿车宽）':'วางตะแคง (ด้านยาวตามความกว้างรถ)','竖放（长边竖直）':'ตั้งขึ้น (ด้านยาวแนวตั้ง)','竖放（宽边竖直）':'ตั้งขึ้น (ด้านกว้างแนวตั้ง)','自动旋转':'หมุนอัตโนมัติ'});
+Object.assign(I18N.en,{'显示容器尺寸标注':'Show container dimensions','在 3D 预览中显示容器长、宽、高的尺寸数据。':'Show the container length, width and height in the 3D preview.','TOP BOX货物装车方案':'TOP BOX Cargo Loading Plan'});Object.assign(I18N.th,{'显示容器尺寸标注':'แสดงขนาดภาชนะ','在 3D 预览中显示容器长、宽、高的尺寸数据。':'แสดงความยาว ความกว้าง และความสูงของภาชนะในภาพ 3 มิติ','TOP BOX货物装车方案':'แผนบรรทุกสินค้า TOP BOX'});
+Object.assign(I18N.en,{'容器长度':'Container length','容器宽度':'Container width','容器高度':'Container height','导出表格':'Export table'});Object.assign(I18N.th,{'容器长度':'ความยาวภาชนะ','容器宽度':'ความกว้างภาชนะ','容器高度':'ความสูงภาชนะ','导出表格':'ส่งออกตาราง'});
+const sourceText = new WeakMap();
+function t(text) { return I18N[state.settings.language || 'zh-CN']?.[text] || text; }
+function translateNode(node) { const original = sourceText.get(node) ?? node.nodeValue; sourceText.set(node, original); const lead = original.match(/^\s*/)[0], tail = original.match(/\s*$/)[0], body = original.trim(); node.nodeValue = `${lead}${t(body)}${tail}`; }
+function applyLanguage() {
+  const lang = state.settings.language || 'zh-CN'; $('#languageSelect').value = lang; document.documentElement.lang = lang;
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {acceptNode:n => n.parentElement?.closest('script,style') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT});
+  while (walker.nextNode()) translateNode(walker.currentNode);
+  $$('[placeholder],[title],[aria-label]').forEach(el => ['placeholder','title','aria-label'].forEach(attr => { if (!el.hasAttribute(attr)) return; const key={placeholder:'i18nPlaceholder',title:'i18nTitle','aria-label':'i18nAriaLabel'}[attr]; const original=el.dataset[key] || el.getAttribute(attr); el.dataset[key]=original; el.setAttribute(attr,t(original)); }));
+}
+function showDialog({title=t('提示'),message='',kind='notice',value='',reports=[]}) {
+  const dialog=$('#appDialog'); if (dialog.open) dialog.close(); dialog.dataset.kind=kind; $('#appDialogTitle').textContent=title; $('#appDialogMessage').textContent=message;
+  $('#appDialogInputWrap').classList.toggle('hidden',kind!=='text'); $('#appDialogInput').value=value; $('#appDialogCancel').classList.toggle('hidden',kind==='notice'||kind==='preview'); $('#appDialogConfirm').classList.toggle('hidden',kind==='preview'); $('#pdfDownload').classList.toggle('hidden',kind!=='preview'); $('#pdfPrint').classList.toggle('hidden',kind!=='preview');
+  const preview=$('#pdfPreview'); preview.classList.toggle('hidden',kind!=='preview'); preview.innerHTML=kind==='preview'?reports.map((report,i)=>`<img src="${reportCanvas(report).toDataURL('image/png')}" alt="${escapeHtml(t('装载方案'))} ${i+1}">`).join(''):'';
+  $('#appDialogConfirm').textContent=kind==='text'?t('保存方案'):kind==='confirm'?t('确定'):t('关闭'); dialog.showModal(); if(kind==='text') setTimeout(()=>$('#appDialogInput').focus(),0);
+}
+function finishDialog(value) { const dialog=$('#appDialog'); if(dialog.open)dialog.close(); const resolve=dialogResolver; dialogResolver=null; resolve?.(value); }
+function showNotice(message,title=t('提示')) { showDialog({title,message,kind:'notice'}); }
+function askConfirm(message,title=t('确认删除')) { return new Promise(resolve=>{dialogResolver=resolve;showDialog({title,message,kind:'confirm'});}); }
+function askText(message,value='',options={}) { return new Promise(resolve=>{dialogResolver=resolve;$('#appDialogInputLabel').textContent=options.label||t('方案名称');showDialog({title:options.title||t('保存方案'),message,kind:'text',value});}); }
+function pageSlice(items,pageKey,sizeKey){const size=Math.max(1,+state.ui[sizeKey]||50),pages=Math.max(1,Math.ceil(items.length/size));state.ui[pageKey]=Math.max(1,Math.min(state.ui[pageKey]||1,pages));return {rows:items.slice((state.ui[pageKey]-1)*size,state.ui[pageKey]*size),pages,size};}
+function renderListPager(id,data,total,pageKey,sizeKey,onChange=renderSelectors){const host=$('#'+id);if(!host)return;const options=[20,30,50,100,200,500,1000,2000].map(v=>`<option ${data.size===v?'selected':''}>${v}</option>`).join('');host.innerHTML=`<span>${total?`${(state.ui[pageKey]-1)*data.size+1}-${Math.min(state.ui[pageKey]*data.size,total)}/${total}`:'0/0'}</span><button data-page="${pageKey}" data-step="-1" ${state.ui[pageKey]<=1?'disabled':''}>‹</button><button data-page="${pageKey}" data-step="1" ${state.ui[pageKey]>=data.pages?'disabled':''}>›</button><select data-size="${sizeKey}">${options}<option value="custom">${t('自定义')}</option></select>`;$$('[data-page]',host).forEach(b=>b.addEventListener('click',()=>{state.ui[b.dataset.page]+=+b.dataset.step;onChange();}));$('[data-size]',host).addEventListener('change',async e=>{let val=e.target.value;if(val==='custom'){const n=await askText(t('每页条数（1-5000）'),String(data.size),{title:t('自定义每页条数'),label:t('每页条数 (1-5000)')});if(n)state.ui[sizeKey]=Math.max(1,Math.min(5000,+n||data.size));}else state.ui[sizeKey]=+val;state.ui[pageKey]=1;persistState();onChange();});}
+function useSpecifiedQuantity(){return activeMode()==='specified';}
+function applyCargoModeRules(){if(!useSpecifiedQuantity()&&state.selectedCargo.size>1){const first=state.cargo.find(g=>state.selectedCargo.has(g.id));state.selectedCargo.clear();if(first)state.selectedCargo.add(first.id);persistState();}renderSelectors();}
+function resetCargoSelection(){state.selectedCargo.clear();state.cargo.forEach(g=>{g.quantity=1;g.pieceQuantity=Math.max(1,+g.pieces||1);});state.settings.quantityInputMode='bags';persistState();renderSelectors();}
+function renderSelectors(){
+  const cq=$('#containerSearch')?.value.trim().toLowerCase()||'',gq=$('#cargoSearch')?.value.trim().toLowerCase()||'';
+  const matches=(item,q)=>!q||q.split(',').map(v=>v.trim()).filter(Boolean).every(term=>`${item.name}${item.type}`.toLowerCase().includes(term));
+  const containers=state.containers.filter(c=>matches(c,cq)),cargo=state.cargo.filter(g=>matches(g,gq));
+  const cp=pageSlice(containers,'containerPage','containerSize'),gp=pageSlice(cargo,'cargoPage','cargoSize');
+  const selectedContainers=state.selectedContainers.size,selectedCargo=state.selectedCargo.size;
+  $('#selectedContainerCount').textContent=`${t('已选')} ${selectedContainers} ${t('项')}`;
+  $('#selectedCargoCount').textContent=`${t('已选')} ${selectedCargo} ${t('项')}`;
+  const specified=useSpecifiedQuantity(),quantityMode=state.settings.quantityInputMode==='pieces'?'pieces':'bags',modeHost=$('#quantityInputMode');
+  if(modeHost){
+    modeHost.innerHTML=`<button type="button" class="quantity-mode-button ${quantityMode==='bags'?'active':''}" data-quantity-mode="bags" aria-pressed="${quantityMode==='bags'}" ${specified?'':'disabled'}>${t('按包数输入')}</button><button type="button" class="quantity-mode-button ${quantityMode==='pieces'?'active':''}" data-quantity-mode="pieces" aria-pressed="${quantityMode==='pieces'}" ${specified?'':'disabled'}>${t('按小件数输入')}</button>`;
+    $$('[data-quantity-mode]',modeHost).forEach(button=>button.addEventListener('click',()=>{const next=button.dataset.quantityMode;if(next===state.settings.quantityInputMode)return;state.settings.quantityInputMode=next;persistState();renderSelectors();}));
+  }
+  $('#containerList').innerHTML=cp.rows.map(c=>`<label class="select-row ${state.selectedContainers.has(c.id)?'checked':''}"><input class="container-check" data-id="${c.id}" type="checkbox" ${state.selectedContainers.has(c.id)?'checked':''}><span class="color-square" style="background:${c.color}"></span><span class="record-main"><b>${escapeHtml(c.name)}</b><small>${containerLabel(c)}</small></span><span class="record-extra">${escapeHtml(c.type)}</span></label>`).join('')||`<div class="empty-state">${t('没有匹配的容器')}</div>`;
+  $('#cargoList').innerHTML=gp.rows.map(g=>{const bags=Math.max(1,+g.quantity||1),pieces=Math.max(1,+g.pieces||1),pieceQuantity=Math.max(1,+g.pieceQuantity||bags*pieces),input=quantityMode==='pieces'?`<input class="cargo-pieces" data-id="${g.id}" type="number" min="1" value="${pieceQuantity}" aria-label="${escapeHtml(g.name)} ${t('小件数')}" ${specified?'':'disabled'}><span class="quantity-unit">${t('件')}</span><span class="quantity-total">${t('折合')} ${Math.ceil(pieceQuantity/pieces).toLocaleString()} ${t('包')}</span>`:`<input class="cargo-quantity" data-id="${g.id}" type="number" min="1" value="${bags}" aria-label="${escapeHtml(g.name)} ${t('包数')}" ${specified?'':'disabled'}><span class="quantity-unit">${t('包')}</span><span class="quantity-total">${t('共')} ${(bags*pieces).toLocaleString()} ${t('件')}</span>`;return `<label class="select-row ${state.selectedCargo.has(g.id)?'checked':''}"><input class="cargo-check" data-id="${g.id}" type="checkbox" ${state.selectedCargo.has(g.id)?'checked':''}><span class="color-square" style="background:${g.color}"></span><span class="record-main"><b>${escapeHtml(g.name)}</b><small class="cargo-spec-line">${g.l} × ${g.w} × ${g.h} mm · ${cubicMeters(g).toFixed(4)} m³</small><small class="cargo-piece-line">${pieces.toLocaleString()} ${t('件')}/${t('包')}</small></span><span class="quantity">${input}</span></label>`;}).join('')||`<div class="empty-state">${t('没有匹配的货物')}</div>`;
+  renderListPager('containerPager',cp,containers.length,'containerPage','containerSize');renderListPager('cargoPager',gp,cargo.length,'cargoPage','cargoSize');
+  $$('.container-check').forEach(x=>x.addEventListener('change',()=>{x.checked?state.selectedContainers.add(x.dataset.id):state.selectedContainers.delete(x.dataset.id);persistState();renderSelectors();}));
+  $('#selectAllCargo').disabled=!specified;
+  $$('.cargo-check').forEach(x=>x.addEventListener('change',()=>{if(x.checked&&!specified){state.selectedCargo.clear();state.selectedCargo.add(x.dataset.id);}else if(x.checked)state.selectedCargo.add(x.dataset.id);else state.selectedCargo.delete(x.dataset.id);persistState();renderSelectors();}));
+  $$('.cargo-quantity').forEach(x=>{const update=()=>{const g=state.cargo.find(v=>v.id===x.dataset.id),bags=Math.max(1,+x.value||1),total=x.closest('.quantity').querySelector('.quantity-total');if(total)total.textContent=`${t('共')} ${(bags*Math.max(1,+g.pieces||1)).toLocaleString()} ${t('件')}`;};x.addEventListener('input',update);x.addEventListener('change',()=>{const g=state.cargo.find(v=>v.id===x.dataset.id);g.quantity=Math.max(1,+x.value||1);g.pieceQuantity=g.quantity*Math.max(1,+g.pieces||1);x.value=g.quantity;persistState();update();});});
+  $$('.cargo-pieces').forEach(x=>{const update=()=>{const g=state.cargo.find(v=>v.id===x.dataset.id),count=Math.max(1,+x.value||1),pieces=Math.max(1,+g.pieces||1),total=x.closest('.quantity').querySelector('.quantity-total');if(total)total.textContent=`${t('折合')} ${Math.ceil(count/pieces).toLocaleString()} ${t('包')}`;};x.addEventListener('input',update);x.addEventListener('change',()=>{const g=state.cargo.find(v=>v.id===x.dataset.id),count=Math.max(1,+x.value||1);g.pieceQuantity=count;g.quantity=Math.ceil(count/Math.max(1,+g.pieces||1));x.value=count;persistState();update();});});
+  applyLanguage();
+}
+function renderSettings(){const tooltip=$('#tooltipToggle'),dimensions=$('#dimensionToggle');if(tooltip){tooltip.checked=state.settings.showCargoTooltip;tooltip.closest('.switch').querySelector('b').textContent=t(tooltip.checked?'开启':'关闭');}if(dimensions){dimensions.checked=state.settings.showContainerDimensions!==false;dimensions.closest('.switch').querySelector('b').textContent=t(dimensions.checked?'开启':'关闭');}}
+function generatePlan() { const containers=state.containers.filter(c=>state.selectedContainers.has(c.id)),cargo=state.cargo.filter(g=>state.selectedCargo.has(g.id)); if(!containers.length||!cargo.length){showNotice(t('请至少选择一个容器和一种货物。'));return;} state.hiddenCargoIds.clear();state.plan={plans:containers.map(c=>packContainer(c,cargo,activeMode())),active:0,mode:activeMode()};showSuccess(t('已生成'));$('#results').classList.remove('hidden');renderPlan();$('#results').scrollIntoView({behavior:'smooth',block:'start'}); }
+function placementDetail(g,plan){const items=plan.positions.filter(p=>p.id===g.id);if(!items.length)return '';const alongLength=new Set(items.map(p=>p.x)).size,alongWidth=new Set(items.map(p=>p.y)).size,layers=new Set(items.map(p=>p.z)).size,orientationCounts=[...items.reduce((map,p)=>map.set(p.orientation,(map.get(p.orientation)||0)+1),new Map()).entries()].map(([name,count])=>`${t(name)} ${count} ${t('包')}`).join('、'),placement=g.shape==='cylinder'?t('竖放'):orientationCounts;return `${t('横向')} ${alongWidth} ${t('列')} · ${t('纵向')} ${alongLength} ${t('排')} · ${t('竖向')} ${layers} ${t('层')}；${placement}`;}
+function detailRow(g,count,meta,placement=''){return `<div class="detail-row"><i class="detail-bar" style="background:${g.color}"></i><span><b>${escapeHtml(g.name)}</b><small>${meta}</small>${placement?`<small class="placement-detail">${placement}</small>`:''}</span><span style="text-align:right;white-space:nowrap"><b>× ${count} ${t('包')}</b><small>${count * g.pieces} ${t('件')}</small></span></div>`;}
+function renderPlan(){const plan=state.plan.plans[state.plan.active],c=plan.container;$('#activeContainerName').textContent=c.name;$('#activeContainerSpecs').textContent=`${c.l} × ${c.w} × ${c.h} mm · ${t('合理装载')} ${fmtVolume(plan.available)}`;$('#resultDescription').textContent=`${t('已生成')} ${state.plan.plans.length} ${t('个容器方案')}；${t('当前展示')} ${state.plan.active+1} / ${state.plan.plans.length}。`;const percent=Math.round(plan.utilization),totalPieces=plan.positions.reduce((s,x)=>s+(+x.pieces||0),0);$('#utilizationPercent').textContent=`${percent}%`;$('#utilizationRing').style.background=`conic-gradient(var(--blue) ${percent*3.6}deg,#eaf0f6 0deg)`;$('#availableVolume').textContent=fmtVolume(plan.available);$('#usedVolume').textContent=fmtVolume(plan.loadedVolume);$('#loadedCount').textContent=`${plan.positions.length} ${t('包')} · ${totalPieces.toLocaleString()} ${t('件')}`;$('#totalWeight').textContent=`${plan.positions.reduce((s,x)=>s+(+x.weight||0),0).toFixed(0)} kg`;const details=state.cargo.filter(g=>state.selectedCargo.has(g.id)).map(g=>({g,count:plan.placedCount.get(g.id)||0}));$('#loadedBadge').textContent=`${plan.positions.length} ${t('包')} / ${totalPieces.toLocaleString()} ${t('件')}`;$('#loadedDetails').innerHTML=details.filter(x=>x.count).map(({g,count})=>detailRow(g,count,`${(cubicMeters(g)*count).toFixed(2)} m³`,placementDetail(g,plan))).join('')||`<div class="empty-detail">${t('无可装载货物')}</div>`;const counts=new Map();plan.unplaced.forEach(g=>counts.set(g.id,(counts.get(g.id)||0)+1));$('#unloadedBadge').textContent=`${plan.unplaced.length} ${t('未装')}`;$('#unloadedDetails').innerHTML=[...counts].map(([id,count])=>detailRow(state.cargo.find(g=>g.id===id),count,t('空间不足'))).join('')||`<div class="empty-detail">${t('所有计划货物均已装载')}</div>`;const free=plan.freeSpaces||[];$('#freeSpaceBadge').textContent=`${free.length} ${t('处')}`;$('#freeSpaceDetails').innerHTML=free.slice(0,12).map((s,i)=>`<div class="free-space-row"><b>${t('空间')} ${i+1}</b><span>${t('长')} ${s.l} × ${t('宽')} ${s.w} × ${t('高')} ${s.h} mm</span><small>${fmtVolume(s.l*s.w*s.h/1e9)}</small></div>`).join('')||`<div class="empty-detail">${t('无可用剩余空间')}</div>`;$('#legend').innerHTML=details.filter(x=>x.count).map(({g})=>`<button class="legend-item ${state.hiddenCargoIds?.has(g.id)?'muted-item':''}" data-toggle-legend="${g.id}"><i class="legend-dot" style="background:${g.color}"></i>${escapeHtml(g.name)}</button>`).join('');$$('[data-toggle-legend]').forEach(b=>b.addEventListener('click',()=>{state.hiddenCargoIds.has(b.dataset.toggleLegend)?state.hiddenCargoIds.delete(b.dataset.toggleLegend):state.hiddenCargoIds.add(b.dataset.toggleLegend);renderPlan();}));$('#prevPlan').disabled=state.plan.active===0;$('#nextPlan').disabled=state.plan.active===state.plan.plans.length-1;drawScene(plan);renderContainerPlans();applyLanguage();}
+function updateArchiveBulkButton(){const button=$('#bulkDeleteArchive');button.disabled=!selectedArchiveIds.size;button.textContent=selectedArchiveIds.size?`${t('批量删除')} (${selectedArchiveIds.size})`:t('批量删除');}
+function updatePlanBulkButton(){const button=$('#bulkDeletePlans');button.disabled=!selectedSavedPlanIds.size;button.textContent=selectedSavedPlanIds.size?`${t('批量删除')} (${selectedSavedPlanIds.size})`:t('批量删除');}
+async function removeArchives(ids){const data=state[state.archive],records=data.filter(r=>ids.includes(r.id));if(!records.length)return;if(!await askConfirm(`${t('确定删除')} ${records.length} ${t('条档案')}？`))return;const remove=new Set(ids);state[state.archive]=data.filter(r=>!remove.has(r.id));ids.forEach(id=>{state.selectedContainers.delete(id);state.selectedCargo.delete(id);selectedArchiveIds.delete(id);});persistState();renderArchives();renderSelectors();window.dispatchEvent(new Event('topbox:records-changed'));showSuccess(t('档案已删除。'));}
+function renderArchives(){const data=state[state.archive],isContainer=state.archive==='containers';$('#containerTotal').textContent=state.containers.length;$('#cargoTotal').textContent=state.cargo.length;const query=$('#archiveSearch').value.trim().toLowerCase(),filtered=data.filter(r=>!query||`${r.name}${r.type}`.toLowerCase().includes(query)),page=pageSlice(filtered,'archivePage','archiveSize');$('#archiveCount').textContent=`${t('共')} ${filtered.length} ${t('条记录')}`;$('#archiveTableHead').innerHTML=`<th>${t('序号')}</th><th><input id="selectAllArchive" type="checkbox" aria-label="${t('选择全部')}" /></th><th>${t('名称')}</th><th>${t('类型')}</th><th>${t('尺寸（长 × 宽 × 高）')}</th><th>${t('容积')}</th><th>${t('重量')}</th>${isContainer?'':`<th>${t('小件数')}</th>`}<th>${t('颜色')}</th><th></th>`;const columns=isContainer?9:10;$('#archiveRows').innerHTML=page.rows.map((r,index)=>`<tr><td class="serial-number">${(state.ui.archivePage-1)*page.size+index+1}</td><td><input class="archive-select" data-select-archive="${r.id}" type="checkbox" ${selectedArchiveIds.has(r.id)?'checked':''} aria-label="${t('选择')} ${escapeHtml(r.name)}"></td><td><b>${escapeHtml(r.name)}</b></td><td><span class="type-pill ${typeTone(r.type)}">${escapeHtml(r.type)}</span></td><td>${r.l} × ${r.w} × ${r.h} mm</td><td>${fmtArchiveVolume(isContainer?usableVolume(r):cubicMeters(r))}</td><td>${r.weight||0} kg</td>${isContainer?'':`<td>${r.pieces} ${t('件')}</td>`}<td><i class="color-pill" style="background:${r.color}"></i></td><td><span class="row-actions"><button data-edit="${r.id}">${t('编辑')}</button><button class="delete" data-delete="${r.id}">${t('删除')}</button></span></td></tr>`).join('')||`<tr><td colspan="${columns}"><div class="empty-state">${t('没有匹配的档案')}</div></td></tr>`;const all=$('#selectAllArchive');all.checked=filtered.length>0&&filtered.every(r=>selectedArchiveIds.has(r.id));all.indeterminate=filtered.some(r=>selectedArchiveIds.has(r.id))&&!all.checked;all.addEventListener('change',event=>{filtered.forEach(r=>event.target.checked?selectedArchiveIds.add(r.id):selectedArchiveIds.delete(r.id));renderArchives();});$$('[data-select-archive]').forEach(b=>b.addEventListener('change',()=>{b.checked?selectedArchiveIds.add(b.dataset.selectArchive):selectedArchiveIds.delete(b.dataset.selectArchive);renderArchives();}));$$('[data-edit]').forEach(b=>b.addEventListener('click',()=>openDialog(data.find(r=>r.id===b.dataset.edit))));$$('[data-delete]').forEach(b=>b.addEventListener('click',()=>removeArchives([b.dataset.delete])));renderListPager('archivePager',page,filtered.length,'archivePage','archiveSize',renderArchives);updateArchiveBulkButton();applyLanguage();}
+function renderSavedPlans(){const host=$('#savedPlansList'),page=pageSlice(state.savedPlans,'savedPlansPage','savedPlansSize');host.innerHTML=page.rows.map((saved,index)=>{const packages=saved.plans.reduce((sum,p)=>sum+p.positions.length,0),pieces=saved.plans.reduce((sum,p)=>sum+p.positions.reduce((s,x)=>s+(+x.pieces||0),0),0),serial=(state.ui.savedPlansPage-1)*page.size+index+1;return `<article class="saved-plan-card"><span class="plan-sequence">${serial}</span><input class="plan-select" data-select-plan="${saved.id}" type="checkbox" ${selectedSavedPlanIds.has(saved.id)?'checked':''} aria-label="${t('选择')} ${escapeHtml(saved.name)}"><div><p class="eyebrow">${escapeHtml(saved.createdAt)}</p><h2>${escapeHtml(saved.name)}</h2><p>${saved.plans.length} ${t('个容器方案')} · ${packages} ${t('包')} / ${pieces.toLocaleString()} ${t('件')}</p></div><div class="saved-plan-actions"><button class="button secondary" data-open-saved="${saved.id}">${t('打开方案')}</button><button class="text-button delete" data-delete-saved="${saved.id}">${t('删除')}</button></div></article>`;}).join('')||`<div class="empty-state">${t('还没有保存的装载方案。生成方案后点击“保存方案”即可在此管理。')}</div>`;renderListPager('savedPlansPager',page,state.savedPlans.length,'savedPlansPage','savedPlansSize',renderSavedPlans);$$('[data-open-saved]').forEach(button=>button.addEventListener('click',()=>openSavedPlan(button.dataset.openSaved)));$$('[data-select-plan]').forEach(button=>button.addEventListener('change',()=>{button.checked?selectedSavedPlanIds.add(button.dataset.selectPlan):selectedSavedPlanIds.delete(button.dataset.selectPlan);renderSavedPlans();}));$$('[data-delete-saved]').forEach(button=>button.addEventListener('click',()=>removeSavedPlans([button.dataset.deleteSaved])));updatePlanBulkButton();applyLanguage();}
+async function removeSavedPlans(ids){const items=state.savedPlans.filter(p=>ids.includes(p.id));if(!items.length||!await askConfirm(`${t('确定删除')} ${items.length} ${t('个装载方案')}？`))return;const remove=new Set(ids);state.savedPlans=state.savedPlans.filter(p=>!remove.has(p.id));ids.forEach(id=>selectedSavedPlanIds.delete(id));persistState();renderSavedPlans();window.dispatchEvent(new Event('topbox:plans-changed'));}
+async function saveCurrentPlan(){if(!state.plan){showNotice(t('请先生成装载方案。'));return;}const suggested=`${state.plan.plans[0].container.name}${t('装载方案')}-${new Date().toLocaleDateString('zh-CN')}`,name=await askText(t('请输入方案名称：'),suggested);if(name===null)return;const plans=state.plan.plans.map(plan=>({...plan,container:{...plan.container},positions:plan.positions.map(p=>({...p})),unplaced:plan.unplaced.map(p=>({...p})),placedCount:[...plan.placedCount]}));state.savedPlans.unshift({id:uid('p'),name:name.trim()||suggested,createdAt:new Date().toLocaleString('zh-CN',{hour12:false}),mode:state.plan.mode,plans});persistState();renderSavedPlans();showSuccess(t('方案已保存。'));}
+function reportForPlan(plan){const totalPieces=plan.positions.reduce((sum,p)=>sum+(+p.pieces||0),0),recordById=new Map(state.cargo.map(g=>[g.id,g])),ids=[...new Set([...plan.positions,...plan.unplaced].map(p=>p.id))],rows=ids.map(id=>{const position=plan.positions.find(p=>p.id===id)||plan.unplaced.find(p=>p.id===id),g=recordById.get(id)||position,count=plan.placedCount.get(id)||0;return {name:g.name,count,pieces:count*(+g.pieces||0),volume:cubicMeters(g)*count,placement:placementDetail(g,plan)||t('未装载')};});return {plan,totalPieces,rows,createdAt:new Date().toLocaleString('zh-CN',{hour12:false})};}
+function openPdfPreview(){if(!renderer||!state.plan){showNotice(t('请先生成装载方案。'));return;}previewReports=state.plan.plans.map(reportForPlan);showDialog({title:t('PDF 方案预览'),message:`${t('共')} ${previewReports.length} ${t('个容器方案')} · ${t('确认后可下载或打印。')}`,kind:'preview',reports:previewReports});drawScene(state.plan.plans[state.plan.active]);}
+async function downloadPreviewPdf(){try{const {jsPDF}=await import('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm'),pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});previewReports.forEach((report,i)=>{if(i)pdf.addPage();const canvas=reportCanvas(report),pageW=pdf.internal.pageSize.getWidth(),pageH=pdf.internal.pageSize.getHeight(),margin=10,ratio=canvas.width/canvas.height;let w=pageW-margin*2,h=w/ratio;if(h>pageH-margin*2){h=pageH-margin*2;w=h*ratio;}pdf.addImage(canvas.toDataURL('image/png'),'PNG',(pageW-w)/2,(pageH-h)/2,w,h,undefined,'FAST');});pdf.save(exportFileName('TOP BOX货物装车方案','pdf'));}catch(error){console.error(error);showNotice(t('PDF 组件加载失败，请检查网络后重试。'));}}
+function printPreviewPdf(){const pages=previewReports.map(report=>reportCanvas(report).toDataURL('image/png')),page=window.open('','_blank');if(!page){showNotice(t('浏览器阻止了打印预览窗口，请允许弹出窗口后重试。'));return;}page.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(t('标准车辆装车方案'))}</title><style>body{margin:0;background:#edf3f8}.page{max-width:1100px;margin:18px auto;background:#fff}.page img{display:block;width:100%}@media print{.page{margin:0;break-after:page}}</style></head><body>${pages.map(src=>`<div class="page"><img src="${src}"></div>`).join('')}</body></html>`);page.document.close();page.focus();setTimeout(()=>page.print(),250);}
+function exportPdf(){openPdfPreview();} function printPlan(){openPdfPreview();}
+Object.assign(I18N.en, {'自定义':'Custom','每页条数（1-5000）':'Rows per page (1–5000)','请至少选择一个容器和一种货物。':'Select at least one container and one cargo item.','竖放':'Upright','竖放（高度朝上）':'Upright (height up)','纵向':'Lengthwise','横向':'Widthwise','竖向':'Vertical','列':'columns','排':'rows','层':'layers','合理装载':'Usable load','已生成':'Generated','个容器方案':'container plans','当前展示':'Showing','空间不足':'Insufficient space','空间':'Space','长':'L','宽':'W','高':'H','共':'Total','条记录':'records','选择':'Select','确定删除':'Delete','条档案':'records','个装载方案':'saved plans','还没有保存的装载方案。生成方案后点击“保存方案”即可在此管理。':'No saved plans yet. Generate a plan and select Save plan to manage it here.','请输入方案名称：':'Enter a plan name:','方案已保存，可在“方案管理”中打开。':'Plan saved. Open it from Saved plan management.','PDF 方案预览':'PDF plan preview','确认后可下载或打印。':'Download or print from this preview.','标准车辆装车方案':'Standard vehicle loading plan','PDF 组件加载失败，请检查网络后重试。':'The PDF component could not load. Check your network and try again.','浏览器阻止了打印预览窗口，请允许弹出窗口后重试。':'Your browser blocked the print preview window. Allow pop-ups and try again.','容器方案':'Container plan','正在查看':'Viewing','查看 3D 方案':'View 3D plan','利用率':'utilization','未装载':'Unloaded'});
+Object.assign(I18N.th, {'自定义':'กำหนดเอง','每页条数（1-5000）':'จำนวนต่อหน้า (1–5000)','请至少选择一个容器和一种货物。':'เลือกภาชนะอย่างน้อยหนึ่งรายการและสินค้าอย่างน้อยหนึ่งรายการ','竖放':'ตั้งตรง','竖放（高度朝上）':'ตั้งตรง (ความสูงขึ้น)','纵向':'ตามยาว','横向':'ตามกว้าง','竖向':'แนวตั้ง','列':'คอลัมน์','排':'แถว','层':'ชั้น','合理装载':'บรรทุกได้จริง','已生成':'สร้างแล้ว','个容器方案':'แผนภาชนะ','当前展示':'กำลังแสดง','空间不足':'พื้นที่ไม่พอ','空间':'พื้นที่','长':'ยาว','宽':'กว้าง','高':'สูง','共':'รวม','条记录':'รายการ','选择':'เลือก','确定删除':'ลบ','条档案':'ข้อมูล','个装载方案':'แผนที่บันทึก','还没有保存的装载方案。生成方案后点击“保存方案”即可在此管理。':'ยังไม่มีแผนที่บันทึก สร้างแผนแล้วเลือกบันทึกเพื่อจัดการที่นี่','请输入方案名称：':'ระบุชื่อแผน:','方案已保存，可在“方案管理”中打开。':'บันทึกแผนแล้ว เปิดได้จากหน้าจัดการแผน','PDF 方案预览':'ตัวอย่างแผน PDF','确认后可下载或打印。':'ดาวน์โหลดหรือพิมพ์ได้จากหน้าตัวอย่างนี้','标准车辆装车方案':'แผนบรรทุกมาตรฐาน','PDF 组件加载失败，请检查网络后重试。':'ไม่สามารถโหลดส่วนประกอบ PDF โปรดตรวจสอบเครือข่ายแล้วลองใหม่','浏览器阻止了打印预览窗口，请允许弹出窗口后重试。':'เบราว์เซอร์บล็อกหน้าต่างพิมพ์ โปรดอนุญาตป๊อปอัปแล้วลองใหม่','容器方案':'แผนภาชนะ','正在查看':'กำลังดู','查看 3D 方案':'ดูแผน 3 มิติ','利用率':'อัตราใช้พื้นที่'});
+function openDialog(record=null){const kind=record?.kind||state.archive,isContainer=kind==='containers';$('#archiveForm').reset();$('#recordId').value=record?.id||'';$('#recordKind').value=kind;$('#modalTitle').textContent=record?t('编辑档案'):`${t('新增档案')} ${isContainer?t('容器'):t('货物')}`;$('#modalEyebrow').textContent=record?'EDIT RECORD':'NEW RECORD';const fields={recordName:'name',recordType:'type',recordShape:'shape',recordL:'l',recordW:'w',recordH:'h',recordWeight:'weight',recordReserve:'reserve',recordPrice:'price',recordColor:'color'};Object.entries(fields).forEach(([id,key])=>{if(record)$('#'+id).value=record[key]??'';});const piecesField=$('#recordPiecesField'),pieces=$('#recordPieces');piecesField.classList.toggle('hidden',isContainer);pieces.required=!isContainer;pieces.value=isContainer?1:(record?.pieces||1);const type=$('#recordType');[...type.options].forEach(o=>o.hidden=isContainer?['单体货物','套装货物'].includes(o.value):['车厢','箱子','桶','托盘'].includes(o.value));type.value=record?.type||(isContainer?'车厢':'单体货物');$('#recordShape').value=record?.shape||(type.value==='桶'?'cylinder':'box');$('#archiveDialog').showModal();applyLanguage();}
+function saveDialog(event){event.preventDefault();const kind=$('#recordKind').value,isContainer=kind==='containers',id=$('#recordId').value,fields={name:'recordName',type:'recordType',shape:'recordShape',l:'recordL',w:'recordW',h:'recordH',weight:'recordWeight',reserve:'recordReserve',price:'recordPrice',color:'recordColor'},record={id:id||uid(isContainer?'c':'g')};Object.entries(fields).forEach(([key,field])=>record[key]=['name','type','shape','color'].includes(key)?$('#'+field).value:+$('#'+field).value);record.pieces=isContainer?1:Math.max(1,+$('#recordPieces').value||1);const list=state[kind],index=list.findIndex(item=>item.id===id);if(index<0){if(!isContainer)record.quantity=1;list.push(record);}else list[index]={...list[index],...record};persistState();$('#archiveDialog').close();renderArchives();renderSelectors();}
+async function importCSV(file){try{const bytes=new Uint8Array(await file.arrayBuffer());let text;try{text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);}catch{text=new TextDecoder('gb18030').decode(bytes);}const [head,...rows]=parseCSV(text.replace(/^\uFEFF/,'')),keys=head.map(x=>x.trim());let count=0;rows.forEach(row=>{const x=Object.fromEntries(keys.map((k,i)=>[k,row[i]??''])),kind=x.kind==='containers'?'containers':'cargo';if(!x.name||!x.l||!x.w||!x.h)return;const rawType=String(x.type||'').trim(),type=rawType&& !rawType.includes('\uFFFD')?rawType:(kind==='containers'?'车厢':'单体货物');state[kind].push({id:uid(kind==='containers'?'c':'g'),name:x.name,type,shape:x.shape==='cylinder'?'cylinder':'box',l:+x.l,w:+x.w,h:+x.h,weight:+x.weight||0,pieces:kind==='cargo'?(+x.pieces||1):1,reserve:+x.reserve||0,price:+x.price||0,color:x.color||COLORS[(state[kind].length)%COLORS.length],quantity:kind==='cargo'?(+x.quantity||1):1});count++;});persistState();renderArchives();renderSelectors();showNotice(`${t('已导入')} ${count} ${t('条档案')}。`);}catch(error){console.error(error);showNotice(t('导入失败，请使用下载的 CSV 模板。'));}}
+function bind(){
+  $$('.nav-link').forEach(b=>b.addEventListener('click',()=>{const page=b.dataset.page;$$('.nav-link').forEach(x=>x.classList.toggle('active',x===b));$$('.page').forEach(x=>x.classList.toggle('active-page',x.id===page));window.scrollTo({top:0,behavior:'smooth'});if(page==='archives')renderArchives();if(page==='savedPlans')renderSavedPlans();if(page==='settings')renderSettings();applyLanguage();}));
+  $$('[data-go-archives]').forEach(b=>b.addEventListener('click',()=>{state.archive=b.dataset.goArchives;selectedArchiveIds.clear();persistState();$('.nav-link[data-page="archives"]').click();$$('.archive-tabs button').forEach(x=>x.classList.toggle('active',x.dataset.archive===state.archive));renderArchives();}));
+  $$('input[name="mode"]').forEach(x=>x.addEventListener('change',()=>$$('.mode-option').forEach(l=>l.classList.toggle('selected',l.querySelector('input').checked))));$('#calculate').addEventListener('click',generatePlan);$('#refreshPage').addEventListener('click',()=>location.reload());$('#containerSearch').addEventListener('input',requestSelectorRender);$('#cargoSearch').addEventListener('input',requestSelectorRender);
+  $('#selectAllContainers').addEventListener('click',()=>{state.containers.forEach(c=>state.selectedContainers.add(c.id));persistState();renderSelectors();});$('#clearAllContainers').addEventListener('click',()=>{state.selectedContainers.clear();persistState();renderSelectors();});$('#resetContainers')?.addEventListener('click',()=>{state.selectedContainers.clear();persistState();renderSelectors();});$('#selectAllCargo').addEventListener('click',()=>{state.cargo.forEach(g=>state.selectedCargo.add(g.id));persistState();renderSelectors();});$('#clearAllCargo').addEventListener('click',()=>{state.selectedCargo.clear();persistState();renderSelectors();});
   $$('.view-buttons [data-view]').forEach(b=>b.addEventListener('click',()=>setCamera(b.dataset.view)));$('#resetCamera').addEventListener('click',()=>setCamera('iso'));$('#prevPlan').addEventListener('click',()=>{if(state.plan?.active>0){state.plan.active--;renderPlan();}});$('#nextPlan').addEventListener('click',()=>{if(state.plan&&state.plan.active<state.plan.plans.length-1){state.plan.active++;renderPlan();}});$('#fullscreenView').addEventListener('click',()=>{const target=$('#visualCard');if(document.fullscreenElement)document.exitFullscreen();else target.requestFullscreen?.();});document.addEventListener('fullscreenchange',()=>{const full=Boolean(document.fullscreenElement),button=$('#fullscreenView');button.textContent=full?'×':'⛶';button.title=full?t('退出全屏'):t('全屏放大');button.setAttribute('aria-label',button.title);fitThree();if(!full&&state.plan)setTimeout(()=>{fitThree();setCamera('iso');},120);});window.addEventListener('resize',fitThree);$('#savePlan').addEventListener('click',saveCurrentPlan);$('#exportImage').addEventListener('click',exportImage);$('#exportPdf').addEventListener('click',exportPdf);
   $('#tooltipToggle').addEventListener('change',event=>{state.settings.showCargoTooltip=event.target.checked;persistState();renderSettings();if(!event.target.checked)hideCargoHover();});$('#dimensionToggle').addEventListener('change',event=>{state.settings.showContainerDimensions=event.target.checked;persistState();renderSettings();if(state.plan)renderPlan();});$('#languageSelect').addEventListener('change',event=>{state.settings.language=event.target.value;persistState();applyLanguage();renderSelectors();if(state.plan)renderPlan();});$('#scrollTop').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));$('#scrollBottom').addEventListener('click',()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'}));
   $$('.archive-tabs button').forEach(b=>b.addEventListener('click',()=>{state.archive=b.dataset.archive;selectedArchiveIds.clear();persistState();$$('.archive-tabs button').forEach(x=>x.classList.toggle('active',x===b));renderArchives();}));$('#archiveSearch').addEventListener('input',renderArchives);$('#addArchive').addEventListener('click',()=>openDialog());$('#closeDialog').addEventListener('click',()=>$('#archiveDialog').close());$('#cancelDialog').addEventListener('click',()=>$('#archiveDialog').close());$('#archiveForm').addEventListener('submit',event=>{saveDialog(event);showSuccess(t('档案已保存。'));});$('#downloadTemplate').addEventListener('click',downloadTemplate);$('#importFile').addEventListener('change',e=>e.target.files[0]&&importCSV(e.target.files[0]));$('#selectAllArchive').addEventListener('change',e=>{const query=$('#archiveSearch').value.trim().toLowerCase(),filtered=state[state.archive].filter(r=>!query||`${r.name}${r.type}`.toLowerCase().includes(query));filtered.forEach(r=>e.target.checked?selectedArchiveIds.add(r.id):selectedArchiveIds.delete(r.id));renderArchives();});$('#bulkDeleteArchive').addEventListener('click',()=>removeArchives([...selectedArchiveIds]));$('#bulkDeletePlans').addEventListener('click',()=>removeSavedPlans([...selectedSavedPlanIds]));
@@ -402,6 +491,50 @@ document.addEventListener('click',event=>{
   state.settings.quantityInputMode=next;
   persistState();renderSelectors();
 },true);
+
+/* v2.9.3 final ownership: no compatibility renderer may run after this. */
+renderSelectors=function(){renderSelectorsV293();renderExactUtilization();};
+window.TopBoxApp.renderSelectors=()=>renderSelectors();
+renderSelectors();
+
+/* v2.9.3: one final renderer owns the selector. It never delegates to the
+   historical renderer chain, so changing a mode cannot repaint old rows. */
+function renderSelectorsV293(){
+  const containerQuery=$('#containerSearch')?.value.trim().toLowerCase()||'';
+  const cargoQuery=$('#cargoSearch')?.value.trim().toLowerCase()||'';
+  const matches=(item,query)=>!query||query.split(',').map(value=>value.trim()).filter(Boolean).every(term=>`${item.name}${item.type}`.toLowerCase().includes(term));
+  const containers=state.containers.filter(item=>matches(item,containerQuery));
+  const cargo=state.cargo.filter(item=>matches(item,cargoQuery));
+  const slice=(items,pageKey,sizeKey)=>{const size=Math.max(1,+state.ui[sizeKey]||20),pages=Math.max(1,Math.ceil(items.length/size));state.ui[pageKey]=Math.max(1,Math.min(state.ui[pageKey]||1,pages));return {rows:items.slice((state.ui[pageKey]-1)*size,state.ui[pageKey]*size),pages,size};};
+  const containerPage=slice(containers,'containerPage','containerSize');
+  const cargoPage=slice(cargo,'cargoPage','cargoSize');
+  const specified=document.querySelector('input[name="mode"]:checked')?.value==='specified';
+  const pieceMode=state.settings.quantityInputMode==='pieces';
+  const modeHost=$('#quantityInputMode');
+  $('#selectedContainerCount').textContent=`${t('已选')} ${state.selectedContainers.size} ${t('项')}`;
+  $('#selectedCargoCount').textContent=`${t('已选')} ${state.selectedCargo.size} ${t('项')}`;
+  if(modeHost)modeHost.innerHTML=`<button type="button" class="quantity-mode-button ${pieceMode?'':'active'}" data-quantity-mode="bags" aria-pressed="${!pieceMode}" ${specified?'':'disabled'}>${t('按包数输入')}</button><button type="button" class="quantity-mode-button ${pieceMode?'active':''}" data-quantity-mode="pieces" aria-pressed="${pieceMode}" ${specified?'':'disabled'}>${t('按小件数输入')}</button>`;
+  $('#selectAllCargo').disabled=!specified;
+  $('#containerList').innerHTML=containerPage.rows.map(item=>`<label class="select-row ${state.selectedContainers.has(item.id)?'checked':''}"><input class="container-check" data-id="${item.id}" type="checkbox" ${state.selectedContainers.has(item.id)?'checked':''}><span class="color-square" style="background:${item.color}"></span><span class="record-main"><b>${escapeHtml(item.name)}</b><small>${containerLabel(item)}</small></span><span class="record-extra">${escapeHtml(item.type)}</span></label>`).join('')||`<div class="empty-state">${t('没有匹配的容器')}</div>`;
+  $('#cargoList').innerHTML=cargoPage.rows.map(item=>{
+    const perPackage=Math.max(1,+item.pieces||1),bags=Math.max(1,+item.quantity||1),pieces=Math.max(1,+item.pieceQuantity||bags*perPackage),value=pieceMode?pieces:bags;
+    const result=pieceMode?`${t('折合')} ${Math.ceil(pieces/perPackage).toLocaleString()} ${t('包')}`:`${t('共')} ${(bags*perPackage).toLocaleString()} ${t('件')}`;
+    return `<div class="cargo-fresh-row ${state.selectedCargo.has(item.id)?'checked':''}" data-cargo-row="${item.id}"><input class="cargo-fresh-check" data-id="${item.id}" type="checkbox" ${state.selectedCargo.has(item.id)?'checked':''} aria-label="${t('选择')} ${escapeHtml(item.name)}"><span class="cargo-fresh-color" style="background:${item.color}"></span><span class="cargo-fresh-info"><b>${escapeHtml(item.name)}</b><small>${item.l} × ${item.w} × ${item.h} mm · ${cubicMeters(item).toFixed(4)} m³</small><small>${perPackage.toLocaleString()} ${t('件')}/${t('包')}</small></span><span class="cargo-fresh-control"><input class="cargo-fresh-input" data-id="${item.id}" type="number" min="1" value="${value}" aria-label="${escapeHtml(item.name)} ${pieceMode?t('小件数'):t('包数')}" ${specified?'':'disabled'}><span>${pieceMode?t('件'):t('包')}</span><strong>${result}</strong></span></div>`;
+  }).join('')||`<div class="empty-state">${t('没有匹配的货物')}</div>`;
+  const drawPager=(id,data,total,pageKey,sizeKey)=>{const host=$('#'+id);if(!host)return;host.innerHTML=`<span>${total?`${(state.ui[pageKey]-1)*data.size+1}-${Math.min(state.ui[pageKey]*data.size,total)}/${total}`:'0/0'}</span><button data-v293-page="${pageKey}" data-step="-1" ${state.ui[pageKey]<=1?'disabled':''}>‹</button><button data-v293-page="${pageKey}" data-step="1" ${state.ui[pageKey]>=data.pages?'disabled':''}>›</button><select data-v293-size="${sizeKey}">${[20,30,50,100,200,500,1000,2000].map(value=>`<option value="${value}" ${data.size===value?'selected':''}>${value}</option>`).join('')}</select>`;$$('[data-v293-page]',host).forEach(button=>button.addEventListener('click',()=>{state.ui[button.dataset.v293Page]+=+button.dataset.step;persistState();renderSelectors();}));$('[data-v293-size]',host)?.addEventListener('change',event=>{state.ui[sizeKey]=+event.target.value;state.ui[pageKey]=1;persistState();renderSelectors();});};
+  drawPager('containerPager',containerPage,containers.length,'containerPage','containerSize');
+  drawPager('cargoPager',cargoPage,cargo.length,'cargoPage','cargoSize');
+  $$('.container-check').forEach(input=>input.addEventListener('change',()=>{input.checked?state.selectedContainers.add(input.dataset.id):state.selectedContainers.delete(input.dataset.id);persistState();renderSelectors();}));
+  $$('.cargo-fresh-check').forEach(input=>input.addEventListener('change',()=>{if(input.checked&&!specified){state.selectedCargo.clear();state.selectedCargo.add(input.dataset.id);}else if(input.checked)state.selectedCargo.add(input.dataset.id);else state.selectedCargo.delete(input.dataset.id);persistState();renderSelectors();}));
+  $$('.cargo-fresh-input').forEach(input=>{
+    const sync=save=>{const item=state.cargo.find(value=>value.id===input.dataset.id);if(!item)return;const perPackage=Math.max(1,+item.pieces||1),amount=Math.max(1,+input.value||1);if(pieceMode){item.pieceQuantity=amount;item.quantity=Math.ceil(amount/perPackage);}else{item.quantity=amount;item.pieceQuantity=amount*perPackage;}input.value=amount;const output=input.closest('.cargo-fresh-control')?.querySelector('strong');if(output)output.textContent=pieceMode?`${t('折合')} ${Math.ceil(amount/perPackage).toLocaleString()} ${t('包')}`:`${t('共')} ${(amount*perPackage).toLocaleString()} ${t('件')}`;if(save)persistState();};
+    input.addEventListener('input',()=>sync(false));input.addEventListener('change',()=>sync(true));
+  });
+  applyLanguage();
+}
+renderSelectors=function(){renderSelectorsV293();renderExactUtilization();};
+window.TopBoxApp.renderSelectors=()=>renderSelectors();
+renderSelectors();
 
 /* v2.9.0 — standalone cargo selector.
    This deliberately does not reuse the historical .select-row markup.  It is
@@ -615,4 +748,223 @@ document.addEventListener('click',event=>{
   state.settings.quantityInputMode=next;
   persistState();renderSelectors();
 },true);
+
+/* v2.9.3 final ownership: avoid the entire retired renderer chain. */
+renderSelectors=function(){renderSelectorsV293();renderExactUtilization();};
+window.TopBoxApp.renderSelectors=()=>renderSelectors();
+renderSelectors();
+
+/* v2.9.6 selector ownership.
+   The original page has several historical handlers registered before the
+   standalone selector was introduced.  They can repaint the retired row
+   markup after a mode switch or reset.  Own those two actions in the capture
+   phase, update the small amount of state they need, and then paint only the
+   standalone rows. */
+function renderCargoSelectorV296(){
+  renderSelectorsV293();
+  renderExactUtilization();
+}
+function scheduleCargoSelectorV296(){
+  renderCargoSelectorV296();
+  requestAnimationFrame(()=>requestAnimationFrame(renderCargoSelectorV296));
+}
+document.addEventListener('change',event=>{
+  const input=event.target;
+  if(!(input instanceof HTMLInputElement)||input.name!=='mode')return;
+  event.stopImmediatePropagation();
+  $$('.mode-option').forEach(label=>label.classList.toggle('selected',label.querySelector('input')?.checked));
+  if(input.value!=='specified'&&state.selectedCargo.size>1){
+    const first=state.cargo.find(item=>state.selectedCargo.has(item.id));
+    state.selectedCargo.clear();
+    if(first)state.selectedCargo.add(first.id);
+  }
+  persistState();
+  scheduleCargoSelectorV296();
+},true);
+document.addEventListener('click',event=>{
+  if(!event.target.closest('#resetCargoSelection'))return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  state.selectedCargo.clear();
+  state.cargo.forEach(item=>{
+    item.quantity=1;
+    item.pieceQuantity=Math.max(1,+item.pieces||1);
+  });
+  state.settings.quantityInputMode='bags';
+  persistState();
+  scheduleCargoSelectorV296();
+},true);
+const cargoSelectorV296Host=$('#cargoList');
+let cargoSelectorV296RepairFrame=0;
+if(cargoSelectorV296Host)new MutationObserver(()=>{
+  if(!cargoSelectorV296Host.querySelector('.select-row,.cargo-quantity'))return;
+  if(cargoSelectorV296RepairFrame)return;
+  cargoSelectorV296RepairFrame=requestAnimationFrame(()=>{
+    cargoSelectorV296RepairFrame=0;
+    renderCargoSelectorV296();
+  });
+}).observe(cargoSelectorV296Host,{childList:true,subtree:true});
+
+/* v2.9.9: archive menus are two distinct pages, not tabs of a generic page. */
+function paintArchiveHeadingV299(kind){
+  const archive=kind==='cargo'?'cargo':'containers';
+  const title=archive==='cargo'?t('货物档案'):t('容器档案');
+  const heading=$('#archives .page-heading h1');
+  if(heading)heading.textContent=title;
+  const eyebrow=$('#archives .page-heading .eyebrow');
+  if(eyebrow)eyebrow.hidden=true;
+}
+document.addEventListener('click',event=>{
+  const button=event.target.closest('.nav-link[data-page="archives"][data-archive-target]');
+  if(!button)return;
+  const archive=button.dataset.archiveTarget==='cargo'?'cargo':'containers';
+  /* Do not stop the regular navigation handlers: they are responsible for
+     opening the page and refreshing the latest records.  Reconcile the
+     archive type and title after those handlers have finished. */
+  requestAnimationFrame(()=>{
+    state.archive=archive;
+    selectedArchiveIds.clear();
+    persistState();
+    $$('.archive-tabs button').forEach(tab=>tab.classList.toggle('active',tab.dataset.archive===archive));
+    renderArchives();
+    paintArchiveHeadingV299(archive);
+    requestAnimationFrame(()=>paintArchiveHeadingV299(archive));
+  });
+},true);
+paintArchiveHeadingV299(state.archive);
+
+/* v3.0.1: legacy language/render callbacks may update the archive heading
+   asynchronously. Keep the visible title derived from the active archive menu
+   without touching the click/navigation event itself. */
+let archiveHeadingV301Frame=0;
+function enforceArchiveHeadingV301(){
+  archiveHeadingV301Frame=0;
+  const active=$('.nav-link[data-page="archives"][data-archive-target].active');
+  const archive=active?.dataset.archiveTarget==='cargo'?'cargo':active?.dataset.archiveTarget==='containers'?'containers':state.archive;
+  paintArchiveHeadingV299(archive);
+}
+const archiveHeadingV301Node=$('#archives .page-heading');
+if(archiveHeadingV301Node)new MutationObserver(()=>{
+  if(archiveHeadingV301Frame)return;
+  archiveHeadingV301Frame=requestAnimationFrame(enforceArchiveHeadingV301);
+}).observe(archiveHeadingV301Node,{childList:true,subtree:true,characterData:true});
+document.addEventListener('click',event=>{
+  if(!event.target.closest('.nav-link[data-page="archives"][data-archive-target]'))return;
+  setTimeout(enforceArchiveHeadingV301,0);
+  requestAnimationFrame(enforceArchiveHeadingV301);
+  setTimeout(enforceArchiveHeadingV301,250);
+},true);
+
+/* v3.1.0: a pallet kit is packed as one fixed-size cargo unit, while its
+   saved pallet and child cargo layout is rendered in the plan and exports. */
+const drawSceneV310Base=drawScene;
+function addPalletKitVisualV310(parent,position,scale){
+  const kit=position.kit||{},pallet=kit.pallet||{l:position.l,w:position.w,h:Math.min(150,position.h),color:'#b97b45'};
+  const origin=kit.origin||{x:0,y:0};
+  const kitGroup=new THREE.Group();
+  kitGroup.name=`pallet-kit-${position.id}`;
+  kitGroup.position.set(position.x*scale,position.z*scale,position.y*scale);
+  const palletGroup=new THREE.Group();
+  palletGroup.position.set((+origin.x||0)*scale,0,(+origin.y||0)*scale);
+  addPalletModel(palletGroup,{l:+pallet.l||position.l,w:+pallet.w||position.w,h:+pallet.h||100},scale);
+  kitGroup.add(palletGroup);
+  (Array.isArray(kit.items)?kit.items:[]).forEach((item,index)=>{
+    const l=Math.max(1,+item.l||1),w=Math.max(1,+item.w||1),h=Math.max(1,+item.h||1);
+    let mesh;
+    if(item.shape==='cylinder'){
+      mesh=new THREE.Mesh(new THREE.CylinderGeometry(w*scale/2,w*scale/2,h*scale,18),new THREE.MeshStandardMaterial({color:item.color||position.color,roughness:.52,metalness:.04}));
+    }else mesh=new THREE.Mesh(new THREE.BoxGeometry(l*scale,h*scale,w*scale),new THREE.MeshStandardMaterial({color:item.color||position.color,roughness:.58,metalness:.03}));
+    mesh.position.set(((+origin.x||0)+(+item.x||0)+l/2)*scale,((+pallet.h||0)+(+item.z||0)+h/2)*scale,((+origin.y||0)+(+item.y||0)+w/2)*scale);
+    mesh.castShadow=true;mesh.userData={name:item.name||position.name,index,isCargo:true};kitGroup.add(mesh);
+    const outline=new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry),new THREE.LineBasicMaterial({color:0x132b42,transparent:true,opacity:.82}));
+    outline.position.copy(mesh.position);kitGroup.add(outline);
+  });
+  parent.add(kitGroup);
+}
+drawScene=function(plan){
+  drawSceneV310Base(plan);
+  if(!plan?.positions?.some(item=>item.kit)||!scene)return;
+  const scale=7/Math.max(plan.container.l,plan.container.w,plan.container.h);
+  const load=scene.getObjectByName('load');if(!load)return;
+  load.traverse(node=>{const position=plan.positions[node.userData?.index];if(position?.kit&&(node.userData?.isCargo||node.userData?.name===`${position.name} 外框`))node.visible=false;});
+  plan.positions.forEach(position=>{if(position.kit&&!state.hiddenCargoIds?.has(position.id))addPalletKitVisualV310(load,position,scale);});
+  scheduleThreeRender();
+};
+
+/* v3.1.3 — resilient saved-plan restoration and compact extra-vehicle output. */
+function normalizeSavedContainerPlanV313(plan){
+  const positions=Array.isArray(plan?.positions)?plan.positions.map(item=>({...item})):[];
+  const unplaced=Array.isArray(plan?.unplaced)?plan.unplaced.map(item=>({...item})):[];
+  const entries=Array.isArray(plan?.placedCount)?plan.placedCount:plan?.placedCount&&typeof plan.placedCount==='object'?Object.entries(plan.placedCount):[];
+  const placedCount=new Map(entries.map(([id,count])=>[id,Math.max(0,+count||0)]));
+  if(!placedCount.size)positions.forEach(item=>placedCount.set(item.id,(placedCount.get(item.id)||0)+1));
+  const container={...(plan?.container||{})};
+  const loadedVolume=Number.isFinite(+plan?.loadedVolume)?+plan.loadedVolume:positions.reduce((sum,item)=>sum+cubicMeters(item),0);
+  const available=Number.isFinite(+plan?.available)?+plan.available:usableVolume(container);
+  return {...plan,container,positions,unplaced,placedCount,loadedVolume,available,utilization:available?loadedVolume/available*100:0,freeSpaces:Array.isArray(plan?.freeSpaces)?plan.freeSpaces.map(item=>({...item})):[]};
+}
+openSavedPlan=function(id){
+  const saved=state.savedPlans.find(item=>item.id===id);
+  if(!saved)return;
+  const plans=(Array.isArray(saved.plans)?saved.plans:[]).map(normalizeSavedContainerPlanV313);
+  if(!plans.length){showNotice(t('该保存方案没有可恢复的容器数据。'));return;}
+  state.plan={plans,active:0,mode:saved.mode||'specified'};
+  state.selectedContainers.clear();state.selectedCargo.clear();
+  plans.forEach(plan=>{
+    if(plan.container?.id)state.selectedContainers.add(plan.container.id);
+    [...plan.positions,...plan.unplaced].forEach(item=>item?.id&&state.selectedCargo.add(item.id));
+  });
+  $('.nav-link[data-page="workspace"]')?.click();
+  $('#results').classList.remove('hidden');
+  renderSelectors();renderPlan();
+  setTimeout(()=>$('#results')?.scrollIntoView({behavior:'smooth',block:'start'}),0);
+};
+if(window.TopBoxApp)window.TopBoxApp.openSavedPlan=id=>openSavedPlan(id);
+
+buildExtraVehiclePlans=function(unplaced){
+  const records=new Map();
+  (Array.isArray(unplaced)?unplaced:[]).forEach(item=>{
+    if(!item?.id)return;
+    const record=state.cargo.find(cargo=>cargo.id===item.id)||item;
+    const entry=records.get(item.id)||{record,count:0};entry.count++;records.set(item.id,entry);
+  });
+  const trucks=state.containers.filter(container=>container.type==='车厢').slice().sort((a,b)=>usableVolume(a)-usableVolume(b)||a.l-b.l||a.w-b.w||a.h-b.h);
+  const makeCargo=()=>[...records.values()].filter(entry=>entry.count>0).map(entry=>({...entry.record,quantity:entry.count}));
+  const plans=[];
+  for(let run=0;run<40&&[...records.values()].some(entry=>entry.count>0);run++){
+    const option=trucks.map(container=>({container,plan:packContainer(container,makeCargo(),'specified')})).find(candidate=>candidate.plan.positions.length>0);
+    if(!option)break;
+    plans.push(option.plan);
+    option.plan.placedCount.forEach((count,id)=>{const entry=records.get(id);if(entry)entry.count=Math.max(0,entry.count-count);});
+  }
+  const remaining=[...records.values()].flatMap(entry=>Array.from({length:entry.count},()=>entry.record));
+  return {plans,remaining};
+};
+
+function unloadedSummaryV313(plan){
+  const groups=new Map();
+  (plan?.unplaced||[]).forEach(item=>{
+    if(!item?.id)return;
+    const cargo=state.cargo.find(record=>record.id===item.id)||item;
+    const entry=groups.get(item.id)||{cargo,count:0,pieces:0};entry.count++;entry.pieces+=Math.max(1,+cargo.pieces||1);groups.set(item.id,entry);
+  });
+  return [...groups.values()];
+}
+const reportCanvasV313Base=reportCanvas;
+reportCanvas=function(report){
+  const base=reportCanvasV313Base(report),unloaded=unloadedSummaryV313(report?.plan);
+  if(!unloaded.length)return base;
+  const recommendation=buildExtraVehiclePlans((report.plan?.unplaced)||[]);
+  const extraHeight=Math.max(230,112+unloaded.length*34+recommendation.plans.length*42+(recommendation.remaining.length?36:0));
+  const canvas=document.createElement('canvas');canvas.width=base.width;canvas.height=base.height+extraHeight;
+  const ctx=canvas.getContext('2d');ctx.fillStyle='#f5f8fc';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(base,0,0);
+  const top=base.height+26;ctx.fillStyle='#ffffff';ctx.fillRect(54,top,1492,extraHeight-48);ctx.strokeStyle='#d7e2ee';ctx.lineWidth=2;ctx.strokeRect(54,top,1492,extraHeight-48);
+  ctx.fillStyle='#0b2545';ctx.font='bold 24px sans-serif';ctx.fillText('未装载货物与额外车辆建议',78,top+40);
+  ctx.font='16px sans-serif';ctx.fillStyle='#405b74';let y=top+72;
+  unloaded.forEach(entry=>{ctx.fillText(`${entry.cargo.name}：未装载 ${entry.count} 包 / ${entry.pieces.toLocaleString()} 件`,84,y);y+=31;});
+  ctx.fillStyle='#0c7659';ctx.font='bold 17px sans-serif';ctx.fillText('建议车辆（按现有车厢由小到大匹配）',84,y+12);y+=43;
+  ctx.fillStyle='#405b74';ctx.font='16px sans-serif';recommendation.plans.forEach((plan,index)=>{const pieces=plan.positions.reduce((sum,item)=>sum+(+item.pieces||0),0);ctx.fillText(`${index+1}. ${plan.container.name}：${plan.positions.length} 包 / ${pieces.toLocaleString()} 件`,84,y);y+=31;});
+  if(recommendation.remaining.length){const pieces=recommendation.remaining.reduce((sum,item)=>sum+(+item.pieces||0),0);ctx.fillStyle='#b45309';ctx.fillText(`仍无法匹配：${recommendation.remaining.length} 包 / ${pieces.toLocaleString()} 件`,84,y);}
+  return canvas;
+};
 
