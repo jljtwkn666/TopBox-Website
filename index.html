@@ -30,7 +30,7 @@
         <button class="nav-link" data-page="settings">设置</button>
         <button class="nav-link" data-page="updates">更新日志</button>
       </nav>
-      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v3.0.1</span></div>
+      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v3.1.0</span></div>
     </header>
 
     <main>
@@ -66,7 +66,7 @@
       </section>
 
       <section id="archives" class="page">
-        <div class="page-heading"><div><p class="eyebrow">MASTER DATA</p><h1>容器档案</h1><p>维护装载计算与 3D 可视化所需的基础数据。</p></div><div class="heading-actions"><button class="button secondary" id="downloadTemplate">下载导入模板</button><label class="button secondary file-button">批量导入<input id="importFile" type="file" accept=".csv,text/csv" /></label><button class="button secondary" id="exportArchives">导出表格</button><button class="button secondary" id="shareArchives">生成分享码</button><button class="button secondary" id="importArchiveShare">导入分享码</button><button class="button secondary" id="bulkDeleteArchive" disabled>批量删除</button><button class="button primary" id="addArchive">新增档案 <span>+</span></button></div></div>
+        <div class="page-heading"><div><p class="eyebrow">MASTER DATA</p><h1>容器档案</h1><p>维护装载计算与 3D 可视化所需的基础数据。</p></div><div class="heading-actions"><button class="button secondary pallet-kit-launch hidden" id="palletKitBuilder" type="button">托盘套装设计</button><button class="button secondary" id="downloadTemplate">下载导入模板</button><label class="button secondary file-button">批量导入<input id="importFile" type="file" accept=".csv,text/csv" /></label><button class="button secondary" id="exportArchives">导出表格</button><button class="button secondary" id="shareArchives">生成分享码</button><button class="button secondary" id="importArchiveShare">导入分享码</button><button class="button secondary" id="bulkDeleteArchive" disabled>批量删除</button><button class="button primary" id="addArchive">新增档案 <span>+</span></button></div></div>
         <div class="archive-tabs" role="tablist"><button class="active" data-archive="containers">容器档案 <span id="containerTotal">0</span></button><button data-archive="cargo">货物档案 <span id="cargoTotal">0</span></button></div>
         <div class="archive-table-card"><div class="archive-toolbar"><div class="search"><span>⌕</span><input id="archiveSearch" placeholder="按名称、类型搜索" /></div><span id="archiveCount" class="muted"></span></div><div class="table-wrap"><table><thead><tr id="archiveTableHead"><th><input id="selectAllArchive" type="checkbox" aria-label="选择全部" /></th><th>序号</th><th>名称</th><th>类型</th><th>尺寸（长 × 宽 × 高）</th><th>容积</th><th>重量</th><th>小件数</th><th>颜色</th><th></th></tr></thead><tbody id="archiveRows"></tbody></table></div><div id="archivePager" class="list-pager table-pager"></div></div>
       </section>
@@ -78,6 +78,7 @@
 
       <section id="updates" class="page">
         <div class="page-heading"><div><p class="eyebrow">RELEASE NOTES</p><h1>更新日志</h1><p>TOP BOX货物装载配货平台版本记录。</p></div><label class="update-filter">更新日期<select id="updateDateFilter"><option value="all">全部日期</option><option value="2026-10-18">2026-10-18</option><option value="2026-10-17">2026-10-17</option><option value="2026-10-16">2026-10-16</option><option value="2026-10-15">2026-10-15</option><option value="2026-10-14">2026-10-14</option></select></label></div>
+        <article class="release-latest" data-release-date="2026-10-22"><div class="release-title"><h2>v3.1.0</h2><time>2026-10-22</time></div><ul><li>新增托盘套装设计器：可在 3D 托盘预览中选中货物，按坐标添加、批量摆放、修改、替换、旋转或删除货物。</li><li>托盘套装可保存为独立套装货物，后续可与普通货物一样选择装载，并在容器装车方案与导出效果图中渲染托盘及每件货物。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-18"><div class="release-title"><h2>v3.0.1</h2><time>2026-10-18</time></div><ul><li>修复档案页面标题同步：容器档案与货物档案会始终按照当前菜单显示对应黑色标题，且不干预菜单的页面切换与数据刷新。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-18"><div class="release-title"><h2>v3.0.0</h2><time>2026-10-18</time></div><ul><li>修复档案入口点击无响应：恢复原有页面切换与数据刷新流程，仅在流程完成后统一修正当前档案标题。</li></ul></article>
         <article data-release-date="2026-10-18"><div class="release-title"><h2>v2.9.9</h2><time>2026-10-18</time></div><ul><li>档案入口标题由主程序最终导航层固定：容器档案显示“容器档案”，货物档案显示“货物档案”。</li><li>移除档案页面标题上方的蓝色说明文字。</li></ul></article>
@@ -140,7 +141,7 @@
       </section>
 
       <section id="tutorial" class="page">
-      <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v3.0.1 更新</span></div>
+      <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v3.1.0 更新</span></div>
         <div class="tutorial-grid" id="tutorialGrid">
           <article class="tutorial-card"><span class="tutorial-step">01</span><div class="tutorial-graphic account-graphic">◉</div><h2>登录与账户</h2><p>首次由管理员创建账号。登录后可在账户中心修改昵称、上传头像图片和修改密码。</p></article>
           <article class="tutorial-card"><span class="tutorial-step">02</span><div class="tutorial-graphic archive-graphic">▤</div><h2>维护个人档案</h2><p>在“档案管理”维护当前账号自己的容器和货物；档案与其他账号互不影响。</p></article>
@@ -179,8 +180,10 @@
         }
       }
     </script>
-    <script type="module" src="app-loader-v301.js"></script>
-    <script type="module" src="account.js?v=2.9.8"></script>
+    <script type="module" src="app-loader-v310.js"></script>
+    <script type="module" src="account.js?v=3.1.0"></script>
+    <link rel="stylesheet" href="pallet-kit-builder-v310.css" />
+    <script type="module" src="pallet-kit-builder-v310.js"></script>
   </body>
 </html>
 
