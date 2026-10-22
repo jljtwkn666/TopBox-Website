@@ -1,147 +1,44 @@
 import * as THREE from 'https://unpkg.com/three@0.162.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.162.0/examples/jsm/controls/OrbitControls.js';
 
-const $ = (selector, root = document) => root.querySelector(selector);
-const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-const id = prefix => `${prefix}-${crypto.randomUUID?.().replaceAll('-', '').slice(0, 10) || Date.now().toString(36)}`;
-let draft = null;
-let selectedItemId = null;
-let preview = null;
-
-function appState() { return window.TopBoxApp?.state; }
-function number(idValue, fallback = 0) { return Math.max(0, +(document.getElementById(idValue)?.value ?? fallback) || 0); }
-function editable() { return !document.querySelector('#archives.records-readonly'); }
-function freshDraft() {
-  return { id: '', name: '新托盘套装', pallet: { l: 1200, w: 1000, h: 140, color: '#b97b45' }, items: [] };
-}
-function sourceCargo() { return (appState()?.cargo || []).filter(item => !item.kit); }
-function itemFromCargo(source, overrides = {}) {
-  const rotate = Boolean(overrides.rotate);
-  return { id: id('kit-item'), sourceId: source.id, name: source.name, shape: source.shape === 'cylinder' ? 'cylinder' : 'box', color: source.color || '#2563eb', l: rotate ? +source.w : +source.l, w: rotate ? +source.l : +source.w, h: +source.h, weight: +source.weight || 0, pieces: Math.max(1, +source.pieces || 1), x: +overrides.x || 0, y: +overrides.y || 0, z: +overrides.z || 0, rotate };
-}
-function footprintValid(item, items = draft.items.filter(value => value.id !== item.id)) {
-  const p = draft.pallet;
-  if (item.x < 0 || item.y < 0 || item.z < 0 || item.x + item.l > p.l || item.y + item.w > p.w) return { ok: false, message: '货物超出托盘长或宽范围。' };
-  const collision = items.some(other => item.x < other.x + other.l && item.x + item.l > other.x && item.y < other.y + other.w && item.y + item.w > other.y && item.z < other.z + other.h && item.z + item.h > other.z);
-  return collision ? { ok: false, message: '货物与已有货物重叠，请调整坐标或高度。' } : { ok: true };
-}
-function ensureDialog() {
-  if ($('#palletKitDialog')) return;
-  document.body.insertAdjacentHTML('beforeend', `
-  <dialog id="palletKitDialog" class="pallet-kit-dialog">
-    <div class="pallet-kit-head"><div><p class="eyebrow">PALLET KIT DESIGNER</p><h2 id="palletKitTitle">托盘套装设计</h2><p>在托盘上布置货物；托盘长、宽为边界，高度可自由堆叠。</p></div><button class="icon-button" type="button" id="closePalletKit" aria-label="关闭">×</button></div>
-    <div class="pallet-kit-layout">
-      <aside class="pallet-kit-panel"><section><h3>套装与托盘参数</h3><label>套装名称<input id="kitName" maxlength="40" /></label><div class="pallet-kit-form-grid"><label>托盘长 mm<input id="kitLength" type="number" min="1" /></label><label>托盘宽 mm<input id="kitWidth" type="number" min="1" /></label><label>托盘高 mm<input id="kitHeight" type="number" min="1" /></label><label>托盘颜色<input id="kitColor" type="color" /></label></div><button type="button" class="button secondary" id="applyPalletSize">应用托盘参数</button></section>
-      <section><h3>手动添加货物</h3><label>货物<select id="kitSource"></select></label><div class="pallet-kit-form-grid"><label>起点 X mm<input id="kitX" type="number" min="0" value="0" /></label><label>起点 Y mm<input id="kitY" type="number" min="0" value="0" /></label><label>起点 Z mm<input id="kitZ" type="number" min="0" value="0" /></label></div><label class="pallet-kit-check"><input id="kitRotate" type="checkbox" /> 托盘平面旋转 90°</label><button type="button" class="button primary" id="addKitItem">添加单件</button></section>
-      <section><h3>参数化批量摆放</h3><div class="pallet-kit-form-grid"><label>长向数量<input id="kitGridX" type="number" min="1" value="1" /></label><label>宽向数量<input id="kitGridY" type="number" min="1" value="1" /></label><label>层数<input id="kitGridZ" type="number" min="1" value="1" /></label></div><button type="button" class="button secondary" id="addKitGrid">按参数添加</button></section></aside>
-      <section class="pallet-kit-stage"><div class="pallet-kit-toolbar"><b>3D 托盘预览</b><span>左键点击货物可选中 · 拖动旋转 · 滚轮缩放</span><button type="button" class="button secondary" id="resetKitView">重置视角</button></div><div id="kitPreview" class="kit-preview"></div><p id="kitPreviewMessage" class="kit-preview-message">请选择左侧货物后添加。</p></section>
-      <aside class="pallet-kit-panel kit-items-panel"><section><h3>已摆放货物 <span id="kitItemCount">0</span></h3><div id="kitItemList" class="kit-item-list"></div></section><section id="kitSelectedEditor" class="hidden"><h3>修改已选货物</h3><label>替换为<select id="kitReplaceSource"></select></label><div class="pallet-kit-form-grid"><label>X mm<input id="selectedX" type="number" min="0" /></label><label>Y mm<input id="selectedY" type="number" min="0" /></label><label>Z mm<input id="selectedZ" type="number" min="0" /></label></div><div class="kit-editor-actions"><button type="button" class="button secondary" id="rotateSelected">旋转 90°</button><button type="button" class="button secondary" id="updateSelected">应用修改</button><button type="button" class="button danger" id="deleteSelected">删除货物</button></div></section></aside>
-    </div>
-    <div class="pallet-kit-footer"><div><b id="kitSummary">0 件货物</b><span id="kitFootprint">托盘占地 0 × 0 mm</span></div><div><button type="button" class="button secondary" id="cancelPalletKit">取消</button><button type="button" class="button primary" id="savePalletKit">保存为套装货物</button></div></div>
-  </dialog>`);
-  $('#closePalletKit').addEventListener('click', close);
-  $('#cancelPalletKit').addEventListener('click', close);
-  $('#applyPalletSize').addEventListener('click', applyPallet);
-  $('#addKitItem').addEventListener('click', addOne);
-  $('#addKitGrid').addEventListener('click', addGrid);
-  $('#resetKitView').addEventListener('click', () => { setPreviewCamera(); renderPreview(); });
-  $('#kitItemList').addEventListener('click', event => { const button = event.target.closest('[data-kit-select]'); if (button) selectItem(button.dataset.kitSelect); });
-  $('#rotateSelected').addEventListener('click', rotateSelected);
-  $('#updateSelected').addEventListener('click', updateSelected);
-  $('#deleteSelected').addEventListener('click', deleteSelected);
-  $('#savePalletKit').addEventListener('click', saveKit);
-}
-function fillCargoChoices() {
-  const current = $('#kitSource')?.value || '';
-  const options = sourceCargo().map(item => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.name)} · ${item.l} × ${item.w} × ${item.h} mm</option>`).join('');
-  ['#kitSource', '#kitReplaceSource'].forEach(selector => { const node = $(selector); if (node) { node.innerHTML = options || '<option value="">请先建立单体货物</option>'; if ([...node.options].some(option => option.value === current)) node.value = current; } });
-}
-function syncDraftInputs() {
-  $('#kitName').value = draft.name;
-  $('#kitLength').value = draft.pallet.l;
-  $('#kitWidth').value = draft.pallet.w;
-  $('#kitHeight').value = draft.pallet.h;
-  $('#kitColor').value = draft.pallet.color;
-}
-function applyPallet() {
-  const next = { l: Math.max(1, number('kitLength', draft.pallet.l)), w: Math.max(1, number('kitWidth', draft.pallet.w)), h: Math.max(1, number('kitHeight', draft.pallet.h)), color: $('#kitColor').value || '#b97b45' };
-  const invalid = draft.items.find(item => item.x + item.l > next.l || item.y + item.w > next.w);
-  if (invalid) return message('新托盘尺寸会使现有货物超出范围，请先移动或删除该货物。', true);
-  draft.name = $('#kitName').value.trim() || '未命名托盘套装'; draft.pallet = next; refresh();
-}
-function selectedSource() { return sourceCargo().find(item => item.id === $('#kitSource').value); }
-function addOne() {
-  const source = selectedSource(); if (!source) return message('请先选择一种单体货物。', true);
-  const item = itemFromCargo(source, { x: number('kitX'), y: number('kitY'), z: number('kitZ'), rotate: $('#kitRotate').checked });
-  const check = footprintValid(item); if (!check.ok) return message(check.message, true);
-  draft.items.push(item); selectedItemId = item.id; refresh();
-}
-function addGrid() {
-  const source = selectedSource(); if (!source) return message('请先选择一种单体货物。', true);
-  const nx = Math.max(1, Math.floor(number('kitGridX', 1))), ny = Math.max(1, Math.floor(number('kitGridY', 1))), nz = Math.max(1, Math.floor(number('kitGridZ', 1)));
-  const startX = number('kitX'), startY = number('kitY'), startZ = number('kitZ'), rotate = $('#kitRotate').checked;
-  const base = itemFromCargo(source, { rotate }); const candidates = [];
-  for (let z = 0; z < nz; z += 1) for (let y = 0; y < ny; y += 1) for (let x = 0; x < nx; x += 1) candidates.push(itemFromCargo(source, { rotate, x: startX + x * base.l, y: startY + y * base.w, z: startZ + z * base.h }));
-  let added = 0; for (const item of candidates) { const check = footprintValid(item, [...draft.items, ...candidates.slice(0, added)]); if (check.ok) { draft.items.push(item); added += 1; } }
-  if (!added) return message('没有可添加的货物；请检查托盘边界、坐标或堆叠位置。', true);
-  selectedItemId = draft.items.at(-1).id; message(`已添加 ${added} 件货物。`); refresh();
-}
-function selectItem(itemId) {
-  selectedItemId = itemId; const item = draft.items.find(value => value.id === itemId); if (!item) return;
-  $('#kitSelectedEditor').classList.remove('hidden'); $('#kitReplaceSource').value = item.sourceId || ''; $('#selectedX').value = item.x; $('#selectedY').value = item.y; $('#selectedZ').value = item.z; refresh();
-}
-function rotateSelected() {
-  const item = draft.items.find(value => value.id === selectedItemId); if (!item) return;
-  const proposal = { ...item, l: item.w, w: item.l, rotate: !item.rotate }; const check = footprintValid(proposal); if (!check.ok) return message(check.message, true);
-  Object.assign(item, proposal); refresh();
-}
-function updateSelected() {
-  const item = draft.items.find(value => value.id === selectedItemId); if (!item) return;
-  const source = sourceCargo().find(value => value.id === $('#kitReplaceSource').value);
-  const replacement = source ? itemFromCargo(source, { x: number('selectedX'), y: number('selectedY'), z: number('selectedZ'), rotate: item.rotate }) : { ...item, x: number('selectedX'), y: number('selectedY'), z: number('selectedZ') };
-  replacement.id = item.id; const check = footprintValid(replacement); if (!check.ok) return message(check.message, true);
-  Object.assign(item, replacement); refresh();
-}
-function deleteSelected() { const index = draft.items.findIndex(value => value.id === selectedItemId); if (index < 0) return; draft.items.splice(index, 1); selectedItemId = null; $('#kitSelectedEditor').classList.add('hidden'); refresh(); }
-function renderItemList() {
-  $('#kitItemCount').textContent = draft.items.length;
-  $('#kitItemList').innerHTML = draft.items.map((item, index) => `<button type="button" class="kit-item-row ${item.id === selectedItemId ? 'selected' : ''}" data-kit-select="${escapeHtml(item.id)}"><i style="background:${escapeHtml(item.color)}"></i><span><b>${index + 1}. ${escapeHtml(item.name)}</b><small>X ${item.x} · Y ${item.y} · Z ${item.z} mm${item.rotate ? ' · 已旋转' : ''}</small></span></button>`).join('') || '<div class="kit-empty">暂无货物。可从左侧手动添加或批量添加。</div>';
-  const pieces = draft.items.reduce((sum, item) => sum + (+item.pieces || 0), 0), weight = draft.items.reduce((sum, item) => sum + (+item.weight || 0), 0);
-  $('#kitSummary').textContent = `${draft.items.length} 包 · ${pieces.toLocaleString()} 件 · ${weight.toFixed(1)} kg`;
-  $('#kitFootprint').textContent = `托盘占地 ${draft.pallet.l} × ${draft.pallet.w} mm`;
-}
-function ensurePreview() {
-  const host = $('#kitPreview'); if (preview?.host === host) return;
-  preview?.renderer?.dispose();
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false }); renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setClearColor(0xf3f7fb, 1); host.replaceChildren(renderer.domElement);
-  const scene = new THREE.Scene(); const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100); const controls = new OrbitControls(camera, renderer.domElement); controls.enableDamping = true; controls.addEventListener('change', () => renderer.render(scene, camera));
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x5d7185, 2)); const light = new THREE.DirectionalLight(0xffffff, 2.2); light.position.set(7, 10, 8); scene.add(light);
-  const raycaster = new THREE.Raycaster(), pointer = new THREE.Vector2(); renderer.domElement.addEventListener('pointerdown', event => { const rect = renderer.domElement.getBoundingClientRect(); pointer.x = (event.clientX - rect.left) / rect.width * 2 - 1; pointer.y = -(event.clientY - rect.top) / rect.height * 2 + 1; raycaster.setFromCamera(pointer, camera); const hit = raycaster.intersectObjects(scene.children, true).find(result => result.object.userData?.kitItemId); if (hit) selectItem(hit.object.userData.kitItemId); });
-  preview = { host, renderer, scene, camera, controls }; const resize = () => { const w = host.clientWidth, h = host.clientHeight || 420; renderer.setSize(w, h, true); camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.render(scene, camera); }; new ResizeObserver(resize).observe(host); resize();
-}
-function setPreviewCamera() { if (!preview) return; const { l, w } = draft.pallet, top = Math.max(draft.pallet.h, ...draft.items.map(item => draft.pallet.h + item.z + item.h)); const scale = 6 / Math.max(l, w, top); const center = new THREE.Vector3(l * scale / 2, top * scale / 2, w * scale / 2); const distance = 7.2; preview.camera.position.set(center.x + distance, center.y + distance * .72, center.z + distance); preview.controls.target.copy(center); preview.controls.update(); }
-function renderPreview() {
-  ensurePreview(); const { scene, renderer, camera } = preview; scene.children.filter(node => !node.isLight).forEach(node => scene.remove(node)); const { l, w, h, color } = draft.pallet, top = Math.max(h, ...draft.items.map(item => h + item.z + item.h)), scale = 6 / Math.max(l, w, top);
-  const pallet = new THREE.Mesh(new THREE.BoxGeometry(l * scale, h * scale, w * scale), new THREE.MeshStandardMaterial({ color, roughness: .78 })); pallet.position.set(l * scale / 2, h * scale / 2, w * scale / 2); scene.add(pallet); const palletEdge = new THREE.LineSegments(new THREE.EdgesGeometry(pallet.geometry), new THREE.LineBasicMaterial({ color: 0x5d3924 })); palletEdge.position.copy(pallet.position); scene.add(palletEdge);
-  draft.items.forEach(item => { const geometry = item.shape === 'cylinder' ? new THREE.CylinderGeometry(item.w * scale / 2, item.w * scale / 2, item.h * scale, 18) : new THREE.BoxGeometry(item.l * scale, item.h * scale, item.w * scale); const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: item.color, roughness: .55 })); mesh.position.set((item.x + item.l / 2) * scale, (h + item.z + item.h / 2) * scale, (item.y + item.w / 2) * scale); mesh.userData.kitItemId = item.id; scene.add(mesh); const edge = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: item.id === selectedItemId ? 0x2563eb : 0x132b42, linewidth: item.id === selectedItemId ? 2 : 1 })); edge.position.copy(mesh.position); scene.add(edge); });
-  const grid = new THREE.GridHelper(Math.max(l, w) * scale * 1.15, 12, 0x9eb1c5, 0xdde5ec); grid.position.set(l * scale / 2, -.012, w * scale / 2); scene.add(grid); setPreviewCamera(); renderer.render(scene, camera);
-}
-function refresh() { syncDraftInputs(); renderItemList(); renderPreview(); }
-function message(text, error = false) { const node = $('#kitPreviewMessage'); if (node) { node.textContent = text; node.classList.toggle('error', error); } }
-async function saveKit() {
-  if (!editable()) return message('当前账户未获档案维护权限。', true);
-  applyPallet(); if (!draft.items.length) return message('请至少在托盘上摆放一件货物后再保存。', true);
-  const state = appState(), pallet = draft.pallet, height = Math.max(pallet.h, ...draft.items.map(item => pallet.h + item.z + item.h));
-  const record = { id: draft.id || id('kit'), name: draft.name || '未命名托盘套装', type: '套装货物', shape: 'box', l: pallet.l, w: pallet.w, h: height, weight: draft.items.reduce((sum, item) => sum + (+item.weight || 0), 0), pieces: draft.items.reduce((sum, item) => sum + (+item.pieces || 0), 0), reserve: 0, price: 0, color: pallet.color, quantity: 1, pieceQuantity: draft.items.reduce((sum, item) => sum + (+item.pieces || 0), 0), kit: { version: 1, pallet: { ...pallet }, items: draft.items.map(item => ({ ...item })) } };
-  const index = state.cargo.findIndex(item => item.id === record.id), previous = index >= 0 ? { ...state.cargo[index] } : null;
-  if (index >= 0) state.cargo[index] = { ...state.cargo[index], ...record }; else state.cargo.push(record); state.selectedCargo.add(record.id);
-  try { const response = await fetch('/api/shared/records', { method: 'PUT', credentials: 'same-origin', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ containers: state.containers, cargo: state.cargo }) }); const result = await response.json().catch(() => ({})); if (!response.ok) throw new Error(result.error || '保存失败。'); window.dispatchEvent(new Event('topbox:records-changed')); window.TopBoxApp?.renderSelectors?.(); document.querySelector('.archive-tabs [data-archive="cargo"]')?.click(); message('已保存为套装货物，可直接在“选择货物”中勾选装载。'); setTimeout(close, 600); } catch (error) { const rollback = state.cargo.findIndex(item => item.id === record.id); if (previous && rollback >= 0) state.cargo[rollback] = previous; else if (rollback >= 0) state.cargo.splice(rollback, 1); message(error.message || '保存失败。', true); }
-}
-function open(record = null) { ensureDialog(); if (!editable()) return; draft = record?.kit ? { id: record.id, name: record.name, pallet: { ...record.kit.pallet }, items: record.kit.items.map(item => ({ ...item })) } : freshDraft(); selectedItemId = null; fillCargoChoices(); $('#palletKitTitle').textContent = record ? '修改托盘套装' : '托盘套装设计'; $('#palletKitDialog').showModal(); refresh(); message(record ? '可在 3D 预览中点击货物，再修改、替换、旋转或删除。' : '请选择左侧货物后添加。'); }
-function close() { $('#palletKitDialog')?.close(); }
-function refreshLaunch() { const button = $('#palletKitBuilder'), state = appState(); if (!button || !state) return; button.classList.toggle('hidden', state.archive !== 'cargo' || !editable()); }
-function initialise() { ensureDialog(); $('#palletKitBuilder')?.addEventListener('click', () => open()); document.addEventListener('click', event => { if (event.target.closest('.nav-link[data-page="archives"], .archive-tabs [data-archive]')) setTimeout(refreshLaunch, 0); }); window.addEventListener('topbox:edit-pallet-kit', event => open(event.detail)); const archive = $('#archives'); if (archive) new MutationObserver(refreshLaunch).observe(archive, { attributes: true, childList: true, subtree: false }); refreshLaunch(); }
-
-if (window.TopBoxApp) initialise(); else window.addEventListener('topbox-app-ready', initialise, { once: true });
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=p=>`${p}-${crypto.randomUUID?.().replaceAll('-','').slice(0,10)||Date.now().toString(36)}`;
+let draft,selectedItemId=null,markedItemIds=new Set(),preview=null;
+const state=()=>window.TopBoxApp?.state;
+const num=(id,f=0)=>Math.max(0,+(document.getElementById(id)?.value??f)||0);
+const coord=(id,f=0)=>+(document.getElementById(id)?.value??f)||0;
+const editable=()=>!$('#archives.records-readonly');
+const fresh=()=>({id:'',name:'托盘货-',pallet:{l:1100,w:1100,h:130,color:'#b97b45'},allowOverhang:false,items:[]});
+const cargo=()=>state()?.cargo?.filter(x=>!x.kit)||[];
+function makeItem(source,o={}){const r=!!o.rotate;return{id:uid('kit-item'),sourceId:source.id,name:source.name,shape:source.shape==='cylinder'?'cylinder':'box',color:source.color||'#2563eb',l:r?+source.w:+source.l,w:r?+source.l:+source.w,h:+source.h,weight:+source.weight||0,pieces:Math.max(1,+source.pieces||1),x:+o.x||0,y:+o.y||0,z:Math.max(0,+o.z||0),rotate:r};}
+function bounds(){const p=draft.pallet;let minX=0,minY=0,maxX=p.l,maxY=p.w,maxZ=p.h;draft.items.forEach(i=>{minX=Math.min(minX,i.x);minY=Math.min(minY,i.y);maxX=Math.max(maxX,i.x+i.l);maxY=Math.max(maxY,i.y+i.w);maxZ=Math.max(maxZ,p.h+i.z+i.h);});return{minX,minY,maxX,maxY,maxZ,l:maxX-minX,w:maxY-minY,h:maxZ,volume:(maxX-minX)*(maxY-minY)*maxZ/1e9};}
+function valid(item,items=draft.items.filter(x=>x.id!==item.id)){const p=draft.pallet,touch=item.x<p.l&&item.x+item.l>0&&item.y<p.w&&item.y+item.w>0;if(!touch)return{ok:false,message:'货物必须至少有一部分底面落在托盘范围内，不能完全悬空。'};if(!draft.allowOverhang&&(item.x<0||item.y<0||item.x+item.l>p.l||item.y+item.w>p.w))return{ok:false,message:'货物超出托盘长或宽范围。'};const hit=items.some(o=>item.x<o.x+o.l&&item.x+item.l>o.x&&item.y<o.y+o.w&&item.y+item.w>o.y&&item.z<o.z+o.h&&item.z+item.h>o.z);return hit?{ok:false,message:'货物与已有货物重叠，请调整坐标或高度。'}:{ok:true};}
+function dialog(){if($('#palletKitDialog'))return;document.body.insertAdjacentHTML('beforeend',`<dialog id="palletKitDialog" class="pallet-kit-dialog"><div class="pallet-kit-head"><div><h2 id="palletKitTitle">托盘套装设计</h2><p>点击 3D 货物即可选中；可按参数添加、批量摆放、替换、旋转或删除。</p></div><button class="icon-button" type="button" id="closePalletKit">×</button></div><div class="pallet-kit-layout"><aside class="pallet-kit-panel"><section><h3>套装与托盘参数</h3><label>套装名称<input id="kitName" maxlength="40"></label><div class="pallet-kit-form-grid"><label>托盘长 mm<input id="kitLength" type="number" min="1"></label><label>托盘宽 mm<input id="kitWidth" type="number" min="1"></label><label>托盘高 mm<input id="kitHeight" type="number" min="1"></label><label>托盘颜色<input id="kitColor" type="color"></label></div><label class="pallet-kit-check"><input id="allowOverhang" type="checkbox"> 允许货物部分超出托盘长宽边界</label><small class="kit-help">未勾选时不得越界；勾选后货物底面仍须部分落在托盘上。</small><button type="button" class="button secondary" id="applyPalletSize">应用托盘参数</button></section><section><h3>手动添加货物</h3><label>货物<select id="kitSource"></select></label><div class="pallet-kit-form-grid"><label>起点 X mm<input id="kitX" type="number" value="0"></label><label>起点 Y mm<input id="kitY" type="number" value="0"></label><label>起点 Z mm<input id="kitZ" type="number" min="0" value="0"></label></div><label class="pallet-kit-check"><input id="kitRotate" type="checkbox"> 托盘平面旋转 90°</label><button type="button" class="button primary" id="addKitItem">添加单件</button></section><section><h3>参数化批量摆放</h3><div class="pallet-kit-form-grid"><label>长向数量<input id="kitGridX" type="number" min="1" value="1"></label><label>宽向数量<input id="kitGridY" type="number" min="1" value="1"></label><label>层数<input id="kitGridZ" type="number" min="1" value="1"></label></div><button type="button" class="button secondary" id="addKitGrid">按参数添加</button></section></aside><section class="pallet-kit-stage"><div class="pallet-kit-toolbar"><b>3D 托盘预览</b><span>左键选中 · 拖动旋转 · 滚轮缩放</span><div class="kit-view-buttons"><button type="button" data-kit-view="front">正</button><button type="button" data-kit-view="top">顶</button><button type="button" data-kit-view="side">侧</button><button type="button" data-kit-view="iso" class="active">45°</button><button type="button" id="resetKitView">↻</button></div></div><div id="kitPreview" class="kit-preview"></div><p id="kitPreviewMessage" class="kit-preview-message">请选择左侧货物后添加。</p></section><aside class="pallet-kit-panel kit-items-panel"><section><div class="kit-items-head"><h3>已摆放货物 <span id="kitItemCount">0</span></h3><div><button type="button" class="button tiny danger" id="bulkDeleteKitItems">批量删除</button><button type="button" class="button tiny danger" id="clearKitItems">清空</button></div></div><div id="kitItemList" class="kit-item-list"></div></section><section id="kitSelectedEditor" class="hidden"><h3>修改已选货物</h3><label>替换为<select id="kitReplaceSource"></select></label><div class="pallet-kit-form-grid"><label>X mm<input id="selectedX" type="number"></label><label>Y mm<input id="selectedY" type="number"></label><label>Z mm<input id="selectedZ" type="number" min="0"></label></div><div class="kit-editor-actions"><button type="button" class="button secondary" id="rotateSelected">旋转 90°</button><button type="button" class="button secondary" id="updateSelected">应用修改</button><button type="button" class="button danger" id="deleteSelected">删除货物</button></div></section></aside></div><div class="pallet-kit-footer"><div><b id="kitSummary">0 件货物</b><span id="kitDimensions">整体尺寸 0 × 0 × 0 mm · 0.0000 m³</span></div><div><button type="button" class="button secondary" id="cancelPalletKit">取消</button><button type="button" class="button primary" id="savePalletKit">保存为套装货物</button></div></div></dialog>`);
+$('#closePalletKit').onclick=close;$('#cancelPalletKit').onclick=close;$('#applyPalletSize').onclick=applyPallet;$('#addKitItem').onclick=addOne;$('#addKitGrid').onclick=addGrid;$('#resetKitView').onclick=()=>setView('iso');$$('[data-kit-view]').forEach(b=>b.onclick=()=>setView(b.dataset.kitView));$('#kitItemList').onclick=e=>{const b=e.target.closest('[data-kit-select]');if(b)select(b.dataset.kitSelect)};$('#kitItemList').onchange=e=>{const b=e.target.closest('[data-kit-mark]');if(b)b.checked?markedItemIds.add(b.dataset.kitMark):markedItemIds.delete(b.dataset.kitMark)};$('#rotateSelected').onclick=rotate;$('#updateSelected').onclick=update;$('#deleteSelected').onclick=deleteSelected;$('#bulkDeleteKitItems').onclick=bulkDelete;$('#clearKitItems').onclick=clearItems;$('#savePalletKit').onclick=save;}
+function fillChoices(){const current=$('#kitSource')?.value||'',options=cargo().map(x=>`<option value="${esc(x.id)}">${esc(x.name)} · ${x.l} × ${x.w} × ${x.h} mm</option>`).join('');['#kitSource','#kitReplaceSource'].forEach(s=>{const n=$(s);if(!n)return;n.innerHTML=options||'<option value="">请先建立单体货物</option>';if([...n.options].some(o=>o.value===current))n.value=current;});}
+function sync(){['kitName','kitLength','kitWidth','kitHeight'].forEach((k,i)=>$('#'+k).value=i?draft.pallet[['l','w','h'][i-1]]:draft.name);$('#kitColor').value=draft.pallet.color;$('#allowOverhang').checked=!!draft.allowOverhang;}
+function applyPallet(){const p={l:Math.max(1,num('kitLength',draft.pallet.l)),w:Math.max(1,num('kitWidth',draft.pallet.w)),h:Math.max(1,num('kitHeight',draft.pallet.h)),color:$('#kitColor').value||'#b97b45'},allow=$('#allowOverhang').checked,bad=!allow&&draft.items.find(i=>i.x<0||i.y<0||i.x+i.l>p.l||i.y+i.w>p.w);if(bad)return msg('新托盘尺寸会使已有货物越界，请先移动、删除或启用允许超出。',true);draft.name=$('#kitName').value.trim()||'托盘货-';draft.pallet=p;draft.allowOverhang=allow;refresh();}
+function source(){return cargo().find(x=>x.id===$('#kitSource').value);}
+function addOne(){const s=source();if(!s)return msg('请先选择一种单体货物。',true);const i=makeItem(s,{x:coord('kitX'),y:coord('kitY'),z:num('kitZ'),rotate:$('#kitRotate').checked}),check=valid(i);if(!check.ok)return msg(check.message,true);draft.items.push(i);selectedItemId=i.id;markedItemIds.add(i.id);refresh();}
+function addGrid(){const s=source();if(!s)return msg('请先选择一种单体货物。',true);const nx=Math.max(1,Math.floor(num('kitGridX',1))),ny=Math.max(1,Math.floor(num('kitGridY',1))),nz=Math.max(1,Math.floor(num('kitGridZ',1))),x0=coord('kitX'),y0=coord('kitY'),z0=num('kitZ'),r=$('#kitRotate').checked,base=makeItem(s,{rotate:r}),list=[];for(let z=0;z<nz;z++)for(let y=0;y<ny;y++)for(let x=0;x<nx;x++)list.push(makeItem(s,{rotate:r,x:x0+x*base.l,y:y0+y*base.w,z:z0+z*base.h}));let added=0;for(const i of list){const check=valid(i,[...draft.items,...list.slice(0,added)]);if(check.ok){draft.items.push(i);markedItemIds.add(i.id);added++;}}if(!added)return msg('没有可添加的货物；请检查边界、坐标或堆叠位置。',true);selectedItemId=draft.items.at(-1).id;msg(`已添加 ${added} 件货物。`);refresh();}
+function select(id){selectedItemId=id;const i=draft.items.find(x=>x.id===id);if(!i)return;$('#kitSelectedEditor').classList.remove('hidden');$('#kitReplaceSource').value=i.sourceId||'';$('#selectedX').value=i.x;$('#selectedY').value=i.y;$('#selectedZ').value=i.z;refresh();}
+function rotate(){const i=draft.items.find(x=>x.id===selectedItemId);if(!i)return;const n={...i,l:i.w,w:i.l,rotate:!i.rotate},check=valid(n);if(!check.ok)return msg(check.message,true);Object.assign(i,n);refresh();}
+function update(){const i=draft.items.find(x=>x.id===selectedItemId);if(!i)return;const s=cargo().find(x=>x.id===$('#kitReplaceSource').value),n=s?makeItem(s,{x:coord('selectedX'),y:coord('selectedY'),z:num('selectedZ'),rotate:i.rotate}):{...i,x:coord('selectedX'),y:coord('selectedY'),z:num('selectedZ')};n.id=i.id;const check=valid(n);if(!check.ok)return msg(check.message,true);Object.assign(i,n);refresh();}
+function deleteSelected(){const n=draft.items.findIndex(x=>x.id===selectedItemId);if(n<0)return;markedItemIds.delete(selectedItemId);draft.items.splice(n,1);selectedItemId=null;$('#kitSelectedEditor').classList.add('hidden');refresh();}
+function bulkDelete(){if(!markedItemIds.size)return msg('请先勾选需要批量删除的货物。',true);draft.items=draft.items.filter(i=>!markedItemIds.has(i.id));if(markedItemIds.has(selectedItemId)){$('#kitSelectedEditor').classList.add('hidden');selectedItemId=null;}markedItemIds.clear();msg('已删除勾选的货物。');refresh();}
+function clearItems(){if(!draft.items.length)return;draft.items=[];markedItemIds.clear();selectedItemId=null;$('#kitSelectedEditor').classList.add('hidden');msg('已清空全部已摆放货物。');refresh();}
+function renderItems(){const b=bounds(),pieces=draft.items.reduce((s,i)=>s+(+i.pieces||0),0),weight=draft.items.reduce((s,i)=>s+(+i.weight||0),0);$('#kitItemCount').textContent=draft.items.length;$('#kitItemList').innerHTML=draft.items.map((i,n)=>`<div class="kit-item-row ${i.id===selectedItemId?'selected':''}"><input type="checkbox" data-kit-mark="${esc(i.id)}" ${markedItemIds.has(i.id)?'checked':''}><button type="button" data-kit-select="${esc(i.id)}"><i style="background:${esc(i.color)}"></i><span><b>${n+1}. ${esc(i.name)}</b><small>X ${i.x} · Y ${i.y} · Z ${i.z} mm${i.rotate?' · 已旋转':''}</small></span></button></div>`).join('')||'<div class="kit-empty">暂无货物。可从左侧手动添加或批量添加。</div>';$('#kitSummary').textContent=`${draft.items.length} 包 · ${pieces.toLocaleString()} 件 · ${weight.toFixed(1)} kg`;$('#kitDimensions').textContent=`整体尺寸 ${b.l.toFixed(0)} × ${b.w.toFixed(0)} × ${b.h.toFixed(0)} mm · ${b.volume.toFixed(4)} m³`;}
+function ensurePreview(){const host=$('#kitPreview');if(preview?.host===host)return;preview?.renderer?.dispose();const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor(0xf3f7fb,1);host.replaceChildren(renderer.domElement);const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(42,1,.1,100),controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.addEventListener('change',()=>renderer.render(scene,camera));scene.add(new THREE.HemisphereLight(0xffffff,0x5d7185,2));const light=new THREE.DirectionalLight(0xffffff,2.2);light.position.set(7,10,8);scene.add(light);const ray=new THREE.Raycaster(),point=new THREE.Vector2();renderer.domElement.addEventListener('pointerdown',e=>{const r=renderer.domElement.getBoundingClientRect();point.x=(e.clientX-r.left)/r.width*2-1;point.y=-(e.clientY-r.top)/r.height*2+1;ray.setFromCamera(point,camera);const hit=ray.intersectObjects(scene.children,true).find(x=>x.object.userData?.kitItemId);if(hit)select(hit.object.userData.kitItemId);});preview={host,renderer,scene,camera,controls,view:'iso'};new ResizeObserver(()=>{const w=host.clientWidth,h=host.clientHeight||390;renderer.setSize(w,h,true);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.render(scene,camera);}).observe(host);}
+function setView(view='iso'){if(!preview)return;preview.view=view;const b=bounds(),s=6/Math.max(b.l,b.w,b.h),c=new THREE.Vector3(b.l*s/2,b.h*s/2,b.w*s/2),d=Math.max(7.2,Math.max(b.l,b.w,b.h)*s*1.35),pos={front:[c.x,c.y,c.z+d],top:[c.x,c.y+d,c.z],side:[c.x+d,c.y,c.z],iso:[c.x+d*.82,c.y+d*.76,c.z+d*.82]};preview.camera.position.set(...(pos[view]||pos.iso));preview.controls.target.copy(c);preview.controls.update();$$('[data-kit-view]').forEach(b=>b.classList.toggle('active',b.dataset.kitView===view));preview.renderer.render(preview.scene,preview.camera);}
+function renderPreview(){ensurePreview();const {scene,renderer,camera}=preview,b=bounds(),p=draft.pallet,s=6/Math.max(b.l,b.w,b.h),sx=-b.minX,sy=-b.minY;scene.children.filter(n=>!n.isLight).forEach(n=>scene.remove(n));const tray=new THREE.Mesh(new THREE.BoxGeometry(p.l*s,p.h*s,p.w*s),new THREE.MeshStandardMaterial({color:p.color,roughness:.78}));tray.position.set((sx+p.l/2)*s,p.h*s/2,(sy+p.w/2)*s);scene.add(tray);const trayEdge=new THREE.LineSegments(new THREE.EdgesGeometry(tray.geometry),new THREE.LineBasicMaterial({color:0x5d3924}));trayEdge.position.copy(tray.position);scene.add(trayEdge);draft.items.forEach(i=>{const geo=i.shape==='cylinder'?new THREE.CylinderGeometry(i.w*s/2,i.w*s/2,i.h*s,18):new THREE.BoxGeometry(i.l*s,i.h*s,i.w*s),mesh=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:i.color,roughness:.55}));mesh.position.set((sx+i.x+i.l/2)*s,(p.h+i.z+i.h/2)*s,(sy+i.y+i.w/2)*s);mesh.userData.kitItemId=i.id;scene.add(mesh);const e=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:i.id===selectedItemId?0x2563eb:0x132b42}));e.position.copy(mesh.position);scene.add(e);});const grid=new THREE.GridHelper(Math.max(b.l,b.w)*s*1.15,12,0x9eb1c5,0xdde5ec);grid.position.set(b.l*s/2,-.012,b.w*s/2);scene.add(grid);setView(preview.view||'iso');renderer.render(scene,camera);}
+function refresh(){sync();renderItems();renderPreview();}
+function msg(text,error=false){const n=$('#kitPreviewMessage');if(n){n.textContent=text;n.classList.toggle('error',error);}}
+async function save(){if(!editable())return msg('当前账户未获档案维护权限。',true);applyPallet();if(!draft.items.length)return msg('请至少在托盘上摆放一件货物后再保存。',true);const s=state(),p=draft.pallet,b=bounds(),record={id:draft.id||uid('kit'),name:draft.name||'托盘货-',type:'套装货物',shape:'box',l:b.l,w:b.w,h:b.h,weight:draft.items.reduce((n,i)=>n+(+i.weight||0),0),pieces:draft.items.reduce((n,i)=>n+(+i.pieces||0),0),reserve:0,price:0,color:p.color,quantity:1,pieceQuantity:draft.items.reduce((n,i)=>n+(+i.pieces||0),0),kit:{version:2,pallet:{...p},origin:{x:-b.minX,y:-b.minY},allowOverhang:!!draft.allowOverhang,items:draft.items.map(i=>({...i}))}},n=s.cargo.findIndex(i=>i.id===record.id),old=n>=0?{...s.cargo[n]}:null;if(n>=0)s.cargo[n]={...s.cargo[n],...record};else s.cargo.push(record);s.selectedCargo.add(record.id);try{const r=await fetch('/api/shared/records',{method:'PUT',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({containers:s.containers,cargo:s.cargo})}),out=await r.json().catch(()=>({}));if(!r.ok)throw Error(out.error||'保存失败。');window.dispatchEvent(new Event('topbox:records-changed'));window.TopBoxApp?.renderSelectors?.();$('.archive-tabs [data-archive="cargo"]')?.click();msg('已保存为套装货物，可直接在“选择货物”中勾选装载。');setTimeout(close,600);}catch(e){const at=s.cargo.findIndex(i=>i.id===record.id);if(old&&at>=0)s.cargo[at]=old;else if(at>=0)s.cargo.splice(at,1);msg(e.message||'保存失败。',true);}}
+function open(record=null){dialog();if(!editable())return;draft=record?.kit?{id:record.id,name:record.name,pallet:{...record.kit.pallet},allowOverhang:!!record.kit.allowOverhang,items:record.kit.items.map(i=>({...i}))}:fresh();selectedItemId=null;markedItemIds=new Set();fillChoices();$('#palletKitTitle').textContent=record?'修改托盘套装':'托盘套装设计';$('#palletKitDialog').showModal();refresh();msg(record?'可在 3D 预览中点击货物，再修改、替换、旋转或删除。':'请选择左侧货物后添加。');}
+function close(){$('#palletKitDialog')?.close();}
+function activeArchive(){const m=$('.nav-link[data-page="archives"][data-archive-target].active'),t=$('.archive-tabs button.active')?.dataset.archive;return m?.dataset.archiveTarget||t||state()?.archive;}
+function refreshLaunch(kind){const b=$('#palletKitBuilder');if(!b)return;const visible=$('#archives')?.classList.contains('active-page');b.classList.toggle('hidden',!visible||(kind||activeArchive())!=='cargo'||!editable());}
+function initialise(){dialog();$('#palletKitBuilder')?.addEventListener('click',()=>open());document.addEventListener('click',e=>{const n=e.target.closest('.nav-link[data-page="archives"][data-archive-target]'),t=e.target.closest('.archive-tabs [data-archive]'),kind=n?.dataset.archiveTarget||t?.dataset.archive;if(!kind)return;[0,16,120].forEach(wait=>setTimeout(()=>refreshLaunch(kind),wait));requestAnimationFrame(()=>refreshLaunch(kind));},true);window.addEventListener('topbox:edit-pallet-kit',e=>open(e.detail));const a=$('#archives');if(a)new MutationObserver(()=>refreshLaunch()).observe(a,{attributes:true,attributeFilter:['class']});refreshLaunch();}
+if(window.TopBoxApp)initialise();else window.addEventListener('topbox-app-ready',initialise,{once:true});
 
