@@ -492,6 +492,19 @@ document.addEventListener('click',event=>{
   persistState();renderSelectors();
 },true);
 
+// v3.1.5 final ownership is installed after the archive import handler.
+// (Kept at the physical end of this file so compatibility code cannot replace it.)
+if(typeof window!=='undefined'&&typeof renderSelectorsV315==='function'){
+  const renderArchivesV315EndBase=renderArchives;
+  renderArchives=function(){renderArchivesV315EndBase();syncPalletLauncherV315();};
+  renderSelectors=function(){renderSelectorsV315();};
+  renderCargoSelectorV296=renderSelectorsV315;
+  scheduleCargoSelectorV296=function(){renderSelectorsV315();requestAnimationFrame(renderSelectorsV315);};
+  window.TopBoxApp.renderSelectors=()=>renderSelectorsV315();
+  renderSelectorsV315();
+  syncPalletLauncherV315();
+}
+
 /* v2.9.3 final ownership: no compatibility renderer may run after this. */
 renderSelectors=function(){renderSelectorsV293();renderExactUtilization();};
 window.TopBoxApp.renderSelectors=()=>renderSelectors();
@@ -781,8 +794,68 @@ document.addEventListener('change',event=>{
   persistState();
   scheduleCargoSelectorV296();
 },true);
-Object.assign(I18N.en,{'小件尺寸':'Piece dimensions','备注':'Notes','小件长 (mm)':'Piece length (mm)','小件宽 (mm)':'Piece width (mm)','小件高 (mm)':'Piece height (mm)'});
-Object.assign(I18N.th,{'小件尺寸':'ขนาดชิ้นย่อย','备注':'หมายเหตุ','小件长 (mm)':'ความยาวชิ้นย่อย (มม.)','小件宽 (mm)':'ความกว้างชิ้นย่อย (มม.)','小件高 (mm)':'ความสูงชิ้นย่อย (มม.)'});
+
+// The archive extension above is intentionally last. Re-apply the stable
+// entry points after it so opening an archive can never restore a legacy
+// selector/heading renderer.
+const renderArchivesV315FinalBase=renderArchives;
+renderArchives=function(){renderArchivesV315FinalBase();syncPalletLauncherV315();};
+renderSelectors=function(){renderSelectorsV315();};
+renderCargoSelectorV296=renderSelectorsV315;
+scheduleCargoSelectorV296=function(){renderSelectorsV315();requestAnimationFrame(renderSelectorsV315);};
+window.TopBoxApp.renderSelectors=()=>renderSelectorsV315();
+renderSelectorsV315();
+syncPalletLauncherV315();
+
+/* v3.1.5 — final selector ownership.  Older releases registered several
+   compatibility renderers.  This renderer deliberately uses its own markup
+   and is called by every selector entry point, so mode changes/reset cannot
+   resurrect one of the historical layouts. */
+function renderCargoRowsV315(){
+  const host=$('#cargoList');if(!host)return;
+  const query=$('#cargoSearch')?.value.trim().toLowerCase()||'';
+  const terms=query.split(',').map(value=>value.trim()).filter(Boolean);
+  const rows=state.cargo.filter(item=>terms.every(term=>`${item.name}${item.type}`.toLowerCase().includes(term)));
+  const size=Math.max(1,+state.ui.cargoSize||20),pages=Math.max(1,Math.ceil(rows.length/size));
+  state.ui.cargoPage=Math.max(1,Math.min(+state.ui.cargoPage||1,pages));
+  const page=rows.slice((state.ui.cargoPage-1)*size,state.ui.cargoPage*size);
+  const specified=document.querySelector('input[name="mode"]:checked')?.value==='specified';
+  const pieceMode=state.settings.quantityInputMode==='pieces';
+  host.className='cargo-v315-list';host.dataset.renderer='v315';
+  host.innerHTML=page.map(item=>{
+    const perPackage=Math.max(1,+item.pieces||1),bags=Math.max(1,+item.quantity||1),pieces=Math.max(1,+item.pieceQuantity||bags*perPackage),value=pieceMode?pieces:bags;
+    const result=pieceMode?`${t('折合')} ${Math.ceil(pieces/perPackage).toLocaleString()} ${t('包')}`:`${t('共')} ${(bags*perPackage).toLocaleString()} ${t('件')}`;
+    return `<label class="cargo-v315-row ${state.selectedCargo.has(item.id)?'checked':''}" data-cargo-v315="${item.id}"><input class="cargo-v315-check" data-id="${item.id}" type="checkbox" ${state.selectedCargo.has(item.id)?'checked':''}><span class="cargo-v315-color" style="background:${item.color}"></span><span class="cargo-v315-info"><b>${escapeHtml(item.name)}</b><small>${item.l} × ${item.w} × ${item.h} mm · ${cubicMeters(item).toFixed(4)} m³</small><small>${perPackage.toLocaleString()} ${t('件')}/${t('包')}</small></span><span class="cargo-v315-control"><input class="cargo-v315-input" data-id="${item.id}" type="number" min="1" value="${value}" ${specified?'':'disabled'}><span class="cargo-v315-unit">${pieceMode?t('件'):t('包')}</span><strong class="cargo-v315-result">${result}</strong></span></label>`;
+  }).join('')||`<div class="empty-state">${t('没有匹配的货物')}</div>`;
+  const pager=$('#cargoPager');if(pager)pager.innerHTML=`<span>${rows.length?`${(state.ui.cargoPage-1)*size+1}-${Math.min(state.ui.cargoPage*size,rows.length)}/${rows.length}`:'0/0'}</span><button data-v315-page="-1" ${state.ui.cargoPage<=1?'disabled':''}>‹</button><button data-v315-page="1" ${state.ui.cargoPage>=pages?'disabled':''}>›</button><select data-v315-size>${[20,30,50,100,200,500,1000,2000].map(value=>`<option value="${value}" ${size===value?'selected':''}>${value}</option>`).join('')}</select>`;
+  $('[data-v315-page="-1"]',pager)?.addEventListener('click',()=>{state.ui.cargoPage--;persistState();renderSelectors();});
+  $('[data-v315-page="1"]',pager)?.addEventListener('click',()=>{state.ui.cargoPage++;persistState();renderSelectors();});
+  $('[data-v315-size]',pager)?.addEventListener('change',event=>{state.ui.cargoSize=+event.target.value;state.ui.cargoPage=1;persistState();renderSelectors();});
+  $$('.cargo-v315-check',host).forEach(input=>input.addEventListener('change',()=>{if(input.checked&&!specified){state.selectedCargo.clear();state.selectedCargo.add(input.dataset.id);}else if(input.checked)state.selectedCargo.add(input.dataset.id);else state.selectedCargo.delete(input.dataset.id);persistState();renderSelectors();}));
+  $$('.cargo-v315-input',host).forEach(input=>{const sync=save=>{const item=state.cargo.find(value=>value.id===input.dataset.id);if(!item)return;const perPackage=Math.max(1,+item.pieces||1),amount=Math.max(1,+input.value||1);if(pieceMode){item.pieceQuantity=amount;item.quantity=Math.ceil(amount/perPackage);}else{item.quantity=amount;item.pieceQuantity=amount*perPackage;}input.value=amount;const out=input.closest('.cargo-v315-control')?.querySelector('.cargo-v315-result');if(out)out.textContent=pieceMode?`${t('折合')} ${Math.ceil(amount/perPackage).toLocaleString()} ${t('包')}`:`${t('共')} ${(amount*perPackage).toLocaleString()} ${t('件')}`;if(save)persistState();};input.addEventListener('input',()=>sync(false));input.addEventListener('change',()=>sync(true));});
+}
+function renderSelectorsV315(){
+  renderSelectorsV293();
+  renderCargoRowsV315();
+  renderExactUtilization();
+}
+renderSelectors=function(){renderSelectorsV315();};
+renderCargoSelectorV296=renderSelectorsV315;
+scheduleCargoSelectorV296=function(){renderSelectorsV315();requestAnimationFrame(renderSelectorsV315);};
+window.TopBoxApp.renderSelectors=()=>renderSelectorsV315();
+
+function syncPalletLauncherV315(){
+  const launcher=$('#palletKitBuilder');if(!launcher)return;
+  launcher.classList.toggle('hidden',state.archive!=='cargo');
+  launcher.style.background='#9a6235';launcher.style.borderColor='#9a6235';launcher.style.color='#fff';
+}
+const renderArchivesV315Base=renderArchives;
+renderArchives=function(){renderArchivesV315Base();syncPalletLauncherV315();};
+document.addEventListener('click',event=>{const nav=event.target.closest('.nav-link[data-archive-target],.archive-tabs [data-archive]');if(!nav)return;requestAnimationFrame(()=>{syncPalletLauncherV315();renderSelectorsV315();});},true);
+renderSelectorsV315();
+// This compatibility block is outside the scoped i18n table declared above.
+// Keep the late archive enhancement independent from that scoped variable so a
+// translation add-on can never prevent the whole application from starting.
 document.addEventListener('click',event=>{
   if(!event.target.closest('#resetCargoSelection'))return;
   event.preventDefault();
@@ -1023,4 +1096,16 @@ document.addEventListener('change',event=>{
   const input=event.target;if(input?.id!=='importFile'||state.archive!=='cargo'||!input.files?.[0])return;
   event.stopImmediatePropagation();const reader=new FileReader();reader.onload=()=>{try{const [head,...rows]=parseCSV(reader.result),keys=head.map(key=>key.trim()),items=[];rows.forEach(row=>{const source=Object.fromEntries(keys.map((key,index)=>[key,row[index]??'']));if(!source.name||!source.l||!source.w||!source.h)return;items.push({id:uid('g'),name:source.name,type:source.type||'单体货物',shape:source.shape==='cylinder'?'cylinder':'box',l:+source.l,w:+source.w,h:+source.h,weight:+source.weight||0,pieces:Math.max(1,+source.pieces||1),pieceL:Math.max(0,+source.pieceL||0),pieceW:Math.max(0,+source.pieceW||0),pieceH:Math.max(0,+source.pieceH||0),note:source.note||'',reserve:0,price:+source.price||0,color:source.color||COLORS[(state.cargo.length+items.length)%COLORS.length],quantity:Math.max(1,+source.quantity||1)});});if(!items.length)throw Error('没有有效货物');state.cargo.push(...items);persistState();renderArchives();renderSelectors();window.dispatchEvent(new Event('topbox:records-changed'));showSuccess(`已导入 ${items.length} 条货物档案。`);}catch{showNotice('导入失败，请使用货物档案导入模板。');}finally{input.value='';}};reader.readAsText(input.files[0],'utf-8');
 },true);
+
+// v3.1.5 final ownership: this runs after every historical enhancement.
+if(typeof window!=='undefined'&&typeof renderSelectorsV315==='function'){
+  const renderArchivesV315EndBase=renderArchives;
+  renderArchives=function(){renderArchivesV315EndBase();syncPalletLauncherV315();};
+  renderSelectors=function(){renderSelectorsV315();};
+  renderCargoSelectorV296=renderSelectorsV315;
+  scheduleCargoSelectorV296=function(){renderSelectorsV315();requestAnimationFrame(renderSelectorsV315);};
+  window.TopBoxApp.renderSelectors=()=>renderSelectorsV315();
+  renderSelectorsV315();
+  syncPalletLauncherV315();
+}
 

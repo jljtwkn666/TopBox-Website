@@ -1,0 +1,18 @@
+/* v3.1.5 — one deterministic cargo-row layout.  This intentionally does not
+   reuse historical selector classes, which prevents legacy renderers from
+   changing the layout after a reset or a loading-mode change. */
+#cargoList.cargo-v315-list{display:flex!important;flex-direction:column!important;gap:10px!important;max-height:390px!important;min-height:390px!important;overflow:auto!important;overflow-x:hidden!important;padding:2px!important;box-sizing:border-box!important}
+#cargoList.cargo-v315-list .cargo-v315-row{display:grid!important;grid-template-columns:22px 42px minmax(0,1fr) minmax(235px,270px)!important;align-items:center!important;gap:12px!important;min-height:66px!important;padding:10px 14px!important;border:1px solid #e5edf6!important;border-radius:14px!important;background:#fff!important;box-sizing:border-box!important;overflow:hidden!important}
+#cargoList.cargo-v315-list .cargo-v315-row.checked{border-color:#9cc7ff!important;background:#fbfdff!important}
+#cargoList.cargo-v315-list .cargo-v315-check{width:21px!important;height:21px!important;margin:0!important;accent-color:#2d64e8!important}
+#cargoList.cargo-v315-list .cargo-v315-color{width:40px!important;height:40px!important;border-radius:10px!important;display:block!important;flex:none!important}
+#cargoList.cargo-v315-list .cargo-v315-info{min-width:0!important;display:flex!important;flex-direction:column!important;gap:2px!important;line-height:1.22!important}
+#cargoList.cargo-v315-list .cargo-v315-info b{font-size:15px!important;color:#10243f!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#cargoList.cargo-v315-list .cargo-v315-info small{font-size:12px!important;color:#70839c!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#cargoList.cargo-v315-list .cargo-v315-control{display:grid!important;grid-template-columns:100px 20px minmax(0,1fr)!important;align-items:center!important;gap:8px!important;min-width:0!important}
+#cargoList.cargo-v315-list .cargo-v315-input{width:100%!important;min-width:0!important;height:42px!important;padding:0 10px!important;text-align:right!important;font-size:17px!important;font-weight:700!important;border:1px solid #d5e1f0!important;border-radius:11px!important;box-sizing:border-box!important}
+#cargoList.cargo-v315-list .cargo-v315-unit{font-size:14px!important;font-weight:700!important;color:#536d88!important;white-space:nowrap!important}
+#cargoList.cargo-v315-list .cargo-v315-result{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;text-align:right!important;font-size:14px!important;font-weight:800!important;color:#1f62e9!important;white-space:nowrap!important}
+@media (max-width:1050px){#cargoList.cargo-v315-list .cargo-v315-row{grid-template-columns:20px 38px minmax(0,1fr) 210px!important;gap:9px!important;padding:9px 10px!important}#cargoList.cargo-v315-list .cargo-v315-control{grid-template-columns:88px 18px minmax(0,1fr)!important}#cargoList.cargo-v315-list .cargo-v315-input{font-size:16px!important}}
+@media (max-width:720px){#cargoList.cargo-v315-list{max-height:440px!important;min-height:440px!important}#cargoList.cargo-v315-list .cargo-v315-row{grid-template-columns:20px 34px minmax(0,1fr)!important;grid-template-areas:'check color info' 'check color control'!important}#cargoList.cargo-v315-list .cargo-v315-check{grid-area:check}#cargoList.cargo-v315-list .cargo-v315-color{grid-area:color;width:34px!important;height:34px!important}#cargoList.cargo-v315-list .cargo-v315-info{grid-area:info}#cargoList.cargo-v315-list .cargo-v315-control{grid-area:control;grid-template-columns:92px 18px minmax(0,1fr)!important}}
+
