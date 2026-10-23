@@ -44,6 +44,9 @@ function loadState() {
 }
 
 const state = loadState();
+// A lightweight bridge for companion modules loaded beside the compressed app.
+// It is deliberately installed before optional UI enhancements run.
+globalThis.__topboxStateV315 = state;
 function persistState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     version: 5,

@@ -10,6 +10,9 @@ try {
   const source = await new Response(stream).text();
   const appModule = await import(URL.createObjectURL(new Blob([source], { type: 'text/javascript' })));
   if (!window.TopBoxApp && appModule?.topboxApp) window.TopBoxApp = appModule.topboxApp;
+  if (!window.TopBoxApp && globalThis.__topboxStateV315) {
+    window.TopBoxApp = { state: globalThis.__topboxStateV315 };
+  }
   document.documentElement.dataset.appLoaderState = 'ready';
   window.dispatchEvent(new Event('topbox-app-ready'));
 } catch (error) {
