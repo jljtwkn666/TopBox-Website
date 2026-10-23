@@ -1061,8 +1061,11 @@ function buildExtraVehiclePlansV314(unplaced){
   const remaining=[...records.values()].flatMap(entry=>Array.from({length:entry.count},()=>entry.record));
   return {plans,remaining};
 }
-buildExtraVehiclePlans=buildExtraVehiclePlansV314;
-buildExtraVehiclePlansV313=buildExtraVehiclePlansV314;
+// Earlier recommendation helpers were declared in a compatibility scope in
+// some saved builds.  Never assign to a missing lexical binding: the report
+// wrapper calls the v3.1.4 helper directly when it is available.
+if(typeof buildExtraVehiclePlans==='function')buildExtraVehiclePlans=buildExtraVehiclePlansV314;
+if(typeof buildExtraVehiclePlansV313==='function')buildExtraVehiclePlansV313=buildExtraVehiclePlansV314;
 
 function installCargoArchiveFieldsV314(){
   const pieces=$('#recordPiecesField');if(!pieces||$('#recordPieceDimensions'))return;
