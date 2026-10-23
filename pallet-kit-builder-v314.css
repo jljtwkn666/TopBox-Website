@@ -1,0 +1,14 @@
+/* TOP BOX v3.1.4 — compact pallet designer controls. */
+.kit-cargo-search{display:grid!important;gap:4px;margin:0 0 7px!important}
+.kit-cargo-search input{height:30px!important;font-size:12px!important}
+.kit-pieces{font-style:normal;font-size:10px;font-weight:600;color:#7b8da3;margin-left:4px}
+.kit-free-move{margin-left:7px;height:29px;border:1px solid #cadbef;border-radius:7px;background:#fff;color:#466483;font-size:11px;font-weight:700;padding:0 8px;white-space:nowrap}
+.kit-free-move.active{background:#2b66e9;color:#fff;border-color:#2b66e9}
+.pallet-kit-dialog[open] .kit-preview{touch-action:none}
+.cargo-extra-record-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;grid-column:1/-1}
+.cargo-extra-record-fields label,.cargo-note-field{display:grid;gap:6px;color:#48617e;font-weight:700}
+.cargo-note-field{grid-column:1/-1}
+.cargo-note-field textarea{min-height:62px;resize:vertical;border:1px solid #c9d8e8;border-radius:10px;padding:9px 10px;font:inherit;color:#10243e}
+.archive-note-cell{max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:850px){.kit-free-move{font-size:10px;padding:0 6px}.kit-cargo-search input{font-size:11px!important}}
+

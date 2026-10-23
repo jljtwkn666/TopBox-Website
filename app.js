@@ -781,6 +781,8 @@ document.addEventListener('change',event=>{
   persistState();
   scheduleCargoSelectorV296();
 },true);
+Object.assign(I18N.en,{'小件尺寸':'Piece dimensions','备注':'Notes','小件长 (mm)':'Piece length (mm)','小件宽 (mm)':'Piece width (mm)','小件高 (mm)':'Piece height (mm)'});
+Object.assign(I18N.th,{'小件尺寸':'ขนาดชิ้นย่อย','备注':'หมายเหตุ','小件长 (mm)':'ความยาวชิ้นย่อย (มม.)','小件宽 (mm)':'ความกว้างชิ้นย่อย (มม.)','小件高 (mm)':'ความสูงชิ้นย่อย (มม.)'});
 document.addEventListener('click',event=>{
   if(!event.target.closest('#resetCargoSelection'))return;
   event.preventDefault();
@@ -962,9 +964,63 @@ reportCanvas=function(report){
   ctx.fillStyle='#0b2545';ctx.font='bold 24px sans-serif';ctx.fillText('未装载货物与额外车辆建议',78,top+40);
   ctx.font='16px sans-serif';ctx.fillStyle='#405b74';let y=top+72;
   unloaded.forEach(entry=>{ctx.fillText(`${entry.cargo.name}：未装载 ${entry.count} 包 / ${entry.pieces.toLocaleString()} 件`,84,y);y+=31;});
-  ctx.fillStyle='#0c7659';ctx.font='bold 17px sans-serif';ctx.fillText('建议车辆（按现有车厢由小到大匹配）',84,y+12);y+=43;
+  ctx.fillStyle='#0c7659';ctx.font='bold 17px sans-serif';ctx.fillText('建议车辆（优先大车满载，再匹配剩余货物）',84,y+12);y+=43;
   ctx.fillStyle='#405b74';ctx.font='16px sans-serif';recommendation.plans.forEach((plan,index)=>{const pieces=plan.positions.reduce((sum,item)=>sum+(+item.pieces||0),0);ctx.fillText(`${index+1}. ${plan.container.name}：${plan.positions.length} 包 / ${pieces.toLocaleString()} 件`,84,y);y+=31;});
   if(recommendation.remaining.length){const pieces=recommendation.remaining.reduce((sum,item)=>sum+(+item.pieces||0),0);ctx.fillStyle='#b45309';ctx.fillText(`仍无法匹配：${recommendation.remaining.length} 包 / ${pieces.toLocaleString()} 件`,84,y);}
   return canvas;
 };
+
+/* v3.1.4 — cargo details and full-load-first additional vehicle recommendation. */
+function buildExtraVehiclePlansV314(unplaced){
+  const records=new Map();
+  (Array.isArray(unplaced)?unplaced:[]).forEach(item=>{if(!item?.id)return;const record=state.cargo.find(cargo=>cargo.id===item.id)||item,entry=records.get(item.id)||{record,count:0};entry.count++;records.set(item.id,entry);});
+  const trucks=state.containers.filter(container=>container.type==='车厢').slice().sort((a,b)=>usableVolume(b)-usableVolume(a)||b.l-a.l||b.w-a.w||b.h-a.h);
+  const makeCargo=()=>[...records.values()].filter(entry=>entry.count>0).map(entry=>({...entry.record,quantity:entry.count}));
+  const plans=[];
+  for(let run=0;run<40&&[...records.values()].some(entry=>entry.count>0);run++){
+    const remainingCount=[...records.values()].reduce((sum,entry)=>sum+entry.count,0);
+    const choices=trucks.map(container=>({container,plan:packContainer(container,makeCargo(),'specified')})).filter(choice=>choice.plan.positions.length>0);
+    if(!choices.length)break;
+    const selected=choices.find(choice=>choice.plan.positions.length===remainingCount)||choices[0];
+    plans.push(selected.plan);
+    selected.plan.placedCount.forEach((count,id)=>{const entry=records.get(id);if(entry)entry.count=Math.max(0,entry.count-count);});
+  }
+  const remaining=[...records.values()].flatMap(entry=>Array.from({length:entry.count},()=>entry.record));
+  return {plans,remaining};
+}
+buildExtraVehiclePlans=buildExtraVehiclePlansV314;
+buildExtraVehiclePlansV313=buildExtraVehiclePlansV314;
+
+function installCargoArchiveFieldsV314(){
+  const pieces=$('#recordPiecesField');if(!pieces||$('#recordPieceDimensions'))return;
+  pieces.insertAdjacentHTML('afterend','<div id="recordPieceDimensions" class="cargo-extra-record-fields"><label>小件长 (mm)<input id="recordPieceL" type="number" min="0" step="0.1" value="0" /></label><label>小件宽 (mm)<input id="recordPieceW" type="number" min="0" step="0.1" value="0" /></label><label>小件高 (mm)<input id="recordPieceH" type="number" min="0" step="0.1" value="0" /></label></div><label id="recordNoteField" class="cargo-note-field">备注<textarea id="recordNote" rows="2" maxlength="300" placeholder="可填写货物说明、堆码要求等"></textarea></label>');
+}
+const openDialogV314Base=openDialog;
+openDialog=function(record=null){
+  installCargoArchiveFieldsV314();openDialogV314Base(record);
+  const isCargo=$('#recordKind').value==='cargo';
+  $('#recordPieceDimensions')?.toggleAttribute('hidden',!isCargo);$('#recordNoteField')?.toggleAttribute('hidden',!isCargo);
+  $('#recordPieceL').value=record?.pieceL??0;$('#recordPieceW').value=record?.pieceW??0;$('#recordPieceH').value=record?.pieceH??0;$('#recordNote').value=record?.note??'';
+};
+document.addEventListener('submit',event=>{
+  if(event.target?.id!=='archiveForm')return;
+  event.preventDefault();event.stopImmediatePropagation();
+  const kind=$('#recordKind').value,id=$('#recordId').value,record={id:id||uid(kind==='containers'?'c':'g'),name:$('#recordName').value.trim(),type:$('#recordType').value,shape:$('#recordShape').value,l:+$('#recordL').value,w:+$('#recordW').value,h:+$('#recordH').value,weight:+$('#recordWeight').value||0,pieces:Math.max(1,+$('#recordPieces').value||1),reserve:kind==='containers'?(+$('#recordReserve').value||0):0,price:+$('#recordPrice').value||0,color:$('#recordColor').value,quantity:1};
+  if(!record.name||!record.l||!record.w||!record.h)return;
+  if(kind==='cargo'){record.pieceL=Math.max(0,+$('#recordPieceL')?.value||0);record.pieceW=Math.max(0,+$('#recordPieceW')?.value||0);record.pieceH=Math.max(0,+$('#recordPieceH')?.value||0);record.note=$('#recordNote')?.value.trim()||'';}
+  const records=state[kind],index=records.findIndex(item=>item.id===id);if(index<0)records.push(record);else records[index]={...records[index],...record};
+  persistState();$('#archiveDialog').close();renderArchives();renderSelectors();window.dispatchEvent(new Event('topbox:records-changed'));showSuccess(`${record.name} ${t('已保存。')}`);
+},true);
+const renderArchivesV314Base=renderArchives;
+renderArchives=function(){
+  renderArchivesV314Base();if(state.archive!=='cargo')return;
+  const head=$('#archiveTableHead');if(head&&!head.dataset.cargoExtra){const target=head.children[8];target?.insertAdjacentHTML('beforebegin',`<th>${t('小件尺寸')}</th><th>${t('备注')}</th>`);head.dataset.cargoExtra='1';}
+  $$('#archiveRows tr').forEach(row=>{if(row.dataset.cargoExtra)return;const id=$('[data-edit]',row)?.dataset.edit,record=state.cargo.find(item=>item.id===id);if(!record)return;const target=row.children[8];target?.insertAdjacentHTML('beforebegin',`<td>${record.pieceL||record.pieceW||record.pieceH?`${record.pieceL||0} × ${record.pieceW||0} × ${record.pieceH||0} mm`:'—'}</td><td class="archive-note-cell" title="${escapeHtml(record.note||'')}">${escapeHtml(record.note||'—')}</td>`);row.dataset.cargoExtra='1';});
+};
+function downloadCargoTemplateV314(){const rows=[['kind','name','type','shape','l','w','h','weight','pieces','pieceL','pieceW','pieceH','note','price','color','quantity'],['cargo','示例货物','单体货物','box',600,400,350,12,20,120,80,60,'可选备注',86,'#2563eb',1]],csv=rows.map(row=>row.map(csvEscape).join(',')).join('\n');downloadBlob(csv,'货物档案导入模板.csv','text/csv;charset=utf-8');}
+document.addEventListener('click',event=>{const button=event.target.closest('#downloadTemplate');if(button&&state.archive==='cargo'){event.preventDefault();event.stopImmediatePropagation();downloadCargoTemplateV314();}},true);
+document.addEventListener('change',event=>{
+  const input=event.target;if(input?.id!=='importFile'||state.archive!=='cargo'||!input.files?.[0])return;
+  event.stopImmediatePropagation();const reader=new FileReader();reader.onload=()=>{try{const [head,...rows]=parseCSV(reader.result),keys=head.map(key=>key.trim()),items=[];rows.forEach(row=>{const source=Object.fromEntries(keys.map((key,index)=>[key,row[index]??'']));if(!source.name||!source.l||!source.w||!source.h)return;items.push({id:uid('g'),name:source.name,type:source.type||'单体货物',shape:source.shape==='cylinder'?'cylinder':'box',l:+source.l,w:+source.w,h:+source.h,weight:+source.weight||0,pieces:Math.max(1,+source.pieces||1),pieceL:Math.max(0,+source.pieceL||0),pieceW:Math.max(0,+source.pieceW||0),pieceH:Math.max(0,+source.pieceH||0),note:source.note||'',reserve:0,price:+source.price||0,color:source.color||COLORS[(state.cargo.length+items.length)%COLORS.length],quantity:Math.max(1,+source.quantity||1)});});if(!items.length)throw Error('没有有效货物');state.cargo.push(...items);persistState();renderArchives();renderSelectors();window.dispatchEvent(new Event('topbox:records-changed'));showSuccess(`已导入 ${items.length} 条货物档案。`);}catch{showNotice('导入失败，请使用货物档案导入模板。');}finally{input.value='';}};reader.readAsText(input.files[0],'utf-8');
+},true);
 
