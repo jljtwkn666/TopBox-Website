@@ -505,6 +505,12 @@ if(typeof window!=='undefined'&&typeof renderSelectorsV315==='function'){
   syncPalletLauncherV315();
 }
 
+// Expose the live state explicitly for the account and pallet modules.  The
+// loader also imports this module dynamically, so this assignment avoids any
+// dependency on module-export timing during the login screen bootstrap.
+window.TopBoxApp=window.TopBoxApp||{};
+Object.assign(window.TopBoxApp,{state,renderSelectors:()=>renderSelectorsV315(),renderArchives:()=>renderArchives(),renderSavedPlans:()=>renderSavedPlans(),generatePlan:()=>generatePlan(),openSavedPlan:id=>openSavedPlan(id)});
+
 /* v2.9.3 final ownership: no compatibility renderer may run after this. */
 renderSelectors=function(){renderSelectorsV293();renderExactUtilization();};
 window.TopBoxApp.renderSelectors=()=>renderSelectors();
