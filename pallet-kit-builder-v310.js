@@ -8,7 +8,7 @@ let draft,selectedItemId=null,markedItemIds=new Set(),preview=null;
 const state=()=>window.TopBoxApp?.state;
 const num=(id,f=0)=>Math.max(0,+(document.getElementById(id)?.value??f)||0);
 const coord=(id,f=0)=>+(document.getElementById(id)?.value??f)||0;
-const editable=()=>!$('#archives.records-readonly');
+const editable=()=>document.documentElement.dataset.palletKitAllowed!=='false'&&!$('#archives.pallet-kit-readonly');
 const fresh=()=>({id:'',name:'托盘货-',pallet:{l:1100,w:1100,h:130,color:'#b97b45'},allowOverhang:false,items:[]});
 const cargo=()=>state()?.cargo?.filter(x=>!x.kit)||[];
 function makeItem(source,o={}){const r=!!o.rotate;return{id:uid('kit-item'),sourceId:source.id,name:source.name,shape:source.shape==='cylinder'?'cylinder':'box',color:source.color||'#2563eb',l:r?+source.w:+source.l,w:r?+source.l:+source.w,h:+source.h,weight:+source.weight||0,pieces:Math.max(1,+source.pieces||1),x:+o.x||0,y:+o.y||0,z:Math.max(0,+o.z||0),rotate:r};}
@@ -98,4 +98,40 @@ function setupFreeMoveV314(){const toolbar=$('.pallet-kit-toolbar'),canvas=previ
 function setupPreviewInteractionsV314(){const canvas=preview?.renderer?.domElement;if(!canvas||canvas.dataset.kitPreviewV314)return;canvas.dataset.kitPreviewV314='1';canvas.addEventListener('pointerdown',event=>{if(event.button===0)closeKitContextMenuV312();},true);}
 const openKitV314Base=open;
 open=function(record=null){openKitV314Base(record);installCargoSearchV314();requestAnimationFrame(()=>{setupPreviewInteractionsV314();setupFreeMoveV314();});};
+
+/* v3.1.6 — real searchable dropdowns and dedicated pallet-design permission. */
+function cargoSearchTextV316(item){return `${item.name||''} ${item.type||''} ${item.l||0} ${item.w||0} ${item.h||0}`.toLowerCase();}
+function syncCargoComboV316(selectId){
+  const select=$('#'+selectId),combo=select?.nextElementSibling;
+  if(!select||!combo?.classList.contains('kit-search-combo'))return;
+  const selected=cargo().find(item=>item.id===select.value),button=$('.kit-search-combo-button',combo);
+  if(button)button.textContent=selected?`${selected.name} · ${selected.l} × ${selected.w} × ${selected.h} mm`:'请选择货物';
+}
+function installCargoComboV316(selectId,placeholder){
+  const select=$('#'+selectId);if(!select)return;
+  select.closest('label')?.previousElementSibling?.classList?.contains('kit-cargo-search')&&select.closest('label').previousElementSibling.remove();
+  select.classList.add('kit-native-select-hidden');
+  let combo=select.nextElementSibling;
+  if(!combo?.classList.contains('kit-search-combo')){
+    combo=document.createElement('div');combo.className='kit-search-combo';
+    combo.innerHTML=`<button type="button" class="kit-search-combo-button" aria-haspopup="listbox" aria-expanded="false">请选择货物</button><div class="kit-search-combo-popover" hidden><div class="kit-search-combo-sticky"><input type="search" autocomplete="off" placeholder="${placeholder}"></div><div class="kit-search-combo-options" role="listbox"></div></div>`;
+    select.insertAdjacentElement('afterend',combo);
+    const button=$('.kit-search-combo-button',combo),popover=$('.kit-search-combo-popover',combo),input=$('input',combo),options=$('.kit-search-combo-options',combo);
+    const render=()=>{const terms=input.value.trim().toLowerCase().split(/[ ,，]+/).filter(Boolean),matches=cargo().filter(item=>terms.every(term=>cargoSearchTextV316(item).includes(term)));options.innerHTML=matches.map(item=>`<button type="button" role="option" data-kit-combo-value="${esc(item.id)}" class="${item.id===select.value?'selected':''}"><b>${esc(item.name)}</b><span>${item.l} × ${item.w} × ${item.h} mm</span></button>`).join('')||'<p>没有匹配的货物</p>';};
+    button.addEventListener('click',event=>{event.stopPropagation();$$('.kit-search-combo-popover').forEach(node=>{if(node!==popover)node.hidden=true;});popover.hidden=!popover.hidden;button.setAttribute('aria-expanded',String(!popover.hidden));if(!popover.hidden){input.value='';render();requestAnimationFrame(()=>input.focus());}});
+    input.addEventListener('input',render);
+    options.addEventListener('click',event=>{const choice=event.target.closest('[data-kit-combo-value]');if(!choice)return;select.value=choice.dataset.kitComboValue;select.dispatchEvent(new Event('change',{bubbles:true}));popover.hidden=true;button.setAttribute('aria-expanded','false');syncCargoComboV316(selectId);});
+    combo._renderOptions=render;
+  }
+  combo._renderOptions?.();syncCargoComboV316(selectId);
+}
+function installCargoCombosV316(){installCargoComboV316('kitSource','输入名称、类型或尺寸模糊搜索');installCargoComboV316('kitReplaceSource','输入名称、类型或尺寸模糊搜索');}
+const fillChoicesV316Base=fillChoices;
+fillChoices=function(){fillChoicesV316Base();installCargoCombosV316();};
+const selectV316Base=select;
+select=function(id){selectV316Base(id);syncCargoComboV316('kitReplaceSource');};
+const openKitV316Base=open;
+open=function(record=null){if(!editable()){const toast=document.querySelector('#appToast');if(toast){toast.textContent='当前账户未获托盘套装设计权限。';toast.classList.add('visible');setTimeout(()=>toast.classList.remove('visible'),3000);}return;}openKitV316Base(record);installCargoCombosV316();};
+document.addEventListener('click',event=>{if(event.target.closest('.kit-search-combo'))return;$$('.kit-search-combo-popover').forEach(node=>node.hidden=true);});
+window.addEventListener('topbox:permissions-changed',()=>refreshLaunch());
 

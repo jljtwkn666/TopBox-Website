@@ -32,6 +32,7 @@ const api = async (path, options = {}) => {
 const isAdmin = () => user?.role === 'admin' || user?.role === 'super_admin';
 const canEditRecords = () => isAdmin() || Boolean(user?.permissions?.records);
 const canViewUpdates = () => isAdmin() || Boolean(user?.permissions?.updates);
+const canDesignPalletKits = () => isAdmin() || Boolean(user?.permissions?.palletKits);
 
 const state = () => window.TopBoxApp?.state;
 const waitForApp = async () => {
@@ -81,6 +82,9 @@ function applyUser(next) {
   $('#adminPanel').classList.toggle('hidden', !isAdmin());
   $('#newAccountRoleWrap').classList.toggle('hidden', user?.role !== 'super_admin');
   $('#archives').classList.toggle('records-readonly', !canEditRecords());
+  $('#archives').classList.toggle('pallet-kit-readonly', !canDesignPalletKits());
+  document.documentElement.dataset.palletKitAllowed = canDesignPalletKits() ? 'true' : 'false';
+  window.dispatchEvent(new CustomEvent('topbox:permissions-changed', { detail: { palletKits: canDesignPalletKits() } }));
   const updatesButton = $('.nav-link[data-page="updates"]');
   updatesButton?.classList.toggle('permission-hidden', !canViewUpdates());
   $('#updates').classList.toggle('permission-hidden', !canViewUpdates());
@@ -166,7 +170,7 @@ async function renderUsers() {
       // switches are intentionally scoped to ordinary user accounts.
       const editablePermissions = account.role === 'user';
       const editableProfile = account.role !== 'super_admin' && (user.role === 'super_admin' || account.role === 'user');
-      const permissionControls = editablePermissions ? `<div class="permission-switches"><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="records" type="checkbox" ${account.permissions?.records ? 'checked' : ''}> 档案维护</label><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="updates" type="checkbox" ${account.permissions?.updates ? 'checked' : ''}> 更新日志</label></div>` : '';
+      const permissionControls = editablePermissions ? `<div class="permission-switches"><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="records" type="checkbox" ${account.permissions?.records ? 'checked' : ''}> 档案维护</label><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="palletKits" type="checkbox" ${account.permissions?.palletKits ? 'checked' : ''}> 托盘套装设计</label><label><input data-user-permission="${escapeHtml(account.id)}" data-permission="updates" type="checkbox" ${account.permissions?.updates ? 'checked' : ''}> 更新日志</label></div>` : '';
       const roleControl = user.role === 'super_admin' && account.role !== 'super_admin' ? `<select data-user-role="${escapeHtml(account.id)}"><option value="user" ${account.role === 'user' ? 'selected' : ''}>普通用户</option><option value="admin" ${account.role === 'admin' ? 'selected' : ''}>管理员</option></select>` : '';
       const profileControls = editableProfile ? `<div class="user-edit-fields"><input data-user-username="${escapeHtml(account.id)}" value="${escapeHtml(account.username)}" aria-label="用户名"><input data-user-nickname="${escapeHtml(account.id)}" value="${escapeHtml(account.nickname || '')}" aria-label="昵称"><input data-user-password="${escapeHtml(account.id)}" type="password" placeholder="新密码（留空不修改）" aria-label="新密码"></div>` : '';
       const saveControl = editableProfile ? `<button type="button" class="button secondary" data-save-user="${escapeHtml(account.id)}">保存用户</button>` : '';
@@ -262,15 +266,24 @@ function archiveVolume(record, isContainer) {
 function openStableArchiveEditor(record) {
   if (!record) return;
   if (!canEditRecords()) { notify('未获档案维护权限。', true); return; }
+  ensureCargoDetailFields();
   const dialog = $('#archiveDialog');
   const isContainer = state().archive === 'containers';
   $('#recordKind').value = state().archive;
   $('#recordId').value = record.id;
   $('#modalTitle').textContent = isContainer ? '修改容器' : '修改货物';
   $('#modalEyebrow').textContent = 'EDIT RECORD';
-  const map = { recordName: 'name', recordType: 'type', recordShape: 'shape', recordL: 'l', recordW: 'w', recordH: 'h', recordWeight: 'weight', recordPieces: 'pieces', recordReserve: 'reserve', recordPrice: 'price', recordColor: 'color' };
+  const map = { recordName: 'name', recordType: 'type', recordShape: 'shape', recordL: 'l', recordW: 'w', recordH: 'h', recordWeight: 'weight', recordPieces: 'pieces', recordReserve: 'reserve', recordPrice: 'price', recordColor: 'color', recordPieceL: 'pieceL', recordPieceW: 'pieceW', recordPieceH: 'pieceH', recordNote: 'note' };
   Object.entries(map).forEach(([input, key]) => { const field = $('#' + input); if (field) field.value = record[key] ?? ''; });
+  $('#recordPieceDimensions')?.toggleAttribute('hidden', isContainer);
+  $('#recordNoteField')?.toggleAttribute('hidden', isContainer);
   dialog?.showModal();
+}
+
+function ensureCargoDetailFields() {
+  const pieces = $('#recordPiecesField');
+  if (!pieces || $('#recordPieceDimensions')) return;
+  pieces.insertAdjacentHTML('afterend', '<div id="recordPieceDimensions" class="cargo-extra-record-fields"><label>小件长 (mm)<input id="recordPieceL" type="number" min="0" step="0.1" value="0"></label><label>小件宽 (mm)<input id="recordPieceW" type="number" min="0" step="0.1" value="0"></label><label>小件高 (mm)<input id="recordPieceH" type="number" min="0" step="0.1" value="0"></label></div><label id="recordNoteField" class="cargo-note-field">备注<textarea id="recordNote" rows="2" maxlength="300" placeholder="可填写货物说明、堆码要求等"></textarea></label>');
 }
 
 function renderStableArchives() {
@@ -284,10 +297,10 @@ function renderStableArchives() {
   const table = rowsNode.closest('table');
   if (!table) return;
   table.className = `stable-data-table stable-archive-table ${isContainer ? 'is-container' : 'is-cargo'}`;
-  const columns = isContainer ? 9 : 10;
+  const columns = isContainer ? 9 : 12;
   const allSelected = filtered.length > 0 && filtered.every(record => stableArchiveSelection.has(record.id));
   const someSelected = filtered.some(record => stableArchiveSelection.has(record.id));
-  table.innerHTML = `<thead><tr id="archiveTableHead"><th><input id="stableSelectAllArchive" type="checkbox" aria-label="选择全部"></th><th>序号</th><th>名称</th><th>类型</th><th>尺寸（长 × 宽 × 高）</th><th>容积</th><th>重量</th>${isContainer ? '' : '<th>小件数</th>'}<th>颜色</th><th>操作</th></tr></thead><tbody id="archiveRows">${pageData.rows.map((record, index) => `<tr><td><input data-stable-archive-select="${escapeHtml(record.id)}" type="checkbox" ${stableArchiveSelection.has(record.id) ? 'checked' : ''} aria-label="选择 ${escapeHtml(record.name)}"></td><td>${(pageData.page - 1) * pageData.size + index + 1}</td><td><b>${escapeHtml(record.name)}</b></td><td><span class="type-pill">${escapeHtml(record.type)}</span></td><td>${record.l} × ${record.w} × ${record.h} mm</td><td>${archiveVolume(record, isContainer)}</td><td>${+record.weight || 0} kg</td>${isContainer ? '' : `<td>${+record.pieces || 1} 件</td>`}<td><i class="color-pill" style="background:${escapeHtml(record.color || '#2563eb')}"></i></td><td><span class="row-actions">${record.kit && canEditRecords() ? `<button type="button" data-pallet-kit-edit="${escapeHtml(record.id)}">设计</button>` : ''}<button type="button" data-stable-edit-archive="${escapeHtml(record.id)}">编辑</button><button type="button" class="delete" data-stable-delete-archive="${escapeHtml(record.id)}">删除</button></span></td></tr>`).join('') || `<tr><td colspan="${columns}"><div class="empty-state">没有匹配的档案</div></td></tr>`}</tbody>`;
+  table.innerHTML = `<thead><tr id="archiveTableHead"><th><input id="stableSelectAllArchive" type="checkbox" aria-label="选择全部"></th><th>序号</th><th>名称</th><th>类型</th><th>尺寸（长 × 宽 × 高）</th><th>容积</th><th>重量</th>${isContainer ? '' : '<th>小件数</th><th>小件尺寸</th><th>备注</th>'}<th>颜色</th><th>操作</th></tr></thead><tbody id="archiveRows">${pageData.rows.map((record, index) => `<tr><td><input data-stable-archive-select="${escapeHtml(record.id)}" type="checkbox" ${stableArchiveSelection.has(record.id) ? 'checked' : ''} aria-label="选择 ${escapeHtml(record.name)}"></td><td>${(pageData.page - 1) * pageData.size + index + 1}</td><td><b>${escapeHtml(record.name)}</b></td><td><span class="type-pill">${escapeHtml(record.type)}</span></td><td>${record.l} × ${record.w} × ${record.h} mm</td><td>${archiveVolume(record, isContainer)}</td><td>${+record.weight || 0} kg</td>${isContainer ? '' : `<td>${+record.pieces || 1} 件</td><td>${record.pieceL || record.pieceW || record.pieceH ? `${+record.pieceL || 0} × ${+record.pieceW || 0} × ${+record.pieceH || 0} mm` : '—'}</td><td class="archive-note-cell" title="${escapeHtml(record.note || '')}">${escapeHtml(record.note || '—')}</td>`}<td><i class="color-pill" style="background:${escapeHtml(record.color || '#2563eb')}"></i></td><td><span class="row-actions">${record.kit && canDesignPalletKits() ? `<button type="button" data-pallet-kit-edit="${escapeHtml(record.id)}">设计</button>` : ''}<button type="button" data-stable-edit-archive="${escapeHtml(record.id)}">编辑</button><button type="button" class="delete" data-stable-delete-archive="${escapeHtml(record.id)}">删除</button></span></td></tr>`).join('') || `<tr><td colspan="${columns}"><div class="empty-state">没有匹配的档案</div></td></tr>`}</tbody>`;
   const selectAll = $('#stableSelectAllArchive');
   if (selectAll) { selectAll.checked = allSelected; selectAll.indeterminate = someSelected && !allSelected; selectAll.addEventListener('change', event => { filtered.forEach(record => event.target.checked ? stableArchiveSelection.add(record.id) : stableArchiveSelection.delete(record.id)); renderStableArchives(); }); }
   $$('[data-stable-archive-select]').forEach(input => input.addEventListener('change', () => { input.checked ? stableArchiveSelection.add(input.dataset.stableArchiveSelect) : stableArchiveSelection.delete(input.dataset.stableArchiveSelect); renderStableArchives(); }));

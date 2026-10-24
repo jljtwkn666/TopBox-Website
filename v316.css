@@ -1,0 +1,21 @@
+.cargo-extra-record-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;grid-column:1/-1}
+.cargo-note-field{grid-column:1/-1}
+.cargo-note-field textarea{width:100%;min-height:72px;resize:vertical}
+.stable-archive-table.is-cargo{min-width:1500px;table-layout:fixed}
+.stable-archive-table.is-cargo th:nth-child(9),.stable-archive-table.is-cargo td:nth-child(9){width:190px}
+.stable-archive-table.is-cargo th:nth-child(10),.stable-archive-table.is-cargo td:nth-child(10){width:220px}
+.archive-note-cell{max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kit-native-select-hidden{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
+.kit-search-combo{position:relative;width:100%;margin-top:6px}
+.kit-search-combo-button{width:100%;min-height:48px;padding:10px 42px 10px 14px;border:1px solid #c7d7e8;border-radius:12px;background:#fff;color:#112943;text-align:left;font:inherit;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.kit-search-combo-button::after{content:'⌄';position:absolute;right:15px;font-size:20px}
+.kit-search-combo-popover{position:absolute;z-index:120;left:0;right:0;top:calc(100% + 5px);max-height:310px;overflow:auto;border:1px solid #b9cadc;border-radius:12px;background:#fff;box-shadow:0 14px 35px rgba(11,37,69,.2)}
+.kit-search-combo-sticky{position:sticky;top:0;z-index:2;padding:10px;background:#fff;border-bottom:1px solid #e2eaf2}
+.kit-search-combo-sticky input{width:100%;min-height:42px;padding:8px 11px;border:1px solid #c7d7e8;border-radius:9px;font:inherit}
+.kit-search-combo-options{padding:6px}
+.kit-search-combo-options>button{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;width:100%;padding:10px 11px;border:0;border-radius:8px;background:#fff;color:#112943;text-align:left;cursor:pointer}
+.kit-search-combo-options>button:hover,.kit-search-combo-options>button.selected{background:#eaf2ff;color:#145fe5}
+.kit-search-combo-options span{color:#6b8198;font-size:13px}
+.kit-search-combo-options p{padding:16px;color:#6b8198;text-align:center}
+@media(max-width:760px){.cargo-extra-record-fields{grid-template-columns:1fr}.kit-search-combo-options>button{grid-template-columns:1fr}}
+

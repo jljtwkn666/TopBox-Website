@@ -508,6 +508,66 @@ if(typeof window!=='undefined'&&typeof renderSelectorsV315==='function'){
   syncPalletLauncherV315();
 }
 
+/* v3.1.6 final ownership — keep this after every historical compatibility
+   layer so exported reports use the intended large-first / small-last fleet. */
+function buildExtraVehiclePlansV316Final(unplaced){
+  const records=new Map();
+  (Array.isArray(unplaced)?unplaced:[]).forEach(item=>{
+    if(!item?.id)return;
+    const record=state.cargo.find(cargo=>cargo.id===item.id)||item;
+    const entry=records.get(item.id)||{record,count:0};entry.count++;records.set(item.id,entry);
+  });
+  const trucks=state.containers.filter(container=>container.type==='车厢').slice()
+    .sort((a,b)=>usableVolume(b)-usableVolume(a)||b.l-a.l||b.w-a.w||b.h-a.h);
+  const makeCargo=()=>[...records.values()].filter(entry=>entry.count>0)
+    .map(entry=>({...entry.record,quantity:entry.count}));
+  const plans=[];
+  for(let run=0;run<200&&[...records.values()].some(entry=>entry.count>0);run++){
+    const remainingCount=[...records.values()].reduce((sum,entry)=>sum+entry.count,0);
+    const choices=trucks.map(container=>({container,plan:packContainer(container,makeCargo(),'specified')}))
+      .filter(choice=>choice.plan.positions.length>0);
+    if(!choices.length)break;
+    // Final vehicle: choose the smallest truck that fits every remaining item.
+    const complete=choices.filter(choice=>choice.plan.positions.length===remainingCount);
+    // Intermediate vehicle: fill the largest usable truck, then continue.
+    const selected=complete.length?complete[complete.length-1]:choices[0];
+    plans.push(selected.plan);
+    selected.plan.placedCount.forEach((count,id)=>{
+      const entry=records.get(id);if(entry)entry.count=Math.max(0,entry.count-count);
+    });
+  }
+  const remaining=[...records.values()].flatMap(entry=>Array.from({length:entry.count},()=>entry.record));
+  return {plans,remaining};
+}
+buildExtraVehiclePlansV313=buildExtraVehiclePlansV316Final;
+buildExtraVehiclePlansV314=buildExtraVehiclePlansV316Final;
+if(typeof buildExtraVehiclePlans==='function')buildExtraVehiclePlans=buildExtraVehiclePlansV316Final;
+
+/* v3.1.6 — final additional-vehicle policy: use the largest useful truck for
+   every full intermediate load, then the smallest truck that fits the final
+   remainder in one trip. */
+function buildExtraVehiclePlansV316(unplaced){
+  const records=new Map();
+  (Array.isArray(unplaced)?unplaced:[]).forEach(item=>{if(!item?.id)return;const record=state.cargo.find(cargo=>cargo.id===item.id)||item,entry=records.get(item.id)||{record,count:0};entry.count++;records.set(item.id,entry);});
+  const trucks=state.containers.filter(container=>container.type==='车厢').slice().sort((a,b)=>usableVolume(b)-usableVolume(a)||b.l-a.l||b.w-a.w||b.h-a.h);
+  const makeCargo=()=>[...records.values()].filter(entry=>entry.count>0).map(entry=>({...entry.record,quantity:entry.count}));
+  const plans=[];
+  for(let run=0;run<100&&[...records.values()].some(entry=>entry.count>0);run++){
+    const remainingCount=[...records.values()].reduce((sum,entry)=>sum+entry.count,0);
+    const choices=trucks.map(container=>({container,plan:packContainer(container,makeCargo(),'specified')})).filter(choice=>choice.plan.positions.length>0);
+    if(!choices.length)break;
+    const complete=choices.filter(choice=>choice.plan.positions.length===remainingCount);
+    const selected=complete.length?complete[complete.length-1]:choices[0];
+    plans.push(selected.plan);
+    selected.plan.placedCount.forEach((count,id)=>{const entry=records.get(id);if(entry)entry.count=Math.max(0,entry.count-count);});
+  }
+  const remaining=[...records.values()].flatMap(entry=>Array.from({length:entry.count},()=>entry.record));
+  return {plans,remaining};
+}
+if(typeof buildExtraVehiclePlans==='function')buildExtraVehiclePlans=buildExtraVehiclePlansV316;
+if(typeof buildExtraVehiclePlansV313==='function')buildExtraVehiclePlansV313=buildExtraVehiclePlansV316;
+if(typeof buildExtraVehiclePlansV314==='function')buildExtraVehiclePlansV314=buildExtraVehiclePlansV316;
+
 // Expose the live state explicitly for the account and pallet modules.  The
 // loader also imports this module dynamically, so this assignment avoids any
 // dependency on module-export timing during the login screen bootstrap.

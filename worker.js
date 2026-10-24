@@ -86,12 +86,12 @@ async function ensureSchema(env) {
   const admin = await env.DB.prepare('SELECT id FROM users WHERE username = ?').bind('admin').first();
   if (!admin) {
     const password = await newPassword('12345');
-    await env.DB.prepare('INSERT OR IGNORE INTO users (id, username, password_hash, password_salt, role, nickname, avatar, permissions, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').bind('u_admin', 'admin', password.hash, password.salt, 'super_admin', '超级管理员', '', JSON.stringify({ records: true, updates: true }), now(), now()).run();
+    await env.DB.prepare('INSERT OR IGNORE INTO users (id, username, password_hash, password_salt, role, nickname, avatar, permissions, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').bind('u_admin', 'admin', password.hash, password.salt, 'super_admin', '超级管理员', '', JSON.stringify({ records: true, palletKits: true, updates: true }), now(), now()).run();
   }
   for (const [key, payload] of [['containers', SEED_CONTAINERS], ['cargo', SEED_CARGO]]) await env.DB.prepare('INSERT OR IGNORE INTO shared_records (record_key, payload, updated_at, updated_by) VALUES (?, ?, ?, ?)').bind(key, JSON.stringify(payload), now(), 'u_admin').run();
 }
 
-const defaultPermissions = role => ({ records: role === 'super_admin' || role === 'admin', updates: role === 'super_admin' || role === 'admin' });
+const defaultPermissions = role => ({ records: role === 'super_admin' || role === 'admin', palletKits: role === 'super_admin' || role === 'admin', updates: role === 'super_admin' || role === 'admin' });
 const permissionsFor = row => { try { return { ...defaultPermissions(row?.role), ...(row?.permissions ? JSON.parse(row.permissions) : {}) }; } catch { return defaultPermissions(row?.role); } };
 const publicUser = row => row && ({ id: row.id, username: row.username, role: row.role, nickname: row.nickname, avatar: row.avatar || '', permissions: permissionsFor(row) });
 async function sessionUser(request, env) {
@@ -102,6 +102,7 @@ async function sessionUser(request, env) {
 }
 const canManageUsers = user => user?.role === 'super_admin' || user?.role === 'admin';
 const canEditRecords = user => canManageUsers(user) || Boolean(user?.permissions?.records);
+const canDesignPalletKits = user => canManageUsers(user) || Boolean(user?.permissions?.palletKits);
 const assertPassword = password => typeof password === 'string' && password.length >= 5 && password.length <= 128;
 async function readBody(request) { try { return await request.json(); } catch { return null; } }
 
@@ -143,9 +144,14 @@ async function api(request, env, path) {
   if (path === '/api/shared/records') {
     if (request.method === 'GET') return json(await loadUserRecords(env, user.id));
     if (request.method === 'PUT') {
-      if (!canEditRecords(user)) return error('未获档案维护权限。', 403);
+      if (!canEditRecords(user) && !canDesignPalletKits(user)) return error('未获档案维护或托盘套装设计权限。', 403);
       const body = await readBody(request); if (!Array.isArray(body?.containers) || !Array.isArray(body?.cargo)) return error('档案格式无效。');
       if (body.containers.some(item => !isContainerRecord(item)) || body.cargo.some(item => !isCargoRecord(item))) return error('容器与货物档案类型不匹配，已拒绝保存以保护档案数据。');
+      if (!canEditRecords(user)) {
+        const current = await loadUserRecords(env, user.id);
+        const comparable = list => list.filter(item => !item?.kit).map(item => { const copy = { ...item }; delete copy.quantity; delete copy.pieceQuantity; return JSON.stringify(copy); }).sort();
+        if (JSON.stringify(body.containers) !== JSON.stringify(current.containers) || JSON.stringify(comparable(body.cargo)) !== JSON.stringify(comparable(current.cargo))) return error('托盘套装设计权限仅允许新增或修改套装货物。', 403);
+      }
       const records = { containers: uniqueRecords(body.containers), cargo: uniqueRecords(body.cargo) };
       await env.DB.batch(['containers', 'cargo'].map(key => env.DB.prepare('INSERT INTO user_records (owner_id, record_key, payload, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(owner_id, record_key) DO UPDATE SET payload=excluded.payload, updated_at=excluded.updated_at').bind(user.id, key, JSON.stringify(records[key]), now())));
       return json({ ok: true });
@@ -206,7 +212,7 @@ async function api(request, env, path) {
       if (user.role !== 'super_admin' && target.role !== 'user') return error('只能调整普通用户权限。', 403);
       const role = user.role === 'super_admin' ? (body?.role === 'admin' ? 'admin' : 'user') : target.role;
       const requested = body?.permissions && typeof body.permissions === 'object' ? body.permissions : permissionsFor(target);
-      const permissions = { records: Boolean(requested.records), updates: Boolean(requested.updates) };
+      const permissions = { records: Boolean(requested.records), palletKits: Boolean(requested.palletKits), updates: Boolean(requested.updates) };
       const username = body?.username === undefined ? target.username : String(body.username || '').trim().toLowerCase();
       const nickname = body?.nickname === undefined ? target.nickname : String(body.nickname || '').trim().slice(0, 40);
       if (!/^[a-z0-9_.-]{3,40}$/.test(username) || !nickname) return error('账号需为 3–40 位小写字母、数字、._-，昵称不能为空。');
