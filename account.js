@@ -288,6 +288,17 @@ function ensureCargoDetailFields() {
 function syncArchiveDialogFields(kind, record = null) {
   ensureCargoDetailFields();
   const cargo = kind === 'cargo';
+  const type = $('#recordType');
+  const allowedTypes = cargo
+    ? [['单体货物', '单体货物'], ['套装货物', '套装货物']]
+    : [['车厢', '车厢（方形）'], ['箱子', '箱子（方形）'], ['桶', '桶（圆柱形）'], ['托盘', '托盘']];
+  if (type) {
+    const requested = record?.type;
+    type.replaceChildren(...allowedTypes.map(([value, label]) => {
+      const option = document.createElement('option'); option.value = value; option.textContent = label; return option;
+    }));
+    type.value = allowedTypes.some(([value]) => value === requested) ? requested : allowedTypes[0][0];
+  }
   $('#recordPiecesField')?.toggleAttribute('hidden', !cargo);
   $('#recordPieceDimensions')?.toggleAttribute('hidden', !cargo);
   $('#recordNoteField')?.toggleAttribute('hidden', !cargo);
@@ -388,40 +399,67 @@ function configureStableTable(table, kind) {
   if (!table) return;
   table.querySelectorAll('.column-resize-handle').forEach(handle => handle.remove());
   const definitions = tableColumnDefinitions[kind], prefs = tableColumnPrefs(kind);
-  const hidden = new Set(prefs.hidden || []), pinned = new Set(['select', 'seq', ...(prefs.pinned || [])]);
+  const locked = new Set(['select', 'seq', 'actions']);
+  const hidden = new Set((prefs.hidden || []).filter(key => !locked.has(key)));
+  const pinned = new Set(['select', 'seq', ...(prefs.pinned || []).filter(key => !locked.has(key))]);
   table.classList.add('stable-column-managed'); table.dataset.columnTable = kind;
   const rows = [...table.rows];
+  const sequenceDigits = String(Math.max(1, state()?.[kind === 'plans' ? 'savedPlans' : kind]?.length || 1)).length;
+  const fixedWidths = { select: 52, seq: Math.max(54, 38 + sequenceDigits * 9) };
   definitions.forEach(([key], index) => rows.forEach(row => {
     const cell = row.cells[index]; if (!cell) return;
     cell.dataset.columnKey = key;
-    cell.toggleAttribute('hidden', hidden.has(key) && !['select', 'seq', 'actions'].includes(key));
-    const width = prefs.widths?.[key];
-    if (width) { cell.style.setProperty('width', `${width}px`, 'important'); cell.style.setProperty('min-width', `${width}px`, 'important'); cell.style.setProperty('max-width', `${width}px`, 'important'); }
+    cell.classList.remove('stable-sticky-left', 'stable-sticky-right', 'column-hidden');
+    cell.style.removeProperty('--sticky-left');
+    const shouldHide = hidden.has(key);
+    cell.classList.toggle('column-hidden', shouldHide);
+    cell.style.setProperty('display', shouldHide ? 'none' : '', shouldHide ? 'important' : '');
+    if (!shouldHide) cell.style.removeProperty('display');
+    const width = fixedWidths[key] || (!locked.has(key) ? prefs.widths?.[key] : null);
+    if (width) {
+      cell.style.setProperty('width', `${width}px`, 'important');
+      cell.style.setProperty('min-width', `${width}px`, 'important');
+      cell.style.setProperty('max-width', `${width}px`, 'important');
+    } else {
+      cell.style.removeProperty('width'); cell.style.removeProperty('min-width'); cell.style.removeProperty('max-width');
+    }
   }));
   let left = 0;
   definitions.forEach(([key], index) => {
-    const visible = !hidden.has(key) || ['select', 'seq', 'actions'].includes(key);
+    const visible = !hidden.has(key) || locked.has(key);
     if (!visible || !pinned.has(key)) return;
     const sample = rows.find(row => row.cells[index])?.cells[index];
-    const width = prefs.widths?.[key] || sample?.getBoundingClientRect().width || (key === 'select' ? 54 : key === 'seq' ? 70 : 160);
+    const width = fixedWidths[key] || prefs.widths?.[key] || sample?.getBoundingClientRect().width || 160;
     rows.forEach(row => { const cell = row.cells[index]; if (cell) { cell.classList.add('stable-sticky-left'); cell.style.setProperty('--sticky-left', `${left}px`); } });
     left += width;
   });
   const actionIndex = definitions.findIndex(([key]) => key === 'actions');
-  rows.forEach(row => row.cells[actionIndex]?.classList.add('stable-sticky-right'));
+  let actionWidth = 108;
+  rows.forEach(row => { const cell = row.cells[actionIndex]; if (cell) actionWidth = Math.max(actionWidth, Math.ceil(cell.scrollWidth + 24)); });
+  rows.forEach(row => { const cell = row.cells[actionIndex]; if (!cell) return; cell.classList.add('stable-sticky-right'); cell.style.setProperty('width', `${actionWidth}px`, 'important'); cell.style.setProperty('min-width', `${actionWidth}px`, 'important'); cell.style.setProperty('max-width', `${actionWidth}px`, 'important'); });
   const header = table.tHead?.rows?.[0];
   definitions.forEach(([key], index) => {
-    const th = header?.cells[index]; if (!th || key === 'actions') return;
-    const handle = document.createElement('span'); handle.className = 'column-resize-handle'; handle.title = '拖动调整列宽';
+    const th = header?.cells[index]; if (!th || locked.has(key) || hidden.has(key)) return;
+    const setWidth = width => {
+      const current = tableColumnPrefs(kind); current.widths = { ...(current.widths || {}), [key]: Math.max(64, Math.min(720, Math.round(width))) }; saveTableColumnPrefs(kind, current);
+      configureStableTable(table, kind);
+    };
+    const handle = document.createElement('span'); handle.className = 'column-resize-handle'; handle.title = '拖动调整列宽；双击自动适合内容';
+    handle.addEventListener('dblclick', event => {
+      event.preventDefault(); event.stopPropagation();
+      const measure = document.createElement('span'); measure.className = 'column-width-measurer'; document.body.append(measure);
+      let best = 64;
+      rows.forEach(row => { const cell = row.cells[index]; if (!cell) return; measure.style.font = getComputedStyle(cell).font; measure.textContent = cell.textContent.trim(); best = Math.max(best, measure.getBoundingClientRect().width + 38); });
+      measure.remove(); setWidth(best);
+    });
     handle.addEventListener('pointerdown', event => {
       event.preventDefault(); event.stopPropagation();
       const startX = event.clientX, startWidth = th.getBoundingClientRect().width;
       const move = moveEvent => {
         const width = Math.max(54, Math.round(startWidth + moveEvent.clientX - startX));
-        const current = tableColumnPrefs(kind); current.widths = { ...(current.widths || {}), [key]: width }; saveTableColumnPrefs(kind, current);
         rows.forEach(row => { const cell = row.cells[index]; if (cell) { cell.style.setProperty('width', `${width}px`, 'important'); cell.style.setProperty('min-width', `${width}px`, 'important'); cell.style.setProperty('max-width', `${width}px`, 'important'); } });
       };
-      const up = () => { document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); configureStableTable(table, kind); };
+      const up = upEvent => { document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); setWidth(startWidth + upEvent.clientX - startX); };
       document.addEventListener('pointermove', move); document.addEventListener('pointerup', up);
     });
     th.append(handle);
@@ -744,4 +782,3 @@ function bindArchiveNavigationV298() {
 }
 
 start();
-

@@ -1286,3 +1286,118 @@ buildExtraVehiclePlans=buildExtraVehiclePlansV317Absolute;
 buildExtraVehiclePlansV313=buildExtraVehiclePlansV317Absolute;
 buildExtraVehiclePlansV314=buildExtraVehiclePlansV317Absolute;
 
+/* v3.1.8 — one final cargo renderer and one final fleet recommender.
+   Historical renderers remain parseable for old saved payloads, but no live
+   entry point is allowed to leave their markup in the document. */
+function renderCargoRowsV318(){
+  const host=$('#cargoList');if(!host)return;
+  const terms=($('#cargoSearch')?.value||'').trim().toLowerCase().split(',').map(value=>value.trim()).filter(Boolean);
+  const rows=state.cargo.filter(item=>terms.every(term=>`${item.name}${item.type}`.toLowerCase().includes(term)));
+  const size=Math.max(1,+state.ui.cargoSize||20),pages=Math.max(1,Math.ceil(rows.length/size));
+  state.ui.cargoPage=Math.max(1,Math.min(+state.ui.cargoPage||1,pages));
+  const page=rows.slice((state.ui.cargoPage-1)*size,state.ui.cargoPage*size);
+  const specified=document.querySelector('input[name="mode"]:checked')?.value==='specified';
+  const pieceMode=state.settings.quantityInputMode==='pieces';
+  host.className='cargo-v318-list';host.dataset.renderer='v318';
+  host.innerHTML=page.map(item=>{
+    const perPackage=Math.max(1,+item.pieces||1),bags=Math.max(1,+item.quantity||1),pieces=Math.max(1,+item.pieceQuantity||bags*perPackage),value=pieceMode?pieces:bags;
+    const result=pieceMode?`${t('折合')} ${Math.ceil(pieces/perPackage).toLocaleString()} ${t('包')}`:`${t('共')} ${(bags*perPackage).toLocaleString()} ${t('件')}`;
+    return `<label class="cargo-v318-row ${state.selectedCargo.has(item.id)?'checked':''}" data-cargo-v318="${item.id}"><input class="cargo-v318-check" data-id="${item.id}" type="checkbox" ${state.selectedCargo.has(item.id)?'checked':''}><span class="cargo-v318-color" style="background:${item.color}"></span><span class="cargo-v318-info"><b>${escapeHtml(item.name)}</b><small>${item.l} × ${item.w} × ${item.h} mm · ${cubicMeters(item).toFixed(4)} m³</small><small>${perPackage.toLocaleString()} ${t('件')}/${t('包')}</small></span><span class="cargo-v318-control"><input class="cargo-v318-input" data-id="${item.id}" type="number" min="1" value="${value}" ${specified?'':'disabled'}><span class="cargo-v318-unit">${pieceMode?t('件'):t('包')}</span><strong class="cargo-v318-result">${result}</strong></span></label>`;
+  }).join('')||`<div class="empty-state">${t('没有匹配的货物')}</div>`;
+  const pager=$('#cargoPager');if(pager)pager.innerHTML=`<span>${rows.length?`${(state.ui.cargoPage-1)*size+1}-${Math.min(state.ui.cargoPage*size,rows.length)}/${rows.length}`:'0/0'}</span><button data-v318-page="-1" ${state.ui.cargoPage<=1?'disabled':''}>‹</button><button data-v318-page="1" ${state.ui.cargoPage>=pages?'disabled':''}>›</button><select data-v318-size>${[20,30,50,100,200,500,1000,2000].map(value=>`<option value="${value}" ${size===value?'selected':''}>${value}</option>`).join('')}</select>`;
+  $('[data-v318-page="-1"]',pager)?.addEventListener('click',()=>{state.ui.cargoPage--;persistState();renderSelectorsV318();});
+  $('[data-v318-page="1"]',pager)?.addEventListener('click',()=>{state.ui.cargoPage++;persistState();renderSelectorsV318();});
+  $('[data-v318-size]',pager)?.addEventListener('change',event=>{state.ui.cargoSize=+event.target.value;state.ui.cargoPage=1;persistState();renderSelectorsV318();});
+  $$('.cargo-v318-check',host).forEach(input=>input.addEventListener('change',()=>{if(input.checked&&!specified){state.selectedCargo.clear();state.selectedCargo.add(input.dataset.id);}else if(input.checked)state.selectedCargo.add(input.dataset.id);else state.selectedCargo.delete(input.dataset.id);persistState();renderSelectorsV318();}));
+  $$('.cargo-v318-input',host).forEach(input=>{const sync=save=>{const item=state.cargo.find(value=>value.id===input.dataset.id);if(!item)return;const perPackage=Math.max(1,+item.pieces||1),amount=Math.max(1,+input.value||1);if(pieceMode){item.pieceQuantity=amount;item.quantity=Math.ceil(amount/perPackage);}else{item.quantity=amount;item.pieceQuantity=amount*perPackage;}input.value=amount;const out=input.closest('.cargo-v318-control')?.querySelector('.cargo-v318-result');if(out)out.textContent=pieceMode?`${t('折合')} ${Math.ceil(amount/perPackage).toLocaleString()} ${t('包')}`:`${t('共')} ${(amount*perPackage).toLocaleString()} ${t('件')}`;if(save)persistState();};input.addEventListener('input',()=>sync(false));input.addEventListener('change',()=>sync(true));});
+}
+function renderContainerRowsV318(){
+  const host=$('#containerList');if(!host)return;
+  const query=($('#containerSearch')?.value||'').trim().toLowerCase();
+  const rows=state.containers.filter(item=>!query||`${item.name}${item.type}`.toLowerCase().includes(query));
+  const size=Math.max(1,+state.ui.containerSize||20),pages=Math.max(1,Math.ceil(rows.length/size));
+  state.ui.containerPage=Math.max(1,Math.min(+state.ui.containerPage||1,pages));
+  const page=rows.slice((state.ui.containerPage-1)*size,state.ui.containerPage*size);
+  host.innerHTML=page.map(item=>`<label class="select-row ${state.selectedContainers.has(item.id)?'checked':''}"><input class="container-check" data-id="${item.id}" type="checkbox" ${state.selectedContainers.has(item.id)?'checked':''}><span class="color-square" style="background:${item.color}"></span><span class="record-main"><b>${escapeHtml(item.name)}</b><small>${containerLabel(item)}</small></span><span class="record-extra">${escapeHtml(item.type)}</span></label>`).join('')||`<div class="empty-state">${t('没有匹配的容器')}</div>`;
+  const pager=$('#containerPager');if(pager)pager.innerHTML=`<span>${rows.length?`${(state.ui.containerPage-1)*size+1}-${Math.min(state.ui.containerPage*size,rows.length)}/${rows.length}`:'0/0'}</span><button data-v318-container-page="-1" ${state.ui.containerPage<=1?'disabled':''}>‹</button><button data-v318-container-page="1" ${state.ui.containerPage>=pages?'disabled':''}>›</button><select data-v318-container-size>${[20,30,50,100,200,500,1000,2000].map(value=>`<option value="${value}" ${size===value?'selected':''}>${value}</option>`).join('')}</select>`;
+  $('[data-v318-container-page="-1"]',pager)?.addEventListener('click',()=>{state.ui.containerPage--;persistState();renderSelectorsV318();});
+  $('[data-v318-container-page="1"]',pager)?.addEventListener('click',()=>{state.ui.containerPage++;persistState();renderSelectorsV318();});
+  $('[data-v318-container-size]',pager)?.addEventListener('change',event=>{state.ui.containerSize=+event.target.value;state.ui.containerPage=1;persistState();renderSelectorsV318();});
+  $$('.container-check',host).forEach(input=>input.addEventListener('change',()=>{input.checked?state.selectedContainers.add(input.dataset.id):state.selectedContainers.delete(input.dataset.id);persistState();renderSelectorsV318();}));
+}
+function syncSelectorBadgesV318(){
+  const update=(id,records,selected)=>{const badge=$('#'+id);if(!badge)return;const names=records.filter(item=>selected.has(item.id)).map(item=>item.name);badge.textContent=`${t('已选')} ${names.length} ${t('项')}`;badge.dataset.selectedNames=names.join('、');badge.title=names.join('、');};
+  update('selectedContainerCount',state.containers,state.selectedContainers);
+  update('selectedCargoCount',state.cargo,state.selectedCargo);
+}
+function renderSelectorsV318(){
+  renderContainerRowsV318();
+  renderCargoRowsV318();
+  syncSelectorBadgesV318();
+  renderExactUtilization();
+}
+function scheduleSelectorsV318(){
+  renderSelectorsV318();
+  queueMicrotask(renderCargoRowsV318);
+  requestAnimationFrame(renderCargoRowsV318);
+}
+renderSelectors=renderSelectorsV318;
+renderSelectorsV315=renderSelectorsV318;
+renderCargoSelectorV296=renderSelectorsV318;
+scheduleCargoSelectorV296=scheduleSelectorsV318;
+window.TopBoxApp.renderSelectors=renderSelectorsV318;
+const cargoSelectorV318Host=$('#cargoList');
+if(cargoSelectorV318Host)new MutationObserver(()=>{
+  if(cargoSelectorV318Host.dataset.renderer==='v318'&&![...cargoSelectorV318Host.children].some(node=>node.matches?.('.select-row,.cargo-fresh-row,.cargo-v315-row')))return;
+  requestAnimationFrame(renderCargoRowsV318);
+}).observe(cargoSelectorV318Host,{childList:true});
+document.addEventListener('change',event=>{
+  const input=event.target;
+  if(!(input instanceof HTMLInputElement)||input.name!=='mode')return;
+  queueMicrotask(scheduleSelectorsV318);
+},true);
+document.addEventListener('click',event=>{
+  if(!event.target.closest('#resetCargoSelection,[data-quantity-mode]'))return;
+  setTimeout(scheduleSelectorsV318,0);
+},true);
+renderSelectorsV318();
+
+function buildExtraVehiclePlansV318(unplaced){
+  const grouped=new Map();
+  (Array.isArray(unplaced)?unplaced:[]).forEach(item=>{
+    if(!item?.id)return;
+    const entry=grouped.get(item.id)||{record:state.cargo.find(cargo=>cargo.id===item.id)||item,implicit:0,explicit:0};
+    const raw=item.unplacedQuantity??item.unplacedCount;
+    if(raw==null)entry.implicit+=1;else entry.explicit=Math.max(entry.explicit,Math.max(1,Math.floor(+raw||1)));
+    grouped.set(item.id,entry);
+  });
+  const remaining=new Map([...grouped].map(([id,entry])=>[id,{record:entry.record,count:entry.explicit||entry.implicit}]));
+  const trucks=state.containers.filter(container=>container.type==='车厢').slice().sort((a,b)=>usableVolume(b)-usableVolume(a)||b.l-a.l||b.w-a.w||b.h-a.h);
+  const requested=()=>[...remaining.values()].filter(entry=>entry.count>0).map(entry=>({...entry.record,quantity:entry.count}));
+  const total=()=>[...remaining.values()].reduce((sum,entry)=>sum+entry.count,0),plans=[];
+  for(let run=0;run<2000&&total()>0;run++){
+    const wanted=total();
+    const choices=trucks.map(container=>{
+      const plan=packContainer(container,requested(),'specified');
+      const loaded=[...plan.placedCount.values()].reduce((sum,count)=>sum+(+count||0),0);
+      return{plan,loaded,volume:+plan.loadedVolume||0,capacity:usableVolume(container)};
+    }).filter(choice=>choice.loaded>0);
+    if(!choices.length)break;
+    /* If one vehicle can finish the remainder, use the smallest vehicle that
+       can do so. Otherwise use the largest available vehicle that can make
+       progress, fill it, remove its cargo, and repeat. This keeps the fleet
+       count low without recommending an oversized final vehicle. */
+    const complete=choices.filter(choice=>choice.loaded===wanted).sort((a,b)=>a.capacity-b.capacity||a.plan.container.l-b.plan.container.l);
+    const partial=choices.filter(choice=>choice.loaded<wanted).sort((a,b)=>b.capacity-a.capacity||b.volume-a.volume||b.loaded-a.loaded);
+    const selected=complete[0]||partial[0];if(!selected)break;
+    plans.push(selected.plan);
+    let progress=0;
+    selected.plan.placedCount.forEach((count,id)=>{const entry=remaining.get(id);if(!entry)return;const used=Math.min(entry.count,Math.max(0,+count||0));entry.count-=used;progress+=used;});
+    if(!progress)break;
+  }
+  return{plans,remaining:[...remaining.values()].flatMap(entry=>Array.from({length:entry.count},()=>({...entry.record})))};
+}
+buildExtraVehiclePlans=buildExtraVehiclePlansV318;
+buildExtraVehiclePlansV313=buildExtraVehiclePlansV318;
+buildExtraVehiclePlansV314=buildExtraVehiclePlansV318;
+if(typeof buildExtraVehiclePlansV316!=='undefined')buildExtraVehiclePlansV316=buildExtraVehiclePlansV318;
