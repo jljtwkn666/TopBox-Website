@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="v316.css?v=3.1.6" />
     <link rel="stylesheet" href="v317.css?v=3.1.7" />
     <link rel="stylesheet" href="v318.css?v=3.1.8" />
-    <link rel="stylesheet" href="v319.css?v=3.2.2" />
+    <link rel="stylesheet" href="v319.css?v=3.2.3" />
   </head>
   <body>
     <script>
@@ -43,7 +43,7 @@
         <button class="nav-link" data-page="tutorial">使用教程</button>
         <button class="nav-link" data-page="updates">更新日志</button>
       </nav>
-      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v3.2.2</span></div>
+      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v3.2.3</span></div>
     </header>
 
     <main>
@@ -91,7 +91,8 @@
 
       <section id="updates" class="page">
         <div class="page-heading"><div><p class="eyebrow">RELEASE NOTES</p><h1>更新日志</h1><p>TOP BOX货物装载配货平台版本记录。</p></div><label class="update-filter">更新日期<select id="updateDateFilter"><option value="all">全部日期</option><option value="2026-10-23">2026-10-23</option><option value="2026-10-22">2026-10-22</option><option value="2026-10-18">2026-10-18</option><option value="2026-10-17">2026-10-17</option><option value="2026-10-16">2026-10-16</option><option value="2026-10-15">2026-10-15</option><option value="2026-10-14">2026-10-14</option></select></label></div>
-        <article class="release-latest" data-release-date="2026-10-24"><div class="release-title"><h2>v3.2.2</h2><time>2026-10-24</time></div><ul><li>托盘套装 3D 预览中，被点击选中的货物以浅色实体和蓝色边框突出显示。</li><li>托盘套装设计右侧功能区恢复独立纵向滚动，已摆放货物及修改区域可完整查看。</li><li>容器档案、货物档案和装载方案列表的省略文字支持悬浮显示完整内容。</li></ul></article>
+        <article class="release-latest" data-release-date="2026-10-24"><div class="release-title"><h2>v3.2.3</h2><time>2026-10-24</time></div><ul><li>托盘套装设计新增木质、塑料、金属三种托盘样式，可在左侧托盘参数中选择并保存。</li><li>托盘 3D 模型升级为组合式真实结构，包含木纹与钉帽、塑料网格孔、金属格栅、底梁及叉车插入通道。</li><li>保存后的套装货物在装载方案及导出效果图中继续使用所选托盘材质和结构。</li></ul></article>
+        <article data-release-date="2026-10-24"><div class="release-title"><h2>v3.2.2</h2><time>2026-10-24</time></div><ul><li>托盘套装 3D 预览中，被点击选中的货物以浅色实体和蓝色边框突出显示。</li><li>托盘套装设计右侧功能区恢复独立纵向滚动，已摆放货物及修改区域可完整查看。</li><li>容器档案、货物档案和装载方案列表的省略文字支持悬浮显示完整内容。</li></ul></article>
         <article data-release-date="2026-10-24"><div class="release-title"><h2>v3.2.1</h2><time>2026-10-24</time></div><ul><li>额外车辆建议采用确定性车队逻辑：余货不能一车装完时先使用最大车并扣除实际装载量，最后一辆选择能装完余货的最小车。</li><li>加强列顺序规则，勾选框和序号始终位于最左侧，操作列始终位于最右侧。</li><li>继续统一重置及装载方式切换后的货物列表，并修复托盘套装设计入口。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-24"><div class="release-title"><h2>v3.2.0</h2><time>2026-10-24</time></div><ul><li>列设置新增拖拽调整列位置；系统固定列和用户固定列保持锁定，取消固定后即可移动。</li><li>托盘套装设计入口改为页面级委托并等待应用初始化，档案表重绘后仍可正常打开。</li><li>初始、重置、指定数量及满载优先全部使用唯一货物列表渲染器，彻底阻止旧布局回写。</li><li>额外车辆建议按真实剩余空间判断车辆是否装满：中间优先最大满载车型，最后选择能装完余货的最小车型。</li></ul></article><article class="release-latest" data-release-date="2026-10-24"><div class="release-title"><h2>v3.1.9</h2><time>2026-10-24</time></div><ul><li>列设置新增拖拽调整列位置；系统固定列和用户固定列保持锁定，取消固定后即可移动。</li><li>修复档案重绘后托盘套装设计按钮失效，入口改为稳定的委托事件。</li><li>彻底统一货物选择列表的初始、重置及装载方式切换渲染，移除旧版选择器样式入口。</li><li>重做未装载货物的额外车辆选择：中间车辆优先选择能够充分装载的最大车型，最后一辆使用能够装完余货的最小车型。</li></ul></article><article class="release-latest" data-release-date="2026-10-24"><div class="release-title"><h2>v3.1.8</h2><time>2026-10-24</time></div><ul><li>严格区分容器与货物类型：容器仅保留车厢、箱子、桶和托盘，货物仅保留单体货物与套装货物。</li><li>重构档案弹窗为紧凑布局，在桌面端不显示外层滚动条并完整展示字段。</li><li>重做三类数据表格列管理：选择、序号与操作列固定，中间列支持显隐、固定、拖动及双击自适应宽度。</li><li>货物选择列表改为唯一运行渲染器，切换装载方式和重置后保持同一布局。</li><li>额外车辆建议在余货不能一车装完时优先使用最大可用车型，循环扣除实际装载量，最后一车再选择能装下全部余货的最小车型。</li></ul></article>
         <article data-release-date="2026-10-24"><div class="release-title"><h2>v3.1.7</h2><time>2026-10-24</time></div><ul><li>修复容器档案刷新时菜单文字闪烁，并严格区分容器与货物新增、修改字段。</li><li>额外车辆建议改为按剩余包数逐车计算：大车优先装满，末车选择可装下的最小车型。</li><li>托盘套装设计的添加与替换货物改为独立单选列表弹窗，支持多关键词模糊搜索。</li><li>容器档案、货物档案和方案管理表格支持拖动调整列宽、字段显隐和固定左侧列。</li></ul></article>
@@ -164,7 +165,7 @@
       </section>
 
       <section id="tutorial" class="page">
-        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v3.2.2 更新</span></div>
+        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>跟随图文步骤完成登录、维护档案、生成方案及导出。</p></div><span class="tutorial-version">随 v3.2.3 更新</span></div>
         <div class="tutorial-grid" id="tutorialGrid">
           <article class="tutorial-card"><span class="tutorial-step">01</span><div class="tutorial-graphic account-graphic">◉</div><h2>登录与账户</h2><p>首次由管理员创建账号。登录后可在账户中心修改昵称、上传头像图片和修改密码。</p></article>
           <article class="tutorial-card"><span class="tutorial-step">02</span><div class="tutorial-graphic archive-graphic">▤</div><h2>维护个人档案</h2><p>在“档案管理”维护当前账号自己的容器和货物；档案与其他账号互不影响。</p></article>
@@ -205,11 +206,11 @@
     </script>
     <script>document.querySelectorAll('#archiveDialog').forEach((node,index)=>{if(index>0)node.remove();});</script>
     <script type="module" src="app-loader-v310.js"></script>
-    <script type="module" src="account.js?v=3.2.2"></script>
+    <script type="module" src="account.js?v=3.2.3"></script>
     <link rel="stylesheet" href="pallet-kit-builder-v310.css" />
     <link rel="stylesheet" href="pallet-kit-builder-v312.css" />
     <link rel="stylesheet" href="pallet-kit-builder-v313.css" />
-    <link rel="stylesheet" href="pallet-kit-builder-v314.css?v=3.2.2" />
-    <script type="module" src="pallet-kit-builder-v310.js?v=3.2.2"></script>
+    <link rel="stylesheet" href="pallet-kit-builder-v314.css?v=3.2.3" />
+    <script type="module" src="pallet-kit-builder-v310.js?v=3.2.3"></script>
   </body>
 </html>
