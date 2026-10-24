@@ -508,6 +508,88 @@ if(typeof window!=='undefined'&&typeof renderSelectorsV315==='function'){
   syncPalletLauncherV315();
 }
 
+/* v3.1.7 absolute final fleet owner.  Keep below every historical layer. */
+function buildExtraVehiclePlansV317Final(unplaced){
+  const remaining=new Map();
+  (Array.isArray(unplaced)?unplaced:[]).forEach(item=>{
+    if(!item?.id)return;
+    const record=state.cargo.find(cargo=>cargo.id===item.id)||item;
+    const entry=remaining.get(item.id)||{record,count:0};
+    entry.count+=Math.max(1,Math.floor(+(item.unplacedQuantity??item.unplacedCount??1)||1));
+    remaining.set(item.id,entry);
+  });
+  const trucks=state.containers.filter(container=>container.type==='车厢').slice()
+    .sort((a,b)=>usableVolume(b)-usableVolume(a)||b.l-a.l||b.w-a.w||b.h-a.h);
+  const requested=()=>[...remaining.values()].filter(entry=>entry.count>0).map(entry=>({...entry.record,quantity:entry.count}));
+  const total=()=>[...remaining.values()].reduce((sum,entry)=>sum+entry.count,0);
+  const plans=[];
+  for(let run=0;run<2000&&total()>0;run++){
+    const wanted=total();
+    const choices=trucks.map(container=>{const plan=packContainer(container,requested(),'specified'),loaded=[...plan.placedCount.values()].reduce((sum,count)=>sum+(+count||0),0);return{plan,loaded};}).filter(choice=>choice.loaded>0);
+    if(!choices.length)break;
+    const complete=choices.filter(choice=>choice.loaded===wanted);
+    const selected=complete.length?complete.at(-1):choices[0];
+    plans.push(selected.plan);
+    let progress=0;
+    selected.plan.placedCount.forEach((count,id)=>{const entry=remaining.get(id);if(!entry)return;const used=Math.min(entry.count,Math.max(0,+count||0));entry.count-=used;progress+=used;});
+    if(!progress)break;
+  }
+  return{plans,remaining:[...remaining.values()].flatMap(entry=>Array.from({length:entry.count},()=>({...entry.record})))};
+}
+buildExtraVehiclePlans=buildExtraVehiclePlansV317Final;
+buildExtraVehiclePlansV313=buildExtraVehiclePlansV317Final;
+buildExtraVehiclePlansV314=buildExtraVehiclePlansV317Final;
+
+/* v3.1.7 final ownership.  This block intentionally stays at the physical end
+   of app.js so no historical compatibility layer can restore the old fleet
+   recommendation algorithm. */
+function buildExtraVehiclePlansV317(unplaced){
+  const remaining=new Map();
+  (Array.isArray(unplaced)?unplaced:[]).forEach(item=>{
+    if(!item?.id)return;
+    const record=state.cargo.find(cargo=>cargo.id===item.id)||item;
+    const entry=remaining.get(item.id)||{record,count:0};
+    // packContainer expands requested cargo into one unplaced entry per package.
+    // Imported/saved records may instead carry an explicit unplaced count.
+    entry.count+=Math.max(1,Math.floor(+(item.unplacedQuantity??item.unplacedCount??1)||1));
+    remaining.set(item.id,entry);
+  });
+  const trucks=state.containers.filter(container=>container.type==='车厢').slice()
+    .sort((a,b)=>usableVolume(b)-usableVolume(a)||b.l-a.l||b.w-a.w||b.h-a.h);
+  const cargoForRemaining=()=>[...remaining.values()].filter(entry=>entry.count>0)
+    .map(entry=>({...entry.record,quantity:entry.count}));
+  const totalRemaining=()=>[...remaining.values()].reduce((sum,entry)=>sum+entry.count,0);
+  const plans=[];
+  for(let run=0;run<2000&&totalRemaining()>0;run++){
+    const wanted=totalRemaining();
+    const choices=trucks.map(container=>{
+      const plan=packContainer(container,cargoForRemaining(),'specified');
+      const loaded=[...plan.placedCount.values()].reduce((sum,count)=>sum+count,0);
+      return {container,plan,loaded};
+    }).filter(choice=>choice.loaded>0);
+    if(!choices.length)break;
+    // If one vehicle can finish the remainder, use the smallest such vehicle.
+    // Otherwise take the largest vehicle and fill it as far as the real packing
+    // algorithm permits, then repeat with the exact remaining package counts.
+    const complete=choices.filter(choice=>choice.loaded===wanted);
+    const selected=complete.length?complete.at(-1):choices[0];
+    plans.push(selected.plan);
+    let progress=0;
+    selected.plan.placedCount.forEach((count,id)=>{
+      const entry=remaining.get(id);if(!entry)return;
+      const used=Math.min(entry.count,Math.max(0,+count||0));
+      entry.count-=used;progress+=used;
+    });
+    if(!progress)break;
+  }
+  const unresolved=[...remaining.values()].flatMap(entry=>Array.from({length:entry.count},()=>({...entry.record})));
+  return {plans,remaining:unresolved};
+}
+buildExtraVehiclePlans=buildExtraVehiclePlansV317;
+buildExtraVehiclePlansV313=buildExtraVehiclePlansV317;
+buildExtraVehiclePlansV314=buildExtraVehiclePlansV317;
+if(typeof buildExtraVehiclePlansV316!=='undefined')buildExtraVehiclePlansV316=buildExtraVehiclePlansV317;
+
 /* v3.1.6 final ownership — keep this after every historical compatibility
    layer so exported reports use the intended large-first / small-last fleet. */
 function buildExtraVehiclePlansV316Final(unplaced){
@@ -1180,4 +1262,27 @@ if(typeof window!=='undefined'&&typeof renderSelectorsV315==='function'){
   renderSelectorsV315();
   syncPalletLauncherV315();
 }
+
+/* v3.1.7 absolute final fleet owner. */
+function buildExtraVehiclePlansV317Absolute(unplaced){
+  const remaining=new Map();
+  (Array.isArray(unplaced)?unplaced:[]).forEach(item=>{
+    if(!item?.id)return;
+    const record=state.cargo.find(cargo=>cargo.id===item.id)||item,entry=remaining.get(item.id)||{record,count:0};
+    entry.count+=Math.max(1,Math.floor(+(item.unplacedQuantity??item.unplacedCount??1)||1));remaining.set(item.id,entry);
+  });
+  const trucks=state.containers.filter(container=>container.type==='车厢').slice().sort((a,b)=>usableVolume(b)-usableVolume(a)||b.l-a.l||b.w-a.w||b.h-a.h);
+  const requested=()=>[...remaining.values()].filter(entry=>entry.count>0).map(entry=>({...entry.record,quantity:entry.count}));
+  const total=()=>[...remaining.values()].reduce((sum,entry)=>sum+entry.count,0),plans=[];
+  for(let run=0;run<2000&&total()>0;run++){
+    const wanted=total(),choices=trucks.map(container=>{const plan=packContainer(container,requested(),'specified'),loaded=[...plan.placedCount.values()].reduce((sum,count)=>sum+(+count||0),0);return{plan,loaded};}).filter(choice=>choice.loaded>0);
+    if(!choices.length)break;
+    const complete=choices.filter(choice=>choice.loaded===wanted),selected=complete.length?complete.at(-1):choices[0];plans.push(selected.plan);
+    let progress=0;selected.plan.placedCount.forEach((count,id)=>{const entry=remaining.get(id);if(!entry)return;const used=Math.min(entry.count,Math.max(0,+count||0));entry.count-=used;progress+=used;});if(!progress)break;
+  }
+  return{plans,remaining:[...remaining.values()].flatMap(entry=>Array.from({length:entry.count},()=>({...entry.record})))};
+}
+buildExtraVehiclePlans=buildExtraVehiclePlansV317Absolute;
+buildExtraVehiclePlansV313=buildExtraVehiclePlansV317Absolute;
+buildExtraVehiclePlansV314=buildExtraVehiclePlansV317Absolute;
 

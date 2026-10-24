@@ -275,8 +275,7 @@ function openStableArchiveEditor(record) {
   $('#modalEyebrow').textContent = 'EDIT RECORD';
   const map = { recordName: 'name', recordType: 'type', recordShape: 'shape', recordL: 'l', recordW: 'w', recordH: 'h', recordWeight: 'weight', recordPieces: 'pieces', recordReserve: 'reserve', recordPrice: 'price', recordColor: 'color', recordPieceL: 'pieceL', recordPieceW: 'pieceW', recordPieceH: 'pieceH', recordNote: 'note' };
   Object.entries(map).forEach(([input, key]) => { const field = $('#' + input); if (field) field.value = record[key] ?? ''; });
-  $('#recordPieceDimensions')?.toggleAttribute('hidden', isContainer);
-  $('#recordNoteField')?.toggleAttribute('hidden', isContainer);
+  syncArchiveDialogFields(isContainer ? 'containers' : 'cargo', record);
   dialog?.showModal();
 }
 
@@ -284,6 +283,150 @@ function ensureCargoDetailFields() {
   const pieces = $('#recordPiecesField');
   if (!pieces || $('#recordPieceDimensions')) return;
   pieces.insertAdjacentHTML('afterend', '<div id="recordPieceDimensions" class="cargo-extra-record-fields"><label>小件长 (mm)<input id="recordPieceL" type="number" min="0" step="0.1" value="0"></label><label>小件宽 (mm)<input id="recordPieceW" type="number" min="0" step="0.1" value="0"></label><label>小件高 (mm)<input id="recordPieceH" type="number" min="0" step="0.1" value="0"></label></div><label id="recordNoteField" class="cargo-note-field">备注<textarea id="recordNote" rows="2" maxlength="300" placeholder="可填写货物说明、堆码要求等"></textarea></label>');
+}
+
+function syncArchiveDialogFields(kind, record = null) {
+  ensureCargoDetailFields();
+  const cargo = kind === 'cargo';
+  $('#recordPiecesField')?.toggleAttribute('hidden', !cargo);
+  $('#recordPieceDimensions')?.toggleAttribute('hidden', !cargo);
+  $('#recordNoteField')?.toggleAttribute('hidden', !cargo);
+  $('#recordReserveField')?.toggleAttribute('hidden', cargo);
+  if (cargo) {
+    $('#recordPieceL').value = record?.pieceL ?? 0;
+    $('#recordPieceW').value = record?.pieceW ?? 0;
+    $('#recordPieceH').value = record?.pieceH ?? 0;
+    $('#recordNote').value = record?.note ?? '';
+  }
+}
+
+function openStableArchiveCreator() {
+  if (!canEditRecords()) { notify('未获档案维护权限。', true); return; }
+  const kind = state()?.archive === 'cargo' ? 'cargo' : 'containers';
+  const form = $('#archiveForm');
+  form?.reset();
+  ensureCargoDetailFields();
+  $('#recordKind').value = kind;
+  $('#recordId').value = '';
+  $('#modalTitle').textContent = kind === 'cargo' ? '新增货物' : '新增容器';
+  $('#modalEyebrow').textContent = 'NEW RECORD';
+  $('#recordPieces').value = '1';
+  $('#recordReserve').value = '0';
+  $('#recordWeight').value = '0';
+  $('#recordPrice').value = '0';
+  $('#recordColor').value = '#2563eb';
+  syncArchiveDialogFields(kind);
+  $('#archiveDialog')?.showModal();
+}
+
+const tableColumnDefinitions = {
+  containers: [
+    ['select', '选择'], ['seq', '序号'], ['name', '名称'], ['type', '类型'], ['size', '尺寸'],
+    ['volume', '容积'], ['weight', '重量'], ['color', '颜色'], ['actions', '操作']
+  ],
+  cargo: [
+    ['select', '选择'], ['seq', '序号'], ['name', '名称'], ['type', '类型'], ['size', '尺寸'],
+    ['volume', '容积'], ['weight', '重量'], ['pieces', '小件数'], ['pieceSize', '小件尺寸'],
+    ['note', '备注'], ['color', '颜色'], ['actions', '操作']
+  ],
+  plans: [
+    ['select', '选择'], ['seq', '序号'], ['name', '方案名称'], ['createdAt', '保存时间'],
+    ['containers', '容器数量'], ['quantity', '装载数量'], ['actions', '操作']
+  ]
+};
+
+let activeColumnTable = null;
+const tableColumnPrefs = kind => {
+  try { return JSON.parse(localStorage.getItem(`topbox.table-columns.${kind}`)) || {}; }
+  catch { return {}; }
+};
+const saveTableColumnPrefs = (kind, prefs) => localStorage.setItem(`topbox.table-columns.${kind}`, JSON.stringify(prefs));
+
+function ensureTableColumnDialog() {
+  if ($('#tableColumnDialog')) return;
+  document.body.insertAdjacentHTML('beforeend', `<dialog id="tableColumnDialog" class="table-column-dialog"><form method="dialog"><div class="modal-head"><div><p class="eyebrow">TABLE COLUMNS</p><h2>表格列设置</h2></div><button type="button" class="icon-button" id="closeTableColumns">×</button></div><p>可显示或隐藏字段，并把常用字段固定在左侧。选择、序号始终固定在左侧，操作始终固定在右侧。</p><div id="tableColumnOptions" class="table-column-options"></div><div class="modal-actions"><button type="button" class="button secondary" id="resetTableColumns">恢复默认</button><button type="submit" class="button primary">完成</button></div></form></dialog>`);
+  $('#closeTableColumns').onclick = () => $('#tableColumnDialog').close();
+  $('#resetTableColumns').onclick = () => {
+    if (!activeColumnTable) return;
+    localStorage.removeItem(`topbox.table-columns.${activeColumnTable}`);
+    $('#tableColumnDialog').close();
+    activeColumnTable === 'plans' ? renderStablePlans() : renderStableArchives();
+  };
+}
+
+function openTableColumnDialog(kind) {
+  ensureTableColumnDialog();
+  activeColumnTable = kind;
+  const prefs = tableColumnPrefs(kind), hidden = new Set(prefs.hidden || []), pinned = new Set(prefs.pinned || []);
+  $('#tableColumnOptions').innerHTML = tableColumnDefinitions[kind].map(([key, label]) => {
+    const lockedLeft = key === 'select' || key === 'seq', lockedRight = key === 'actions';
+    return `<div class="table-column-option"><b>${escapeHtml(label)}</b><label><input type="checkbox" data-column-visible="${key}" ${hidden.has(key) ? '' : 'checked'} ${lockedLeft || lockedRight ? 'disabled' : ''}> 显示</label><label><input type="checkbox" data-column-pinned="${key}" ${lockedLeft || pinned.has(key) ? 'checked' : ''} ${lockedLeft || lockedRight ? 'disabled' : ''}> 固定左侧</label></div>`;
+  }).join('');
+  $('#tableColumnOptions').onchange = event => {
+    const visible = event.target.dataset.columnVisible, pin = event.target.dataset.columnPinned;
+    const current = tableColumnPrefs(kind), currentHidden = new Set(current.hidden || []), currentPinned = new Set(current.pinned || []);
+    if (visible) event.target.checked ? currentHidden.delete(visible) : currentHidden.add(visible);
+    if (pin) event.target.checked ? currentPinned.add(pin) : currentPinned.delete(pin);
+    current.hidden = [...currentHidden]; current.pinned = [...currentPinned]; saveTableColumnPrefs(kind, current);
+    kind === 'plans' ? renderStablePlans() : renderStableArchives();
+  };
+  $('#tableColumnDialog').showModal();
+}
+
+function injectTableColumnButton(kind) {
+  const host = kind === 'plans' ? $('#savedPlans .heading-actions') : $('#archives .heading-actions');
+  if (!host) return;
+  host.querySelector('[data-open-table-columns]')?.remove();
+  const button = document.createElement('button');
+  button.type = 'button'; button.className = 'button secondary table-columns-button';
+  button.dataset.openTableColumns = kind; button.textContent = '列设置';
+  button.addEventListener('click', () => openTableColumnDialog(kind));
+  host.prepend(button);
+}
+
+function configureStableTable(table, kind) {
+  if (!table) return;
+  table.querySelectorAll('.column-resize-handle').forEach(handle => handle.remove());
+  const definitions = tableColumnDefinitions[kind], prefs = tableColumnPrefs(kind);
+  const hidden = new Set(prefs.hidden || []), pinned = new Set(['select', 'seq', ...(prefs.pinned || [])]);
+  table.classList.add('stable-column-managed'); table.dataset.columnTable = kind;
+  const rows = [...table.rows];
+  definitions.forEach(([key], index) => rows.forEach(row => {
+    const cell = row.cells[index]; if (!cell) return;
+    cell.dataset.columnKey = key;
+    cell.toggleAttribute('hidden', hidden.has(key) && !['select', 'seq', 'actions'].includes(key));
+    const width = prefs.widths?.[key];
+    if (width) { cell.style.setProperty('width', `${width}px`, 'important'); cell.style.setProperty('min-width', `${width}px`, 'important'); cell.style.setProperty('max-width', `${width}px`, 'important'); }
+  }));
+  let left = 0;
+  definitions.forEach(([key], index) => {
+    const visible = !hidden.has(key) || ['select', 'seq', 'actions'].includes(key);
+    if (!visible || !pinned.has(key)) return;
+    const sample = rows.find(row => row.cells[index])?.cells[index];
+    const width = prefs.widths?.[key] || sample?.getBoundingClientRect().width || (key === 'select' ? 54 : key === 'seq' ? 70 : 160);
+    rows.forEach(row => { const cell = row.cells[index]; if (cell) { cell.classList.add('stable-sticky-left'); cell.style.setProperty('--sticky-left', `${left}px`); } });
+    left += width;
+  });
+  const actionIndex = definitions.findIndex(([key]) => key === 'actions');
+  rows.forEach(row => row.cells[actionIndex]?.classList.add('stable-sticky-right'));
+  const header = table.tHead?.rows?.[0];
+  definitions.forEach(([key], index) => {
+    const th = header?.cells[index]; if (!th || key === 'actions') return;
+    const handle = document.createElement('span'); handle.className = 'column-resize-handle'; handle.title = '拖动调整列宽';
+    handle.addEventListener('pointerdown', event => {
+      event.preventDefault(); event.stopPropagation();
+      const startX = event.clientX, startWidth = th.getBoundingClientRect().width;
+      const move = moveEvent => {
+        const width = Math.max(54, Math.round(startWidth + moveEvent.clientX - startX));
+        const current = tableColumnPrefs(kind); current.widths = { ...(current.widths || {}), [key]: width }; saveTableColumnPrefs(kind, current);
+        rows.forEach(row => { const cell = row.cells[index]; if (cell) { cell.style.setProperty('width', `${width}px`, 'important'); cell.style.setProperty('min-width', `${width}px`, 'important'); cell.style.setProperty('max-width', `${width}px`, 'important'); } });
+      };
+      const up = () => { document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); configureStableTable(table, kind); };
+      document.addEventListener('pointermove', move); document.addEventListener('pointerup', up);
+    });
+    th.append(handle);
+  });
+  injectTableColumnButton(kind);
 }
 
 function renderStableArchives() {
@@ -311,6 +454,7 @@ function renderStableArchives() {
   $('#archiveCount').textContent = `共 ${filtered.length} 条记录`;
   renderStablePager('archivePager', pageData, filtered.length, 'archivePage', 'archiveSize', renderStableArchives);
   updateStableBulkButtons();
+  configureStableTable(table, isContainer ? 'containers' : 'cargo');
 }
 
 async function deleteArchivesDirect(ids) {
@@ -345,6 +489,7 @@ function renderStablePlans() {
   $$('[data-stable-delete-plan]').forEach(button => button.addEventListener('click', () => deletePlansDirect([button.dataset.stableDeletePlan], button)));
   renderStablePager('savedPlansPager', pageData, plans.length, 'savedPlansPage', 'savedPlansSize', renderStablePlans);
   updateStableBulkButtons();
+  configureStableTable(host.querySelector('table'), 'plans');
 }
 
 async function deletePlansDirect(ids) {
@@ -421,6 +566,13 @@ async function handleShareDialog() {
 }
 
 function bindEvents() {
+  ensureCargoDetailFields();
+  document.addEventListener('click', event => {
+    const button = event.target.closest('#addArchive');
+    if (!button) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    openStableArchiveCreator();
+  }, true);
   $('#accountMenuButton').addEventListener('click', openAccountPage);
   $('#shareClose').addEventListener('click', () => $('#shareDialog').close());
   $('#shareCancel').addEventListener('click', () => $('#shareDialog').close());
@@ -537,12 +689,13 @@ function bindEvents() {
 
 async function start() {
   for (let attempt = 0; attempt < 50 && !window.TopBoxApp; attempt += 1) await new Promise(resolve => setTimeout(resolve, 50));
+  ensureCargoDetailFields();
+  bindArchiveNavigationV298();
   bindEvents();
   try { await loadBootstrap(); $('#authGate').classList.add('is-hidden'); }
   catch { $('#authGate').classList.add('is-visible'); }
   bindUtilizationPrecision();
   bindSelectionTooltips();
-  bindArchiveNavigationV298();
   setInterval(bindSelectionTooltips, 700);
   // Keep the current workspace stable when the browser regains focus.  Data is
   // refreshed through the existing menu actions instead of re-initialising the

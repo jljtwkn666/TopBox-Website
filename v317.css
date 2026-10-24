@@ -1,0 +1,47 @@
+/* v3.1.7 — archive tables, cargo picker and first-render stability. */
+[hidden] { display: none !important; }
+
+.stable-list-table-wrap { overflow: auto; max-width: 100%; }
+.stable-data-table.stable-column-managed { border-collapse: separate; border-spacing: 0; table-layout: fixed !important; min-width: max-content; }
+.stable-data-table.stable-column-managed th,
+.stable-data-table.stable-column-managed td { position: relative; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; box-sizing: border-box; }
+.stable-data-table.stable-column-managed th[data-column-key="select"],
+.stable-data-table.stable-column-managed td[data-column-key="select"] { width: 54px !important; min-width: 54px !important; max-width: 54px !important; text-align: center; }
+.stable-data-table.stable-column-managed th[data-column-key="seq"],
+.stable-data-table.stable-column-managed td[data-column-key="seq"] { width: 70px !important; min-width: 70px !important; max-width: 70px !important; text-align: center; }
+.stable-data-table .stable-sticky-left { position: sticky !important; left: var(--sticky-left) !important; z-index: 4; background: #fff !important; }
+.stable-data-table thead .stable-sticky-left { z-index: 7; background: #f7f9fc !important; }
+.stable-data-table .stable-sticky-right { position: sticky !important; right: 0 !important; z-index: 5; background: #fff !important; box-shadow: -10px 0 16px -16px #284561; }
+.stable-data-table thead .stable-sticky-right { z-index: 8; background: #f7f9fc !important; }
+.column-resize-handle { position: absolute; top: 0; right: -3px; width: 8px; height: 100%; cursor: col-resize; touch-action: none; z-index: 12; }
+.column-resize-handle:hover, .column-resize-handle:active { background: rgba(37,99,235,.28); }
+.table-column-dialog { width: min(680px, calc(100vw - 32px)); border: 0; border-radius: 22px; padding: 0; color: #10243c; }
+.table-column-dialog form { padding: 24px; }
+.table-column-options { display: grid; gap: 8px; margin: 18px 0; max-height: min(56vh, 520px); overflow: auto; }
+.table-column-option { display: grid; grid-template-columns: minmax(140px, 1fr) auto auto; align-items: center; gap: 18px; padding: 12px 14px; border: 1px solid #dbe5ef; border-radius: 12px; background: #f8fbfe; }
+.table-column-option label { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+
+.kit-native-select-hidden, .kit-search-combo { display: none !important; }
+.kit-cargo-picker-button { width: 100%; display: grid; gap: 3px; text-align: left; padding: 10px 13px; border: 1px solid #c7d8e9; border-radius: 12px; background: #fff; color: #10243c; cursor: pointer; }
+.kit-cargo-picker-button span { color: #59728a; font-size: 12px; }
+.kit-cargo-picker-button b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kit-cargo-picker-dialog { width: min(760px, calc(100vw - 28px)); border: 0; padding: 22px; border-radius: 22px; color: #10243c; }
+.kit-cargo-picker-dialog::backdrop { background: rgba(9,31,55,.5); }
+.kit-cargo-picker-search { display: grid; gap: 7px; margin: 14px 0; color: #405b74; font-weight: 700; }
+.kit-cargo-picker-search input { width: 100%; padding: 13px 15px; border: 1px solid #c7d8e9; border-radius: 12px; font: inherit; }
+.kit-cargo-picker-list { display: grid; gap: 8px; max-height: min(52vh, 510px); overflow: auto; padding: 2px; }
+.kit-cargo-picker-row { display: grid; grid-template-columns: 36px minmax(0,1fr) auto; align-items: center; gap: 12px; width: 100%; padding: 12px; border: 1px solid #dbe5ef; border-radius: 13px; background: #fff; color: #10243c; text-align: left; cursor: pointer; }
+.kit-cargo-picker-row:hover { border-color: #83b4ff; background: #f6faff; }
+.kit-cargo-picker-row.selected { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,.12); background: #eef5ff; }
+.kit-cargo-picker-row i { width: 32px; height: 32px; border-radius: 9px; }
+.kit-cargo-picker-row span { display: grid; min-width: 0; }
+.kit-cargo-picker-row b, .kit-cargo-picker-row small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kit-cargo-picker-row small { color: #688097; margin-top: 3px; }
+.kit-cargo-picker-row strong { color: #2563eb; font-size: 13px; }
+
+@media (max-width: 720px) {
+  .table-column-option { grid-template-columns: 1fr 1fr; }
+  .table-column-option b { grid-column: 1 / -1; }
+  .kit-cargo-picker-dialog { padding: 16px; }
+}
+

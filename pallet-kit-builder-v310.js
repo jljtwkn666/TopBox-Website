@@ -135,3 +135,40 @@ open=function(record=null){if(!editable()){const toast=document.querySelector('#
 document.addEventListener('click',event=>{if(event.target.closest('.kit-search-combo'))return;$$('.kit-search-combo-popover').forEach(node=>node.hidden=true);});
 window.addEventListener('topbox:permissions-changed',()=>refreshLaunch());
 
+/* v3.1.7 — cargo choice is an explicit single-select dialog, not a dropdown. */
+let kitPickerTargetV317='',kitPickerPendingV317='';
+function cargoPickerLabelV317(item){return item?`${item.name} · ${item.l} × ${item.w} × ${item.h} mm`:'请选择货物';}
+function ensureCargoPickerV317(){
+  if($('#kitCargoPickerDialog'))return;
+  document.body.insertAdjacentHTML('beforeend',`<dialog id="kitCargoPickerDialog" class="kit-cargo-picker-dialog"><div class="modal-head"><div><p class="eyebrow">SELECT CARGO</p><h2 id="kitCargoPickerTitle">选择货物</h2></div><button type="button" class="icon-button" id="closeKitCargoPicker">×</button></div><label class="kit-cargo-picker-search">模糊查询<input id="kitCargoPickerSearch" type="search" autocomplete="off" placeholder="输入名称、类型或尺寸，支持多个关键词"></label><div id="kitCargoPickerList" class="kit-cargo-picker-list" role="radiogroup"></div><div class="modal-actions"><button type="button" class="button secondary" id="cancelKitCargoPicker">取消</button><button type="button" class="button primary" id="confirmKitCargoPicker">确定选择</button></div></dialog>`);
+  const close=()=>$('#kitCargoPickerDialog').close();
+  $('#closeKitCargoPicker').onclick=close;$('#cancelKitCargoPicker').onclick=close;
+  $('#kitCargoPickerSearch').oninput=renderCargoPickerV317;
+  $('#kitCargoPickerList').onclick=event=>{const row=event.target.closest('[data-kit-picker-id]');if(!row)return;kitPickerPendingV317=row.dataset.kitPickerId;renderCargoPickerV317();};
+  $('#confirmKitCargoPicker').onclick=()=>{const select=$('#'+kitPickerTargetV317);if(!select||!kitPickerPendingV317)return;select.value=kitPickerPendingV317;select.dispatchEvent(new Event('change',{bubbles:true}));syncCargoPickerButtonsV317();close();};
+}
+function renderCargoPickerV317(){
+  const terms=($('#kitCargoPickerSearch')?.value||'').trim().toLowerCase().split(/[\s,，]+/).filter(Boolean),items=cargo().filter(item=>terms.every(term=>cargoSearchTextV316(item).includes(term)));
+  $('#kitCargoPickerList').innerHTML=items.map(item=>`<button type="button" class="kit-cargo-picker-row ${item.id===kitPickerPendingV317?'selected':''}" data-kit-picker-id="${esc(item.id)}"><i style="background:${esc(item.color||'#2563eb')}"></i><span><b>${esc(item.name)}</b><small>${esc(item.type||'单体货物')} · ${item.l} × ${item.w} × ${item.h} mm · ${(+item.pieces||1).toLocaleString()} 件/包</small></span><strong>${item.id===kitPickerPendingV317?'已选择':''}</strong></button>`).join('')||'<div class="kit-empty">没有匹配的货物</div>';
+}
+function openCargoPickerV317(selectId){
+  ensureCargoPickerV317();kitPickerTargetV317=selectId;kitPickerPendingV317=$('#'+selectId)?.value||cargo()[0]?.id||'';
+  $('#kitCargoPickerTitle').textContent=selectId==='kitReplaceSource'?'选择替换货物':'选择添加货物';$('#kitCargoPickerSearch').value='';renderCargoPickerV317();$('#kitCargoPickerDialog').showModal();requestAnimationFrame(()=>$('#kitCargoPickerSearch').focus());
+}
+function syncCargoPickerButtonsV317(){
+  [['kitSource','选择添加货物'],['kitReplaceSource','选择替换货物']].forEach(([id,label])=>{
+    const select=$('#'+id);if(!select)return;
+    select.classList.add('kit-native-select-hidden');
+    select.parentElement?.querySelector('.kit-search-combo')?.remove();
+    let button=select.parentElement?.querySelector(`[data-kit-picker-button="${id}"]`);
+    if(!button){button=document.createElement('button');button.type='button';button.className='kit-cargo-picker-button';button.dataset.kitPickerButton=id;button.addEventListener('click',()=>openCargoPickerV317(id));select.insertAdjacentElement('afterend',button);}
+    const item=cargo().find(value=>value.id===select.value);button.innerHTML=`<span>${esc(label)}</span><b>${esc(cargoPickerLabelV317(item))}</b>`;
+  });
+}
+const fillChoicesV317Base=fillChoices;
+fillChoices=function(){fillChoicesV317Base();$$('.kit-search-combo').forEach(node=>node.remove());syncCargoPickerButtonsV317();};
+const selectV317Base=select;
+select=function(id){selectV317Base(id);syncCargoPickerButtonsV317();};
+const openKitV317Base=open;
+open=function(record=null){openKitV317Base(record);$$('.kit-search-combo').forEach(node=>node.remove());syncCargoPickerButtonsV317();};
+
