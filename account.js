@@ -146,6 +146,46 @@ function bindSelectionTooltips() {
   });
 }
 
+function bindOverflowTableTooltips() {
+  if (document.documentElement.dataset.tableOverflowTooltipBound) return;
+  document.documentElement.dataset.tableOverflowTooltipBound = 'true';
+  const tooltip = document.createElement('div');
+  tooltip.className = 'selection-name-tooltip table-overflow-tooltip';
+  tooltip.setAttribute('role', 'tooltip');
+  document.body.append(tooltip);
+  let activeCell = null;
+  const locate = event => {
+    const cell = event.target.closest('#archives .stable-data-table tbody td, #savedPlansList .stable-data-table tbody td');
+    if (!cell || cell.querySelector('input, button, .row-actions, .color-pill')) return null;
+    const row = cell.parentElement;
+    if (!row || cell.cellIndex < 2 || cell.cellIndex === row.cells.length - 1) return null;
+    const descendants = [...cell.querySelectorAll('*')];
+    const clipped = cell.scrollWidth > cell.clientWidth + 2 || descendants.some(node => node.scrollWidth > node.clientWidth + 2);
+    return clipped && cell.textContent.trim() ? cell : null;
+  };
+  const position = event => {
+    const left = Math.min(window.innerWidth - tooltip.offsetWidth - 12, event.clientX + 14);
+    const top = Math.min(window.innerHeight - tooltip.offsetHeight - 12, event.clientY + 14);
+    tooltip.style.left = `${Math.max(12, left)}px`;
+    tooltip.style.top = `${Math.max(12, top)}px`;
+  };
+  document.addEventListener('pointerover', event => {
+    const cell = locate(event);
+    if (!cell) return;
+    activeCell = cell;
+    tooltip.textContent = cell.textContent.replace(/\s+/g, ' ').trim();
+    tooltip.classList.add('visible');
+    position(event);
+  });
+  document.addEventListener('pointermove', event => { if (activeCell) position(event); });
+  document.addEventListener('pointerout', event => {
+    if (!activeCell || event.relatedTarget && activeCell.contains(event.relatedTarget)) return;
+    activeCell = null;
+    tooltip.classList.remove('visible');
+  });
+  document.addEventListener('scroll', () => { activeCell = null; tooltip.classList.remove('visible'); }, true);
+}
+
 function bindUtilizationPrecision() {
   const target = $('#utilizationPercent'); if (!target || target.dataset.precisionBound) return;
   target.dataset.precisionBound = 'true';
@@ -786,6 +826,7 @@ async function start() {
   catch { $('#authGate').classList.add('is-visible'); }
   bindUtilizationPrecision();
   bindSelectionTooltips();
+  bindOverflowTableTooltips();
   setInterval(bindSelectionTooltips, 700);
   // Keep the current workspace stable when the browser regains focus.  Data is
   // refreshed through the existing menu actions instead of re-initialising the

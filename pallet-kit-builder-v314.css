@@ -10,4 +10,7 @@
 .cargo-note-field{grid-column:1/-1}
 .cargo-note-field textarea{min-height:62px;resize:vertical;border:1px solid #c9d8e8;border-radius:10px;padding:9px 10px;font:inherit;color:#10243e}
 .archive-note-cell{max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pallet-kit-layout>.kit-items-panel{min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.pallet-kit-layout>.kit-items-panel .kit-item-list{max-height:clamp(190px,34vh,330px);overflow-y:auto}
+.table-overflow-tooltip{z-index:12000;max-width:min(440px,calc(100vw - 24px));white-space:normal;overflow-wrap:anywhere}
 @media(max-width:850px){.kit-free-move{font-size:10px;padding:0 6px}.kit-cargo-search input{font-size:11px!important}}
