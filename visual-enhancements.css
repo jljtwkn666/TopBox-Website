@@ -276,4 +276,3 @@
 #cargoList .cargo-fresh-control>strong{min-width:0!important;color:#2164df!important;font-size:15px!important;font-weight:800!important;text-align:right!important;white-space:nowrap!important}
 @media(max-width:1120px){#cargoList .cargo-fresh-row{grid-template-columns:28px 54px minmax(0,1fr)!important;grid-template-rows:auto auto!important}#cargoList .cargo-fresh-control{grid-column:3!important;grid-row:2!important;justify-self:end!important}}
 @media(max-width:640px){#cargoList .cargo-fresh-row{grid-template-columns:28px 46px minmax(0,1fr)!important;padding:12px!important}#cargoList .cargo-fresh-control{grid-column:1/-1!important;grid-row:2!important;width:100%!important;grid-template-columns:minmax(116px,156px) 22px minmax(0,1fr)!important}#cargoList .cargo-fresh-input{width:100%!important;min-width:0!important}#cargoList .cargo-fresh-info small{white-space:normal!important}}
-

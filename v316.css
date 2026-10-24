@@ -18,4 +18,3 @@
 .kit-search-combo-options span{color:#6b8198;font-size:13px}
 .kit-search-combo-options p{padding:16px;color:#6b8198;text-align:center}
 @media(max-width:760px){.cargo-extra-record-fields{grid-template-columns:1fr}.kit-search-combo-options>button{grid-template-columns:1fr}}
-

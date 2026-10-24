@@ -1,6 +1,11 @@
 import * as THREE from 'https://unpkg.com/three@0.162.0/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.162.0/examples/jsm/controls/OrbitControls.js';
 
+// Compatibility layers below replace these strategies at runtime. Explicit
+// bindings keep ES-module strict mode from aborting before the final owner is
+// installed.
+let buildExtraVehiclePlans;
+
 const COLORS = ['#2563eb','#f97316','#10b981','#8b5cf6','#ef4444','#0891b2','#d97706','#ec4899'];
 const STORAGE_KEY = 'vehicle-load-planner-state-v2';
 const $ = (s, root = document) => root.querySelector(s);
@@ -407,7 +412,7 @@ const renderSelectorsV22Base=renderSelectors;renderSelectors=function(){renderSe
 const renderArchivesV22Base=renderArchives;renderArchives=function(){const data=state[state.archive],isContainer=state.archive==='containers',query=$('#archiveSearch').value.trim().toLowerCase(),filtered=data.filter(r=>!query||`${r.name}${r.type}`.toLowerCase().includes(query)),page=pageSlice(filtered,'archivePage','archiveSize');$('#containerTotal').textContent=state.containers.length;$('#cargoTotal').textContent=state.cargo.length;$('#archiveCount').textContent=`${t('共')} ${filtered.length} ${t('条记录')}`;$('#archiveTableHead').innerHTML=`<th><input id="selectAllArchive" type="checkbox" aria-label="${t('选择全部')}" /></th><th>${t('序号')}</th><th>${t('名称')}</th><th>${t('类型')}</th><th>${t('尺寸（长 × 宽 × 高）')}</th><th>${t('容积')}</th><th>${t('重量')}</th>${isContainer?'':`<th>${t('小件数')}</th>`}<th>${t('颜色')}</th><th></th>`;const columns=isContainer?9:10;$('#archiveRows').innerHTML=page.rows.map((r,index)=>`<tr><td><input class="archive-select" data-select-archive="${r.id}" type="checkbox" ${selectedArchiveIds.has(r.id)?'checked':''} aria-label="${t('选择')} ${escapeHtml(r.name)}"></td><td class="serial-number">${(state.ui.archivePage-1)*page.size+index+1}</td><td><b>${escapeHtml(r.name)}</b></td><td><span class="type-pill ${typeTone(r.type)}">${escapeHtml(r.type)}</span></td><td>${r.l} × ${r.w} × ${r.h} mm</td><td>${fmtArchiveVolume(isContainer?usableVolume(r):cubicMeters(r))}</td><td>${r.weight||0} kg</td>${isContainer?'':`<td>${r.pieces} ${t('件')}</td>`}<td><i class="color-pill" style="background:${r.color}"></i></td><td><span class="row-actions"><button data-edit="${r.id}">${t('编辑')}</button><button class="delete" data-delete="${r.id}">${t('删除')}</button></span></td></tr>`).join('')||`<tr><td colspan="${columns}"><div class="empty-state">${t('没有匹配的档案')}</div></td></tr>`;const all=$('#selectAllArchive');all.checked=filtered.length>0&&filtered.every(r=>selectedArchiveIds.has(r.id));all.indeterminate=filtered.some(r=>selectedArchiveIds.has(r.id))&&!all.checked;all.addEventListener('change',event=>{filtered.forEach(r=>event.target.checked?selectedArchiveIds.add(r.id):selectedArchiveIds.delete(r.id));renderArchives();});$$('[data-select-archive]').forEach(b=>b.addEventListener('change',()=>{b.checked?selectedArchiveIds.add(b.dataset.selectArchive):selectedArchiveIds.delete(b.dataset.selectArchive);renderArchives();}));$$('[data-edit]').forEach(b=>b.addEventListener('click',()=>openDialog(data.find(r=>r.id===b.dataset.edit))));$$('[data-delete]').forEach(b=>b.addEventListener('click',()=>removeArchives([b.dataset.delete])));renderListPager('archivePager',page,filtered.length,'archivePage','archiveSize',renderArchives);updateArchiveBulkButton();applyLanguage();};
 const renderSavedPlansV22Base=renderSavedPlans;renderSavedPlans=function(){renderSavedPlansV22Base();const host=$('#savedPlansList');if(!host)return;const head=document.createElement('div');head.className='saved-plan-list-head';head.innerHTML=`<span></span><span>${t('序号')}</span><span>${t('方案名称')}</span><span>${t('数量')}</span>`;host.prepend(head);$$('.saved-plan-card',host).forEach(card=>{card.classList.add('saved-plan-row');const checkbox=$('.plan-select',card),serial=$('.plan-sequence',card);if(checkbox&&serial){card.insertBefore(checkbox,card.firstChild);card.insertBefore(serial,checkbox.nextSibling);}});};
 function buildExtraVehiclePlans(unplaced){const trucks=state.containers.filter(c=>c.type==='车厢').slice().sort((a,b)=>usableVolume(a)-usableVolume(b)||a.l-b.l||a.w-b.w||a.h-b.h),counts=new Map();unplaced.forEach(item=>counts.set(item.id,(counts.get(item.id)||0)+1));const makeCargo=()=>[...counts].filter(([,count])=>count>0).map(([id,count])=>({...state.cargo.find(g=>g.id===id),quantity:count}));const plans=[];for(let run=0;run<20&&[...counts.values()].some(Boolean);run++){const options=trucks.map(container=>({container,plan:packContainer(container,makeCargo(),'specified')})).filter(option=>option.plan.positions.length);if(!options.length)break;const selected=options[0];plans.push(selected.plan);selected.plan.placedCount.forEach((count,id)=>counts.set(id,Math.max(0,(counts.get(id)||0)-count)));}const remaining=[...counts].flatMap(([id,count])=>Array.from({length:count},()=>state.cargo.find(g=>g.id===id))).filter(Boolean);return {plans,remaining};}
-function showExtraVehiclePlans(recommendation){const {plans,remaining}=recommendation;if(!plans.length){showNotice(t('无可用车厢档案可供建议。'),t('额外车辆装载建议'));return;}showDialog({title:t('额外车辆装载建议'),message:`${t('建议增加')} ${plans.length} ${t('辆')} ${t('车厢')}`,kind:'preview',reports:[]});$('#pdfDownload').classList.add('hidden');$('#pdfPrint').classList.add('hidden');$('#pdfPreview').innerHTML=`<div class="extra-vehicle-plans">${plans.map((plan,index)=>{const details=[...plan.placedCount].filter(([,count])=>count).map(([id,count])=>{const cargo=state.cargo.find(g=>g.id===id);return `<li><b>${escapeHtml(cargo?.name||id)}</b><span>${count} ${t('包')} / ${(count*(+cargo?.pieces||1)).toLocaleString()} ${t('件')}</span><small>${placementDetail(cargo,plan)}</small></li>`;}).join('');return `<article class="extra-vehicle-card"><div><b>${t('车厢')} ${index+1}</b><h3>${escapeHtml(plan.container.name)}</h3><p>${plan.container.l} × ${plan.container.w} × ${plan.container.h} mm · ${Math.round(plan.utilization)}%</p></div><ul>${details}</ul></article>`;}).join('')}${remaining.length?`<p class="extra-remaining">${t('仍未能装载')}：${remaining.length} ${t('包')} / ${remaining.reduce((sum,item)=>sum+(+item.pieces||0),0).toLocaleString()} ${t('件')}</p>`:''}</div>`;}
+function showExtraVehiclePlans(recommendation){const {plans,remaining}=recommendation;if(!plans.length){showNotice(t('无可用车厢档案可供建议。'),t('额外车辆装载建议'));return;}showDialog({title:t('额外车辆装载建议'),message:`${t('建议增加')} ${plans.length} ${t('辆')} ${t('车厢')}`,kind:'preview',reports:[]});$('#pdfDownload').classList.add('hidden');$('#pdfPrint').classList.add('hidden');$('#pdfPreview').innerHTML=`<div class="extra-vehicle-plans">${plans.map((plan,index)=>{const details=[...plan.placedCount].filter(([,count])=>count).map(([id,count])=>{const cargo=state.cargo.find(g=>g.id===id);return `<li><b>${escapeHtml(cargo?.name||id)}</b><span>${count} ${t('包')} / ${(count*(+cargo?.pieces||1)).toLocaleString()} ${t('件')}</span><small>${placementDetail(cargo,plan)}</small></li>`;}).join('');return `<article class="extra-vehicle-card"><div><b>${t('车厢')} ${index+1}</b><h3>${escapeHtml(plan.container.name)}</h3><p>${plan.container.l} × ${plan.container.w} × ${plan.container.h} mm · ${Number(plan.utilization||0).toFixed(2)}%</p></div><ul>${details}</ul></article>`;}).join('')}${remaining.length?`<p class="extra-remaining">${t('仍未能装载')}：${remaining.length} ${t('包')} / ${remaining.reduce((sum,item)=>sum+(+item.pieces||0),0).toLocaleString()} ${t('件')}</p>`:''}</div>`;}
 const renderPlanV22Base=renderPlan;renderPlan=function(){renderPlanV22Base();if(!state.plan)return;const plan=state.plan.plans[state.plan.active],unplaced=plan.unplaced||[],unloadedPieces=unplaced.reduce((sum,item)=>sum+(+item.pieces||0),0),recommendation=buildExtraVehiclePlans(unplaced);$('#unloadedBadge').textContent=`${unplaced.length} ${t('包')} / ${unloadedPieces.toLocaleString()} ${t('件')}`;if(unplaced.length){const button=document.createElement('button');button.type='button';button.id='viewExtraVehicles';button.className='extra-vehicle-button';button.textContent=`${t('查看额外车辆方案')} (${recommendation.plans.length})`;button.addEventListener('click',()=>showExtraVehiclePlans(recommendation));$('#unloadedDetails').append(button);}applyLanguage();};
 const showSuccessV22Base=showSuccess;showSuccess=function(message,duration=2000){const toast=$('#appToast');if(!toast)return;toast.textContent=message;toast.classList.remove('visible');void toast.offsetWidth;toast.classList.add('visible');clearTimeout(successToastTimer);successToastTimer=setTimeout(()=>toast.classList.remove('visible'),duration);};
 const generatePlanV22Base=generatePlan;generatePlan=function(){const containers=state.containers.filter(c=>state.selectedContainers.has(c.id)),cargo=state.cargo.filter(g=>state.selectedCargo.has(g.id));if(!containers.length||!cargo.length){showNotice(t('请至少选择一个容器和一种货物。'));return;}state.hiddenCargoIds.clear();state.plan={plans:containers.map(c=>packContainer(c,cargo,activeMode())),active:0,mode:activeMode()};showSuccess(t('已生成新装载方案，请查看'),3000);$('#results').classList.remove('hidden');renderPlan();$('#results').scrollIntoView({behavior:'smooth',block:'start'});};
@@ -1348,6 +1353,7 @@ scheduleCargoSelectorV296=scheduleSelectorsV318;
 window.TopBoxApp.renderSelectors=renderSelectorsV318;
 const cargoSelectorV318Host=$('#cargoList');
 if(cargoSelectorV318Host)new MutationObserver(()=>{
+  if(cargoSelectorV318Host.dataset.renderer==='v319')return;
   if(cargoSelectorV318Host.dataset.renderer==='v318'&&![...cargoSelectorV318Host.children].some(node=>node.matches?.('.select-row,.cargo-fresh-row,.cargo-v315-row')))return;
   requestAnimationFrame(renderCargoRowsV318);
 }).observe(cargoSelectorV318Host,{childList:true});
@@ -1401,3 +1407,84 @@ buildExtraVehiclePlans=buildExtraVehiclePlansV318;
 buildExtraVehiclePlansV313=buildExtraVehiclePlansV318;
 buildExtraVehiclePlansV314=buildExtraVehiclePlansV318;
 if(typeof buildExtraVehiclePlansV316!=='undefined')buildExtraVehiclePlansV316=buildExtraVehiclePlansV318;
+
+/* v3.1.9 — the selector has one DOM contract for initial load, reset and every
+   loading mode.  No compatibility renderer is allowed to own the live host. */
+function renderCargoRowsV319(){
+  const host=$('#cargoList');if(!host)return;
+  const terms=($('#cargoSearch')?.value||'').trim().toLowerCase().split(',').map(value=>value.trim()).filter(Boolean);
+  const rows=state.cargo.filter(item=>terms.every(term=>`${item.name}${item.type}`.toLowerCase().includes(term)));
+  const size=Math.max(1,+state.ui.cargoSize||20),pages=Math.max(1,Math.ceil(rows.length/size));
+  state.ui.cargoPage=Math.max(1,Math.min(+state.ui.cargoPage||1,pages));
+  const page=rows.slice((state.ui.cargoPage-1)*size,state.ui.cargoPage*size);
+  const specified=document.querySelector('input[name="mode"]:checked')?.value==='specified';
+  const pieceMode=state.settings.quantityInputMode==='pieces';
+  const modeHost=$('#quantityInputMode');
+  if(modeHost)modeHost.innerHTML=`<button type="button" class="quantity-mode-button ${pieceMode?'':'active'}" data-quantity-mode="bags" aria-pressed="${!pieceMode}" ${specified?'':'disabled'}>${t('按包数输入')}</button><button type="button" class="quantity-mode-button ${pieceMode?'active':''}" data-quantity-mode="pieces" aria-pressed="${pieceMode}" ${specified?'':'disabled'}>${t('按小件数输入')}</button>`;
+  $$('.mode-option').forEach(label=>label.classList.toggle('selected',!!label.querySelector('input')?.checked));
+  host.className='cargo-v319-list';host.dataset.renderer='v319';
+  host.innerHTML=page.map(item=>{
+    const perPackage=Math.max(1,+item.pieces||1),bags=Math.max(1,+item.quantity||1),pieces=Math.max(1,+item.pieceQuantity||bags*perPackage),value=pieceMode?pieces:bags;
+    const result=pieceMode?`${t('折合')} ${Math.ceil(pieces/perPackage).toLocaleString()} ${t('包')}`:`${t('共')} ${(bags*perPackage).toLocaleString()} ${t('件')}`;
+    return `<label class="cargo-v319-row ${state.selectedCargo.has(item.id)?'checked':''}" data-cargo-v319="${item.id}"><input class="cargo-v319-check" data-id="${item.id}" type="checkbox" ${state.selectedCargo.has(item.id)?'checked':''}><span class="cargo-v319-color" style="background:${item.color}"></span><span class="cargo-v319-info"><b>${escapeHtml(item.name)}</b><small>${item.l} × ${item.w} × ${item.h} mm · ${cubicMeters(item).toFixed(4)} m³</small><small>${perPackage.toLocaleString()} ${t('件')}/${t('包')}</small></span><span class="cargo-v319-control"><input class="cargo-v319-input" data-id="${item.id}" type="number" min="1" value="${value}" ${specified?'':'disabled'}><span class="cargo-v319-unit">${pieceMode?t('件'):t('包')}</span><strong class="cargo-v319-result">${result}</strong></span></label>`;
+  }).join('')||`<div class="empty-state">${t('没有匹配的货物')}</div>`;
+  const pager=$('#cargoPager');if(pager)pager.innerHTML=`<span>${rows.length?`${(state.ui.cargoPage-1)*size+1}-${Math.min(state.ui.cargoPage*size,rows.length)}/${rows.length}`:'0/0'}</span><button data-v319-page="-1" ${state.ui.cargoPage<=1?'disabled':''}>‹</button><button data-v319-page="1" ${state.ui.cargoPage>=pages?'disabled':''}>›</button><select data-v319-size>${[20,30,50,100,200,500,1000,2000].map(value=>`<option value="${value}" ${size===value?'selected':''}>${value}</option>`).join('')}</select>`;
+  $('[data-v319-page="-1"]',pager)?.addEventListener('click',()=>{state.ui.cargoPage--;persistState();renderSelectorsV319();});
+  $('[data-v319-page="1"]',pager)?.addEventListener('click',()=>{state.ui.cargoPage++;persistState();renderSelectorsV319();});
+  $('[data-v319-size]',pager)?.addEventListener('change',event=>{state.ui.cargoSize=+event.target.value;state.ui.cargoPage=1;persistState();renderSelectorsV319();});
+  $$('[data-quantity-mode]',modeHost).forEach(button=>button.addEventListener('click',()=>{if(button.disabled)return;state.settings.quantityInputMode=button.dataset.quantityMode;persistState();renderSelectorsV319();}));
+  $$('.cargo-v319-check',host).forEach(input=>input.addEventListener('change',()=>{if(input.checked&&!specified){state.selectedCargo.clear();state.selectedCargo.add(input.dataset.id);}else if(input.checked)state.selectedCargo.add(input.dataset.id);else state.selectedCargo.delete(input.dataset.id);persistState();renderSelectorsV319();}));
+  $$('.cargo-v319-input',host).forEach(input=>{const sync=save=>{const item=state.cargo.find(value=>value.id===input.dataset.id);if(!item)return;const perPackage=Math.max(1,+item.pieces||1),amount=Math.max(1,+input.value||1);if(pieceMode){item.pieceQuantity=amount;item.quantity=Math.ceil(amount/perPackage);}else{item.quantity=amount;item.pieceQuantity=amount*perPackage;}input.value=amount;const out=input.closest('.cargo-v319-control')?.querySelector('.cargo-v319-result');if(out)out.textContent=pieceMode?`${t('折合')} ${Math.ceil(amount/perPackage).toLocaleString()} ${t('包')}`:`${t('共')} ${(amount*perPackage).toLocaleString()} ${t('件')}`;if(save)persistState();};input.addEventListener('input',()=>sync(false));input.addEventListener('change',()=>sync(true));});
+}
+function renderSelectorsV319(){renderContainerRowsV318();renderCargoRowsV319();syncSelectorBadgesV318();renderExactUtilization();}
+function scheduleSelectorsV319(){renderSelectorsV319();queueMicrotask(renderCargoRowsV319);requestAnimationFrame(renderCargoRowsV319);}
+renderSelectors=renderSelectorsV319;
+/* Every historical listener resolves these mutable function bindings at event
+   time.  Point all of them at the one v3.1.9 renderer so reset and loading-mode
+   changes cannot repaint legacy markup after the new layout has rendered. */
+renderSelectorsV293=renderSelectorsV319;
+renderSelectorsV315=renderSelectorsV319;
+renderCargoRowsV315=renderCargoRowsV319;
+renderSelectorsV318=renderSelectorsV319;
+renderCargoRowsV318=renderCargoRowsV319;
+scheduleSelectorsV318=scheduleSelectorsV319;
+renderCargoSelectorV296=renderSelectorsV319;
+scheduleCargoSelectorV296=scheduleSelectorsV319;
+window.TopBoxApp.renderSelectors=renderSelectorsV319;
+
+function rotationsV319(item){
+  const l=Math.max(1,+item.l||1),w=Math.max(1,+item.w||1),h=Math.max(1,+item.h||1);
+  return item.kit?[[l,w,h]]:item.shape==='cylinder'?[[l,w,h],[h,w,l],[l,h,w]]:[[l,w,h],[w,l,h],[l,h,w],[h,l,w],[w,h,l],[h,w,l]];
+}
+function remainingFitsFreeSpaceV319(plan,request){
+  const spaces=Array.isArray(plan.freeSpaces)?plan.freeSpaces:[];
+  return request.some(item=>spaces.some(space=>rotationsV319(item).some(([l,w,h])=>l<=space.l&&w<=space.w&&h<=space.h&&space.x+l<=plan.container.l&&space.y+w<=plan.container.w&&space.z+h<=plan.container.h)));
+}
+function buildExtraVehiclePlansV319(unplaced){
+  const grouped=new Map();
+  (Array.isArray(unplaced)?unplaced:[]).forEach(item=>{if(!item?.id)return;const entry=grouped.get(item.id)||{record:state.cargo.find(cargo=>cargo.id===item.id)||item,implicit:0,explicit:0};const raw=item.unplacedQuantity??item.unplacedCount;if(raw==null)entry.implicit+=1;else entry.explicit=Math.max(entry.explicit,Math.max(1,Math.floor(+raw||1)));grouped.set(item.id,entry);});
+  const remaining=new Map([...grouped].map(([id,entry])=>[id,{record:entry.record,count:entry.explicit||entry.implicit}]));
+  const trucks=state.containers.filter(container=>container.type==='车厢').slice().sort((a,b)=>usableVolume(b)-usableVolume(a)||b.l-a.l||b.w-a.w||b.h-a.h);
+  const requested=()=>[...remaining.values()].filter(entry=>entry.count>0).map(entry=>({...entry.record,quantity:entry.count}));
+  const total=()=>[...remaining.values()].reduce((sum,entry)=>sum+entry.count,0),plans=[];
+  for(let run=0;run<2000&&total()>0;run++){
+    const wanted=total(),request=requested();
+    const choices=trucks.map(container=>{const plan=packContainer(container,request,'specified'),loaded=[...plan.placedCount.values()].reduce((sum,count)=>sum+(+count||0),0),volume=+plan.loadedVolume||0,capacity=usableVolume(container);return{plan,loaded,volume,capacity};}).filter(choice=>choice.loaded>0);
+    if(!choices.length)break;
+    const complete=choices.filter(choice=>choice.loaded===wanted).sort((a,b)=>a.capacity-b.capacity||a.plan.container.l-b.plan.container.l);
+    /* The final vehicle is the smallest truck that can take all remaining
+       packages. Until then, use the largest truck, subtract exactly what it
+       loaded, and evaluate the smaller remainder again. */
+    const largestProgress=choices.filter(choice=>choice.loaded<wanted).sort((a,b)=>b.capacity-a.capacity||b.loaded-a.loaded||b.volume-a.volume);
+    const selected=complete[0]||largestProgress[0];if(!selected)break;
+    plans.push(selected.plan);let progress=0;
+    selected.plan.placedCount.forEach((count,id)=>{const entry=remaining.get(id);if(!entry)return;const used=Math.min(entry.count,Math.max(0,+count||0));entry.count-=used;progress+=used;});
+    if(!progress)break;
+  }
+  return{plans,remaining:[...remaining.values()].flatMap(entry=>Array.from({length:entry.count},()=>({...entry.record})))};
+}
+buildExtraVehiclePlans=buildExtraVehiclePlansV319;
+buildExtraVehiclePlansV313=buildExtraVehiclePlansV319;
+buildExtraVehiclePlansV314=buildExtraVehiclePlansV319;
+if(typeof buildExtraVehiclePlansV316!=='undefined')buildExtraVehiclePlansV316=buildExtraVehiclePlansV319;
+renderSelectorsV319();

@@ -39,7 +39,7 @@ function open(record=null){dialog();if(!editable())return;draft=record?.kit?{id:
 function close(){$('#palletKitDialog')?.close();}
 function activeArchive(){const m=$('.nav-link[data-page="archives"][data-archive-target].active'),t=$('.archive-tabs button.active')?.dataset.archive;return m?.dataset.archiveTarget||t||state()?.archive;}
 function refreshLaunch(kind){const b=$('#palletKitBuilder');if(!b)return;const visible=$('#archives')?.classList.contains('active-page');b.classList.toggle('hidden',!visible||(kind||activeArchive())!=='cargo'||!editable());}
-function initialise(){$('#palletKitBuilder')?.addEventListener('click',()=>open());document.addEventListener('click',e=>{const n=e.target.closest('.nav-link[data-page="archives"][data-archive-target]'),t=e.target.closest('.archive-tabs [data-archive]'),kind=n?.dataset.archiveTarget||t?.dataset.archive;if(!kind)return;[0,16,120].forEach(wait=>setTimeout(()=>refreshLaunch(kind),wait));requestAnimationFrame(()=>refreshLaunch(kind));},true);window.addEventListener('topbox:edit-pallet-kit',e=>open(e.detail));const a=$('#archives');if(a)new MutationObserver(()=>refreshLaunch()).observe(a,{attributes:true,attributeFilter:['class']});refreshLaunch();}
+function initialise(){$('#palletKitBuilder')?.addEventListener('click',()=>requestOpenPalletKitV320());document.addEventListener('click',e=>{const n=e.target.closest('.nav-link[data-page="archives"][data-archive-target]'),t=e.target.closest('.archive-tabs [data-archive]'),kind=n?.dataset.archiveTarget||t?.dataset.archive;if(!kind)return;[0,16,120].forEach(wait=>setTimeout(()=>refreshLaunch(kind),wait));requestAnimationFrame(()=>refreshLaunch(kind));},true);window.addEventListener('topbox:edit-pallet-kit',e=>requestOpenPalletKitV320(e.detail));const a=$('#archives');if(a)new MutationObserver(()=>refreshLaunch()).observe(a,{attributes:true,attributeFilter:['class']});refreshLaunch();}
 if(window.TopBoxApp)initialise();else window.addEventListener('topbox-app-ready',initialise,{once:true});
 
 /* v3.1.2: interactive preview helpers for the pallet designer. */
@@ -172,3 +172,26 @@ select=function(id){selectV317Base(id);syncCargoPickerButtonsV317();};
 const openKitV317Base=open;
 open=function(record=null){openKitV317Base(record);$$('.kit-search-combo').forEach(node=>node.remove());syncCargoPickerButtonsV317();};
 
+/* v3.2.0 — launch through delegation so archive rerenders cannot detach the designer. */
+function openPalletKitV319(record=null){
+  const dialogNode=$('#palletKitDialog');
+  if(dialogNode?.open){dialogNode.focus();return;}
+  try{open(record);}catch(error){
+    console.error(error);
+    const toast=document.querySelector('#appToast');
+    if(toast){toast.textContent='托盘套装设计打开失败，请刷新后重试。';toast.classList.add('visible');setTimeout(()=>toast.classList.remove('visible'),3000);}
+  }
+}
+function requestOpenPalletKitV320(record=null){
+  if(state()){openPalletKitV319(record);return;}
+  const retry=()=>openPalletKitV319(record);
+  window.addEventListener('topbox-app-ready',retry,{once:true});
+  setTimeout(()=>{if(state())retry();},0);
+}
+document.addEventListener('click',event=>{
+  const launch=event.target.closest('#palletKitBuilder');
+  if(!launch)return;
+  event.preventDefault();event.stopImmediatePropagation();requestOpenPalletKitV320();
+},true);
+window.addEventListener('topbox-app-ready',()=>refreshLaunch(),{once:true});
+window.TopBoxPalletKit={open:requestOpenPalletKitV320,refreshLaunch};

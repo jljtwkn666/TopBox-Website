@@ -11,4 +11,3 @@
 .cargo-note-field textarea{min-height:62px;resize:vertical;border:1px solid #c9d8e8;border-radius:10px;padding:9px 10px;font:inherit;color:#10243e}
 .archive-note-cell{max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:850px){.kit-free-move{font-size:10px;padding:0 6px}.kit-cargo-search input{font-size:11px!important}}
-

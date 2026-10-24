@@ -352,6 +352,19 @@ const tableColumnPrefs = kind => {
   catch { return {}; }
 };
 const saveTableColumnPrefs = (kind, prefs) => localStorage.setItem(`topbox.table-columns.${kind}`, JSON.stringify(prefs));
+const lockedColumnKeys = new Set(['select', 'seq', 'actions']);
+function orderedTableColumns(kind, prefs = tableColumnPrefs(kind)) {
+  const definitions = tableColumnDefinitions[kind] || [], byKey = new Map(definitions);
+  const middleKeys = definitions.map(([key]) => key).filter(key => !lockedColumnKeys.has(key));
+  const savedMiddle = Array.isArray(prefs.order)
+    ? prefs.order.filter((key, index, all) => middleKeys.includes(key) && all.indexOf(key) === index)
+    : [];
+  middleKeys.forEach(key => { if (!savedMiddle.includes(key)) savedMiddle.push(key); });
+  /* These columns are structural: selection and sequence always lead the
+     table, while actions always stays at the far right. */
+  const keys = ['select', 'seq', ...savedMiddle, 'actions'].filter(key => byKey.has(key));
+  return keys.map(key => [key, byKey.get(key)]);
+}
 
 function ensureTableColumnDialog() {
   if ($('#tableColumnDialog')) return;
@@ -365,14 +378,19 @@ function ensureTableColumnDialog() {
   };
 }
 
+function renderTableColumnOptions(kind) {
+  const prefs = tableColumnPrefs(kind), hidden = new Set(prefs.hidden || []), pinned = new Set(prefs.pinned || []);
+  const options = $('#tableColumnOptions');
+  options.innerHTML = orderedTableColumns(kind, prefs).map(([key, label]) => {
+    const lockedLeft = key === 'select' || key === 'seq', lockedRight = key === 'actions', immovable = lockedLeft || lockedRight || pinned.has(key);
+    return `<div class="table-column-option ${immovable ? 'column-order-locked' : ''}" data-column-option="${key}" draggable="${immovable ? 'false' : 'true'}"><span class="column-drag-handle" aria-hidden="true">${immovable ? '●' : '⋮⋮'}</span><b>${escapeHtml(label)}</b><label><input type="checkbox" data-column-visible="${key}" ${hidden.has(key) ? '' : 'checked'} ${lockedLeft || lockedRight ? 'disabled' : ''}> 显示</label><label><input type="checkbox" data-column-pinned="${key}" ${lockedLeft || pinned.has(key) ? 'checked' : ''} ${lockedLeft || lockedRight ? 'disabled' : ''}> 固定左侧</label></div>`;
+  }).join('');
+}
+
 function openTableColumnDialog(kind) {
   ensureTableColumnDialog();
   activeColumnTable = kind;
-  const prefs = tableColumnPrefs(kind), hidden = new Set(prefs.hidden || []), pinned = new Set(prefs.pinned || []);
-  $('#tableColumnOptions').innerHTML = tableColumnDefinitions[kind].map(([key, label]) => {
-    const lockedLeft = key === 'select' || key === 'seq', lockedRight = key === 'actions';
-    return `<div class="table-column-option"><b>${escapeHtml(label)}</b><label><input type="checkbox" data-column-visible="${key}" ${hidden.has(key) ? '' : 'checked'} ${lockedLeft || lockedRight ? 'disabled' : ''}> 显示</label><label><input type="checkbox" data-column-pinned="${key}" ${lockedLeft || pinned.has(key) ? 'checked' : ''} ${lockedLeft || lockedRight ? 'disabled' : ''}> 固定左侧</label></div>`;
-  }).join('');
+  renderTableColumnOptions(kind);
   $('#tableColumnOptions').onchange = event => {
     const visible = event.target.dataset.columnVisible, pin = event.target.dataset.columnPinned;
     const current = tableColumnPrefs(kind), currentHidden = new Set(current.hidden || []), currentPinned = new Set(current.pinned || []);
@@ -380,7 +398,36 @@ function openTableColumnDialog(kind) {
     if (pin) event.target.checked ? currentPinned.add(pin) : currentPinned.delete(pin);
     current.hidden = [...currentHidden]; current.pinned = [...currentPinned]; saveTableColumnPrefs(kind, current);
     kind === 'plans' ? renderStablePlans() : renderStableArchives();
+    renderTableColumnOptions(kind);
   };
+  let draggedKey = '';
+  $('#tableColumnOptions').ondragstart = event => {
+    const row = event.target.closest('[data-column-option]');
+    if (!row || row.draggable !== true) return event.preventDefault();
+    draggedKey = row.dataset.columnOption; row.classList.add('column-order-dragging');
+    event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', draggedKey);
+  };
+  $('#tableColumnOptions').ondragover = event => {
+    const row = event.target.closest('[data-column-option]');
+    if (!row || row.draggable !== true || row.dataset.columnOption === draggedKey) return;
+    event.preventDefault(); event.dataTransfer.dropEffect = 'move';
+  };
+  $('#tableColumnOptions').ondrop = event => {
+    const target = event.target.closest('[data-column-option]');
+    if (!draggedKey || !target || target.draggable !== true || target.dataset.columnOption === draggedKey) return;
+    event.preventDefault();
+    const current = tableColumnPrefs(kind), order = orderedTableColumns(kind, current).map(([key]) => key);
+    const movable = order.filter(key => !lockedColumnKeys.has(key) && !(current.pinned || []).includes(key));
+    const from = movable.indexOf(draggedKey), to = movable.indexOf(target.dataset.columnOption);
+    if (from < 0 || to < 0) return;
+    movable.splice(to, 0, movable.splice(from, 1)[0]);
+    let cursor = 0;
+    current.order = order.map(key => lockedColumnKeys.has(key) || (current.pinned || []).includes(key) ? key : movable[cursor++]);
+    saveTableColumnPrefs(kind, current);
+    kind === 'plans' ? renderStablePlans() : renderStableArchives();
+    renderTableColumnOptions(kind);
+  };
+  $('#tableColumnOptions').ondragend = () => { draggedKey = ''; $('.column-order-dragging')?.classList.remove('column-order-dragging'); };
   $('#tableColumnDialog').showModal();
 }
 
@@ -398,7 +445,7 @@ function injectTableColumnButton(kind) {
 function configureStableTable(table, kind) {
   if (!table) return;
   table.querySelectorAll('.column-resize-handle').forEach(handle => handle.remove());
-  const definitions = tableColumnDefinitions[kind], prefs = tableColumnPrefs(kind);
+  const canonical = tableColumnDefinitions[kind], prefs = tableColumnPrefs(kind), definitions = orderedTableColumns(kind, prefs);
   const locked = new Set(['select', 'seq', 'actions']);
   const hidden = new Set((prefs.hidden || []).filter(key => !locked.has(key)));
   const pinned = new Set(['select', 'seq', ...(prefs.pinned || []).filter(key => !locked.has(key))]);
@@ -406,6 +453,11 @@ function configureStableTable(table, kind) {
   const rows = [...table.rows];
   const sequenceDigits = String(Math.max(1, state()?.[kind === 'plans' ? 'savedPlans' : kind]?.length || 1)).length;
   const fixedWidths = { select: 52, seq: Math.max(54, 38 + sequenceDigits * 9) };
+  rows.forEach(row => {
+    if (![...row.cells].some(cell => cell.dataset.columnKey)) canonical.forEach(([key], index) => { if (row.cells[index]) row.cells[index].dataset.columnKey = key; });
+    const cells = new Map([...row.cells].map(cell => [cell.dataset.columnKey, cell]));
+    definitions.forEach(([key]) => { const cell = cells.get(key); if (cell) row.append(cell); });
+  });
   definitions.forEach(([key], index) => rows.forEach(row => {
     const cell = row.cells[index]; if (!cell) return;
     cell.dataset.columnKey = key;

@@ -20,4 +20,3 @@ try {
   document.documentElement.dataset.appLoaderError = String(error?.message || error);
   console.error(error);
 }
-

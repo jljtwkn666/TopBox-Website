@@ -1,0 +1,54 @@
+/* v3.2.1 — single cargo selector contract and movable table-column settings. */
+#cargoList.cargo-v319-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  height: 390px !important;
+  min-height: 390px !important;
+  max-height: 390px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 2px !important;
+  box-sizing: border-box !important;
+}
+#cargoList.cargo-v319-list .cargo-v319-row {
+  display: grid !important;
+  grid-template-columns: 21px 40px minmax(0, 1fr) minmax(218px, 260px) !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-height: 70px !important;
+  height: 70px !important;
+  padding: 8px 12px !important;
+  border: 1px solid #e2ebf4 !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+#cargoList.cargo-v319-list .cargo-v319-row.checked { border-color: #8bbcff !important; background: #fbfdff !important; }
+#cargoList.cargo-v319-list .cargo-v319-check { width: 20px !important; height: 20px !important; margin: 0 !important; accent-color: #2864e8 !important; }
+#cargoList.cargo-v319-list .cargo-v319-color { width: 39px !important; height: 39px !important; border-radius: 10px !important; }
+#cargoList.cargo-v319-list .cargo-v319-info { display: flex !important; flex-direction: column !important; gap: 2px !important; min-width: 0 !important; line-height: 1.15 !important; overflow: hidden !important; }
+#cargoList.cargo-v319-list .cargo-v319-info b { color: #10243f !important; font-size: 15px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+#cargoList.cargo-v319-list .cargo-v319-info small { color: #71849a !important; font-size: 12px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+#cargoList.cargo-v319-list .cargo-v319-control { display: grid !important; grid-template-columns: minmax(82px, 96px) 18px minmax(88px, 1fr) !important; align-items: center !important; gap: 7px !important; min-width: 0 !important; }
+#cargoList.cargo-v319-list .cargo-v319-input { width: 100% !important; min-width: 0 !important; height: 40px !important; padding: 0 9px !important; border: 1px solid #d3e0ee !important; border-radius: 10px !important; box-sizing: border-box !important; text-align: right !important; font-size: 16px !important; font-weight: 750 !important; opacity: 1 !important; color: #10243f !important; background: #fff !important; }
+#cargoList.cargo-v319-list .cargo-v319-unit { color: #526b84 !important; font-size: 14px !important; font-weight: 700 !important; white-space: nowrap !important; }
+#cargoList.cargo-v319-list .cargo-v319-result { min-width: 0 !important; color: #1f62e9 !important; font-size: 14px !important; font-weight: 800 !important; text-align: right !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+
+.table-column-option { display: grid !important; grid-template-columns: 28px minmax(100px,1fr) auto auto !important; align-items: center !important; gap: 10px !important; }
+.table-column-option[draggable="true"] { cursor: grab; }
+.table-column-option[draggable="true"]:active { cursor: grabbing; }
+.table-column-option.column-order-dragging { opacity: .45; border-color: #2864e8; }
+.column-drag-handle { color: #7790a8; text-align: center; font-weight: 800; user-select: none; }
+.column-order-locked .column-drag-handle { color: #c1ccd7; font-size: 9px; }
+
+@media (max-width: 800px) {
+  #cargoList.cargo-v319-list .cargo-v319-row { grid-template-columns: 20px 36px minmax(0, 1fr) minmax(196px, 215px) !important; gap: 8px !important; padding-inline: 9px !important; }
+  #cargoList.cargo-v319-list .cargo-v319-control { grid-template-columns: 78px 18px minmax(78px, 1fr) !important; }
+}
+@media (max-width: 560px) {
+  #cargoList.cargo-v319-list { height: 430px !important; min-height: 430px !important; max-height: 430px !important; }
+  #cargoList.cargo-v319-list .cargo-v319-row { height: 82px !important; min-height: 82px !important; grid-template-columns: 20px 34px minmax(0,1fr) !important; grid-template-areas: 'check color info' 'check color control' !important; }
+  .cargo-v319-check { grid-area: check; }.cargo-v319-color { grid-area: color; }.cargo-v319-info { grid-area: info; }.cargo-v319-control { grid-area: control; }
+}
