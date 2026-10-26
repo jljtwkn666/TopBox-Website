@@ -249,3 +249,55 @@ document.addEventListener('click',event=>{
 },true);
 window.addEventListener('topbox-app-ready',()=>refreshLaunch(),{once:true});
 window.TopBoxPalletKit={open:requestOpenPalletKitV320,refreshLaunch};
+
+/* v3.2.4 — multi-selection and movement controls live together in 3D settings. */
+let kitMultiSelectV324=false,kitMultiSelectedIdsV324=new Set();
+function persistKitSettingsV324(){persistKitDisplaySetting();}
+function syncKitSettingsV324(){
+  const freeToggle=$('#kitFreeMoveToggle'),multiToggle=$('#kitMultiSelectToggle');
+  if(freeToggle)freeToggle.checked=!!kitFreeMoveV314;
+  if(multiToggle)multiToggle.checked=kitMultiSelectV324;
+}
+function highlightKitSelectionsV324(){
+  if(!preview?.scene)return;
+  preview.scene.traverse(object=>{
+    const id=object.userData?.kitItemId;
+    if(!id||!object.isMesh||!object.material?.color)return;
+    const item=draft?.items?.find(value=>value.id===id);if(!item)return;
+    const selected=kitMultiSelectedIdsV324.has(id)||id===selectedItemId;
+    const color=new THREE.Color(item.color||'#2563eb');
+    if(selected)color.lerp(new THREE.Color(0xffffff),.42);
+    object.material.color.copy(color);object.material.emissive?.copy(selected?color:new THREE.Color(0x000000));
+    if('emissiveIntensity' in object.material)object.material.emissiveIntensity=selected ? 0.12 : 0;
+  });
+  preview.renderer?.render(preview.scene,preview.camera);
+}
+function setupKitSettingsV324(){
+  setupKitDisplayControlsV312();
+  const button=$('#kitDisplaySettings'),menu=$('#kitDisplaySettingsMenu');if(!button||!menu)return;
+  menu.innerHTML=`<label class="kit-setting-toggle"><input type="checkbox" id="kitTooltipToggle"> <span>悬浮显示货物名称</span></label><label class="kit-setting-toggle"><input type="checkbox" id="kitMultiSelectToggle"> <span>多选货物</span></label><label class="kit-setting-toggle"><input type="checkbox" id="kitFreeMoveToggle"> <span>自由移动货物</span></label>`;
+  const tooltip=$('#kitTooltipToggle'),multi=$('#kitMultiSelectToggle'),free=$('#kitFreeMoveToggle');
+  tooltip.checked=state()?.settings?.kitCargoTooltip!==false;
+  kitMultiSelectV324=!!state()?.settings?.kitMultiSelect;
+  syncKitSettingsV324();
+  button.onclick=event=>{event.stopPropagation();menu.hidden=!menu.hidden;};
+  tooltip.onchange=()=>{if(state())state().settings.kitCargoTooltip=tooltip.checked;persistKitSettingsV324();};
+  multi.onchange=()=>{kitMultiSelectV324=multi.checked;if(!kitMultiSelectV324&&selectedItemId)kitMultiSelectedIdsV324=new Set([selectedItemId]);if(state())state().settings.kitMultiSelect=kitMultiSelectV324;persistKitSettingsV324();refresh();};
+  free.onchange=()=>{if(free.checked!==kitFreeMoveV314)$('#kitFreeMove')?.click();syncKitSettingsV324();};
+}
+function setupKitMultiSelectionV324(){
+  const canvas=preview?.renderer?.domElement;if(!canvas||canvas.dataset.kitMultiV324)return;canvas.dataset.kitMultiV324='1';
+  canvas.addEventListener('pointerdown',event=>{
+    if(!kitMultiSelectV324||kitFreeMoveV314||event.button!==0)return;
+    const hit=itemForPreviewHitV312(event);if(!hit)return;
+    event.preventDefault();event.stopImmediatePropagation();
+    if(kitMultiSelectedIdsV324.has(hit.id))kitMultiSelectedIdsV324.delete(hit.id);else kitMultiSelectedIdsV324.add(hit.id);
+    const primary=[...kitMultiSelectedIdsV324].at(-1)||null;
+    if(primary)selectV317Base(primary);else{selectedItemId=null;$('#kitSelectedEditor')?.classList.add('hidden');refresh();}
+    highlightKitSelectionsV324();
+  },true);
+}
+const renderPreviewV324Base=renderPreview;
+renderPreview=function(){renderPreviewV324Base();requestAnimationFrame(highlightKitSelectionsV324);};
+const openKitV324Base=open;
+open=function(record=null){openKitV324Base(record);kitMultiSelectedIdsV324=selectedItemId?new Set([selectedItemId]):new Set();requestAnimationFrame(()=>{setupKitSettingsV324();setupKitMultiSelectionV324();highlightKitSelectionsV324();});};

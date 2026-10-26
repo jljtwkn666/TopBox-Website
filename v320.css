@@ -1,0 +1,11 @@
+/* TOP BOX v3.2.4 — specified-quantity packing and pallet display settings. */
+#loadingModeStep .specified-fill-controls{display:none;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0 0;padding:12px 14px;border:1px solid #d8e4f2;border-radius:12px;background:#f8fbff;color:#47617d;font-size:14px}
+#loadingModeStep.specified-active .specified-fill-controls{display:flex}
+.specified-fill-controls>span{font-weight:800;color:#163150}
+.specified-fill-controls select{min-width:245px;height:38px;border:1px solid #bdd2ea;border-radius:9px;background:#fff;color:#183a61;padding:0 10px;font:inherit;font-weight:700}
+.specified-fill-controls small{flex:1 1 280px;color:#7087a1}
+.kit-display-settings-menu .kit-setting-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:7px 0;font-size:12px;white-space:nowrap}
+.kit-display-settings-menu .kit-setting-toggle input{width:16px;height:16px;accent-color:#2b66e9}
+.kit-display-settings-menu .kit-setting-toggle span{flex:1}
+.kit-free-move{display:none!important}
+@media(max-width:720px){.specified-fill-controls select{width:100%;min-width:0}.specified-fill-controls small{flex-basis:100%}}

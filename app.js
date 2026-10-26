@@ -97,7 +97,7 @@ function expandRequested(selected, c, mode) {
   primary.forEach(g => { for (let i=0;i<g.wanted;i++) result.push(g); });
   return result.sort((a,b) => cubicMeters(b) - cubicMeters(a));
 }
-function packContainer(c, selected, mode) {
+function packContainer(c, selected, mode, fillPriority='inside') {
   let positions = []; const unplaced = [], placedCount = new Map(), candidates = expandRequested(selected, c, mode),isPallet=c.type==='托盘',baseZ=isPallet?Math.max(1,c.h):0;
   const spaces = [{x:0,y:0,z:baseZ,l:c.l,w:c.w,h:isPallet?Number.POSITIVE_INFINITY:c.h}];
   const rotationsFor = item => {
@@ -109,7 +109,15 @@ function packContainer(c, selected, mode) {
     const rotations=rotationsFor(item); let best=null;
     // Keep lower and tighter spaces first.  We stop after the best rotation for the
     // first suitable space, which avoids repeatedly scanning every historical gap.
-    const ordered=spaces.map((space,i)=>({space,i})).sort((a,b)=>a.space.z-b.space.z||(a.space.l*a.space.w)-(b.space.l*b.space.w)||a.space.y-b.space.y||a.space.x-b.space.x);
+    const ordered=spaces.map((space,i)=>({space,i})).sort((a,b)=>{
+      if(mode==='specified'){
+        /* 指定数量的三种优先铺满方向：里面=W×H，侧面=L×H，底面=L×W。 */
+        if(fillPriority==='side')return a.space.y-b.space.y||a.space.z-b.space.z||a.space.x-b.space.x||(a.space.l*a.space.w)-(b.space.l*b.space.w);
+        if(fillPriority==='bottom')return a.space.z-b.space.z||a.space.y-b.space.y||a.space.x-b.space.x||(a.space.l*a.space.w)-(b.space.l*b.space.w);
+        return a.space.x-b.space.x||a.space.z-b.space.z||a.space.y-b.space.y||(a.space.l*a.space.w)-(b.space.l*b.space.w);
+      }
+      return a.space.z-b.space.z||(a.space.l*a.space.w)-(b.space.l*b.space.w)||a.space.y-b.space.y||a.space.x-b.space.x;
+    });
     for(const {space,i} of ordered){
       let localBest=null;
       for (const [l,w,h,rotation] of rotations) {
@@ -1507,3 +1515,39 @@ buildExtraVehiclePlansV313=buildExtraVehiclePlansV319;
 buildExtraVehiclePlansV314=buildExtraVehiclePlansV319;
 if(typeof buildExtraVehiclePlansV316!=='undefined')buildExtraVehiclePlansV316=buildExtraVehiclePlansV319;
 renderSelectorsV319();
+
+/* v3.2.4 — specified-quantity packing priority has one final controller. */
+function specifiedFillPriorityV324(){
+  const allowed=new Set(['inside','side','bottom']);
+  const select=$('#specifiedFillPriority');
+  const value=state.settings?.specifiedFillPriority||select?.value||'inside';
+  return allowed.has(value)?value:'inside';
+}
+function syncSpecifiedFillPriorityV324(){
+  const specified=activeMode()==='specified',step=$('#loadingModeStep'),select=$('#specifiedFillPriority');
+  step?.classList.toggle('specified-active',specified);
+  if(select){select.disabled=!specified;select.value=specifiedFillPriorityV324();}
+}
+function generatePlanV324(){
+  const containers=state.containers.filter(container=>state.selectedContainers.has(container.id));
+  const cargo=state.cargo.filter(item=>state.selectedCargo.has(item.id));
+  if(!containers.length||!cargo.length){showNotice(t('请至少选择一个容器和一种货物。'));return;}
+  const mode=activeMode(),fillPriority=mode==='specified'?specifiedFillPriorityV324():'inside';
+  state.settings.specifiedFillPriority=fillPriority;
+  state.hiddenCargoIds.clear();
+  state.plan={plans:containers.map(container=>packContainer(container,cargo,mode,fillPriority)),active:0,mode,fillPriority};
+  persistState();
+  showSuccess(t('已生成新装载方案，请查看'),3000);
+  $('#results').classList.remove('hidden');renderPlan();$('#results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('#specifiedFillPriority')?.addEventListener('change',event=>{state.settings.specifiedFillPriority=event.target.value;persistState();});
+document.addEventListener('change',event=>{
+  if(event.target instanceof HTMLInputElement&&event.target.name==='mode'){
+    queueMicrotask(()=>{syncSpecifiedFillPriorityV324();renderSelectorsV319();});
+  }
+},true);
+document.addEventListener('click',event=>{
+  if(event.target.closest('#calculate')){event.preventDefault();event.stopImmediatePropagation();generatePlanV324();}
+  if(event.target.closest('#resetWorkspace'))setTimeout(()=>{state.settings.specifiedFillPriority='inside';persistState();syncSpecifiedFillPriorityV324();renderSelectorsV319();},0);
+},true);
+syncSpecifiedFillPriorityV324();
