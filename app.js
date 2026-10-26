@@ -1608,3 +1608,83 @@ document.addEventListener('change',event=>{if(event.target instanceof HTMLInputE
 renderSelectors=renderSelectorsV325;renderSelectorsV293=renderSelectorsV325;renderSelectorsV315=renderSelectorsV325;renderSelectorsV318=renderSelectorsV325;renderSelectorsV319=renderSelectorsV325;renderCargoRowsV315=renderSelectorsV325;renderCargoRowsV318=renderSelectorsV325;renderCargoSelectorV296=renderSelectorsV325;scheduleSelectorsV318=renderSelectorsV325;scheduleSelectorsV319=renderSelectorsV325;scheduleCargoSelectorV296=renderSelectorsV325;window.TopBoxApp.renderSelectors=renderSelectorsV325;
 renderSelectorsV325();
 
+/* v3.2.6 — selector dialogs own one stable layout and never re-render while a
+   quantity field is being typed.  This replaces the last legacy picker row
+   path rather than layering another cargo-list renderer over it. */
+function pickerTypeToneV326(type){
+  const value=String(type||'');
+  if(value.includes('车厢'))return 'vehicle';
+  if(value.includes('箱'))return 'box';
+  if(value.includes('桶'))return 'barrel';
+  if(value.includes('托盘'))return 'pallet';
+  return 'default';
+}
+function cargoSelectionStatV326(item){
+  const pieces=Math.max(1,+item.pieces||1),pieceMode=state.settings.quantityInputMode==='pieces';
+  const value=Math.max(1,pieceMode?(+item.pieceQuantity||(+item.quantity||1)*pieces):(+item.quantity||1));
+  return pieceMode?`${value.toLocaleString()} 件 · 折合 ${Math.ceil(value/pieces).toLocaleString()} 包`:`${value.toLocaleString()} 包 · 共 ${(value*pieces).toLocaleString()} 件`;
+}
+renderCurrentSelectorsV325=function(){
+  const render=(kind,hostId)=>{
+    const host=$('#'+hostId),items=selectedItemsV325(kind);if(!host)return;
+    host.innerHTML=items.map(item=>{
+      const label=kind==='cargo'?cargoLabel(item):containerLabel(item);
+      return `<div class="selector-current-row"><i class="color-square" style="background:${escV325(item.color||'#2563eb')}"></i><span class="record-main"><b title="${escV325(item.name)}">${escV325(item.name)}</b><small title="${escV325(label)}">${escV325(label)}</small></span><strong class="selector-current-stat">${escV325(kind==='cargo'?cargoSelectionStatV326(item):item.type)}</strong></div>`;
+    }).join('')||'<div class="empty-state">暂未选择项目，请点击右上角按钮选择。</div>';
+  };
+  render('containers','containerList');render('cargo','cargoList');
+  const containers=$('#selectedContainerCount'),cargo=$('#selectedCargoCount');
+  if(containers)containers.textContent=`已选 ${state.selectedContainers.size} 项`;
+  if(cargo)cargo.textContent=`已选 ${state.selectedCargo.size} 项`;
+};
+function pickerRowV326(item,kind,favorites,selected){
+  const cargo=kind==='cargo',pieces=Math.max(1,+item.pieces||1),pieceMode=state.settings.quantityInputMode==='pieces';
+  const value=Math.max(1,pieceMode?(+item.pieceQuantity||(+item.quantity||1)*pieces):(+item.quantity||1));
+  const result=pieceMode?`折合 ${Math.ceil(value/pieces).toLocaleString()} 包`:`共 ${(value*pieces).toLocaleString()} 件`;
+  const inputType=cargo&&!activePickerModeV325()?'radio':'checkbox';
+  return `<article class="selector-picker-row ${selected?'selected':''}" data-picker-row="${escV325(item.id)}"><input type="${inputType}" name="${inputType==='radio'?'full-cargo-choice':''}" data-picker-check="${escV325(item.id)}" ${selected?'checked':''} aria-label="选择 ${escV325(item.name)}"><button type="button" class="picker-favorite ${favorites.has(item.id)?'active':''}" data-picker-favorite="${escV325(item.id)}" title="${favorites.has(item.id)?'取消收藏':'收藏'}">★</button>${cargo?`<i class="picker-color" style="background:${escV325(item.color||'#2563eb')}"></i>`:''}<span class="picker-main"><b title="${escV325(item.name)}">${escV325(item.name)}</b><small title="${escV325(cargo?cargoLabel(item):containerLabel(item))}">${escV325(cargo?cargoLabel(item):containerLabel(item))}</small></span>${cargo?`<span class="picker-quantity"><input type="number" min="1" step="1" data-picker-quantity="${escV325(item.id)}" value="${value}" ${activePickerModeV325()?'':'disabled'}><em>${pieceMode?'件':'包'}</em></span><strong class="picker-result">${result}</strong>`:`<span class="picker-type picker-type-${pickerTypeToneV326(item.type)}">${escV325(item.type)}</span>`}</article>`;
+}
+function renderSelectorPickerV326(persist=true){
+  const listHost=$('#selectorPickerList'),pager=$('#selectorPickerPager'),modeHost=$('#pickerQuantityMode');if(!listHost)return;
+  const kind=selectorPickerKindV325,isCargo=kind==='cargo',specified=activePickerModeV325(),{ids:favorites}=pickerFavoritesV325(kind),all=pickerFilteredV325(),size=20,pages=Math.max(1,Math.ceil(all.length/size)),page=Math.min(pickerPageV325(kind),pages),rows=all.slice((page-1)*size,page*size),selected=isCargo?state.selectedCargo:state.selectedContainers,pieceMode=state.settings.quantityInputMode==='pieces';
+  setPickerPageV325(kind,page);$('#selectorPickerTitle').textContent=isCargo?'选择货物':'选择容器';
+  $$('.selector-picker-tabs button').forEach(button=>button.classList.toggle('active',button.dataset.pickerTab===selectorPickerTabV325));
+  $('#pickerSelectAll').disabled=isCargo&&!specified;modeHost.hidden=!isCargo;
+  modeHost.innerHTML=isCargo?`<button type="button" data-picker-mode="bags" class="${!pieceMode?'active':''}" ${!specified?'disabled':''}>按包数输入</button><button type="button" data-picker-mode="pieces" class="${pieceMode?'active':''}" ${!specified?'disabled':''}>按小件数输入</button>`:'';
+  $$('[data-picker-mode]',modeHost).forEach(button=>button.onclick=()=>{if(button.disabled)return;state.settings.quantityInputMode=button.dataset.pickerMode;state.cargo.forEach(item=>{const per=Math.max(1,+item.pieces||1);if(button.dataset.pickerMode==='pieces')item.pieceQuantity=Math.max(1,(+item.quantity||1)*per);else item.quantity=Math.max(1,Math.ceil((+item.pieceQuantity||per)/per));});persistState();renderSelectorPickerV326(false);});
+  listHost.innerHTML=rows.map(item=>pickerRowV326(item,kind,favorites,selected.has(item.id))).join('')||'<div class="empty-state">没有匹配的项目</div>';
+  pager.innerHTML=`<span>${all.length?`${(page-1)*size+1}-${Math.min(page*size,all.length)}/${all.length}`:'0/0'}</span><button type="button" data-picker-page="-1" ${page<=1?'disabled':''}>‹</button><button type="button" data-picker-page="1" ${page>=pages?'disabled':''}>›</button>`;
+  $$('[data-picker-page]',pager).forEach(button=>button.onclick=()=>{setPickerPageV325(kind,page+(+button.dataset.pickerPage));renderSelectorPickerV326();});
+  if(persist)persistState();
+}
+function bindSelectorPickerV326(){
+  const dialog=$('#selectorPickerDialog'),host=$('#selectorPickerList');if(!dialog||!host||host.dataset.v326Bound)return;host.dataset.v326Bound='1';
+  dialog.addEventListener('close',()=>document.body.classList.remove('selector-dialog-open'));
+  host.addEventListener('click',event=>{
+    const favorite=event.target.closest('[data-picker-favorite]');
+    if(favorite){event.preventDefault();event.stopImmediatePropagation();const {ids,key}=pickerFavoritesV325(selectorPickerKindV325),id=favorite.dataset.pickerFavorite;ids.has(id)?ids.delete(id):ids.add(id);state.settings[key]=[...ids];persistState();renderSelectorPickerV326(false);return;}
+    if(event.target.closest('[data-picker-quantity]'))return;
+    const row=event.target.closest('[data-picker-row]');if(!row)return;
+    event.preventDefault();event.stopImmediatePropagation();
+    const id=row.dataset.pickerRow,set=selectorPickerKindV325==='cargo'?state.selectedCargo:state.selectedContainers;
+    if(selectorPickerKindV325==='cargo'&&!activePickerModeV325()){set.clear();set.add(id);}else if(set.has(id))set.delete(id);else set.add(id);
+    persistState();renderSelectorPickerV326(false);
+  },true);
+  host.addEventListener('input',event=>{
+    const input=event.target.closest('[data-picker-quantity]');if(!input)return;event.stopImmediatePropagation();
+    const item=state.cargo.find(value=>value.id===input.dataset.pickerQuantity);if(!item)return;const per=Math.max(1,+item.pieces||1),value=Math.max(1,Math.floor(+input.value||1));
+    if(state.settings.quantityInputMode==='pieces'){item.pieceQuantity=value;item.quantity=Math.ceil(value/per);}else{item.quantity=value;item.pieceQuantity=value*per;}
+    const result=input.closest('.selector-picker-row')?.querySelector('.picker-result');if(result)result.textContent=state.settings.quantityInputMode==='pieces'?`折合 ${Math.ceil(value/per).toLocaleString()} 包`:`共 ${(value*per).toLocaleString()} 件`;
+  },true);
+  host.addEventListener('change',event=>{if(event.target.closest('[data-picker-quantity]'))persistState();},true);
+}
+const openSelectorPickerV326Base=openSelectorPickerV325;
+openSelectorPickerV325=function(kind){openSelectorPickerV326Base(kind);bindSelectorPickerV326();document.body.classList.add('selector-dialog-open');renderSelectorPickerV326(false);};
+renderSelectorPickerV325=renderSelectorPickerV326;
+const generatePlanV326Base=generatePlanV324;
+generatePlanV324=function(){
+  if(!state.selectedContainers.size||!state.selectedCargo.size){showNotice('请至少选择一个容器和一种货物。');return;}
+  generatePlanV326Base();
+};
+renderSelectorsV325();
+

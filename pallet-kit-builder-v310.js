@@ -321,3 +321,52 @@ document.addEventListener('keydown',event=>{if(event.key!=='Delete'||!$('#pallet
 const openKitV325Base=open;
 open=function(record=null){openKitV325Base(record);requestAnimationFrame(()=>{ensureLayerToolsV325();setupKitSelectionControlsV325();markedItemIds=new Set(selectedKitIdsV325());renderItems();});};
 
+/* v3.2.6 — pallet designer selection tools and settings are local, persistent
+   controls.  They do not close the settings panel or reset the 3D camera. */
+function setKitSwitchV326(button,on){button.classList.toggle('on',!!on);button.setAttribute('aria-checked',String(!!on));button.querySelector('i').textContent=on?'开':'关';}
+setupKitSettingsV324=function(){
+  setupKitDisplayControlsV312();
+  const button=$('#kitDisplaySettings'),menu=$('#kitDisplaySettingsMenu');if(!button||!menu)return;
+  const saved=state()?.settings||{};kitMultiSelectV324=!!saved.kitMultiSelect;
+  menu.innerHTML=`<div class="kit-setting-switch"><span>悬浮显示货物名称</span><button type="button" role="switch" id="kitTooltipSwitch"><i></i></button></div><div class="kit-setting-switch"><span>多选货物</span><button type="button" role="switch" id="kitMultiSwitch"><i></i></button></div><div class="kit-setting-switch"><span>自由移动货物</span><button type="button" role="switch" id="kitFreeSwitch"><i></i></button></div>`;
+  const tooltip=$('#kitTooltipSwitch'),multi=$('#kitMultiSwitch'),free=$('#kitFreeSwitch');
+  setKitSwitchV326(tooltip,saved.kitCargoTooltip!==false);setKitSwitchV326(multi,kitMultiSelectV324);setKitSwitchV326(free,kitFreeMoveV314);
+  button.onclick=event=>{event.preventDefault();event.stopPropagation();menu.hidden=!menu.hidden;};
+  menu.onpointerdown=event=>event.stopPropagation();menu.onclick=event=>{event.stopPropagation();const target=event.target.closest('button');if(!target)return;
+    if(target===tooltip){const on=target.getAttribute('aria-checked')!=='true';if(state())state().settings.kitCargoTooltip=on;setKitSwitchV326(target,on);persistKitSettingsV324();}
+    if(target===multi){kitMultiSelectV324=target.getAttribute('aria-checked')!=='true';if(!kitMultiSelectV324&&selectedItemId)kitMultiSelectedIdsV324=new Set([selectedItemId]);if(state())state().settings.kitMultiSelect=kitMultiSelectV324;setKitSwitchV326(target,kitMultiSelectV324);persistKitSettingsV324();highlightKitSelectionsV324();renderItems();}
+    if(target===free){kitFreeMoveV314=target.getAttribute('aria-checked')!=='true';kitDragV314=null;syncFreeMoveV314();setKitSwitchV326(target,kitFreeMoveV314);}
+  };
+};
+function ensureKitSelectionToolsV326(){
+  const panel=$('.kit-items-panel section');if(!panel||$('#kitSelectionToolsV326'))return;
+  const head=panel.querySelector('.kit-items-head');head?.insertAdjacentHTML('afterend',`<div id="kitSelectionToolsV326" class="kit-selection-tools"><button type="button" data-kit-select-group="all">全选</button><button type="button" data-kit-select-group="none">取消全选</button><button type="button" data-kit-select-group="layer">选择当前层</button><button type="button" data-kit-select-group="x">选择当前 X 行</button><button type="button" data-kit-select-group="y">选择当前 Y 行</button><button type="button" data-kit-select-group="z">选择当前 Z 行</button></div>`);
+  $('#kitSelectionToolsV326').onclick=event=>{const button=event.target.closest('[data-kit-select-group]');if(button)selectKitGroupV326(button.dataset.kitSelectGroup);};
+  const anchor=$('#kitCopyLayer')||$('#kitFillLayer')||$('#addKitGrid');if(anchor&&!$('#kitFullLayerToolsV326')){anchor.insertAdjacentHTML('afterend',`<div class="kit-full-layer-tools" id="kitFullLayerToolsV326"><label>满载层数<input id="kitFullLayerCount" type="number" min="1" value="1"></label><button type="button" class="button primary" id="kitFullLayer">按层数满载</button></div>`);$('#kitFullLayer').onclick=fillKitLayersV326;}
+  const controls=$('.kit-view-buttons');if(controls&&!$('#kitFullscreenV326')){controls.insertAdjacentHTML('beforeend','<button type="button" id="kitFullscreenV326" title="全屏显示">⛶</button>');$('#kitFullscreenV326').onclick=()=>{$('.pallet-kit-stage')?.requestFullscreen?.();};}
+}
+function kitSelectionBaseV326(){const ids=selectedKitIdsV325();const id=[...ids].at(-1)||selectedItemId;return draft?.items?.find(item=>item.id===id)||null;}
+function selectKitGroupV326(group){
+  if(!draft?.items?.length)return msg('当前没有可选择的货物。',true);
+  if(group==='all')return syncKitSelectionV325(new Set(draft.items.map(item=>item.id)),draft.items.at(-1).id);
+  if(group==='none')return syncKitSelectionV325(new Set(),null);
+  const base=kitSelectionBaseV326();if(!base)return msg('请先选择一件货物作为基准。',true);
+  let items=[];
+  if(group==='layer')items=draft.items.filter(item=>item.z===base.z);
+  if(group==='x')items=draft.items.filter(item=>item.y===base.y&&item.z===base.z);
+  if(group==='y')items=draft.items.filter(item=>item.x===base.x&&item.z===base.z);
+  if(group==='z')items=draft.items.filter(item=>item.x===base.x&&item.y===base.y);
+  kitMultiSelectV324=true;if(state())state().settings.kitMultiSelect=true;const switcher=$('#kitMultiSwitch');if(switcher)setKitSwitchV326(switcher,true);syncKitSelectionV325(new Set(items.map(item=>item.id)),base.id);
+}
+function fillKitLayersV326(){
+  const sourceItem=source();if(!sourceItem)return msg('请先选择一种货物。',true);
+  const layers=Math.max(1,Math.floor(num('kitFullLayerCount',1))),normal=makeItem(sourceItem,{rotate:false}),rotated=makeItem(sourceItem,{rotate:true});
+  const count=item=>Math.floor(draft.pallet.l/item.l)*Math.floor(draft.pallet.w/item.w);
+  const base=count(rotated)>count(normal)?rotated:normal,nx=Math.floor(draft.pallet.l/base.l),ny=Math.floor(draft.pallet.w/base.w);
+  if(nx<1||ny<1)return msg('当前货物无法放入托盘范围。',true);
+  const next=[];for(let layer=0;layer<layers;layer++)for(let y=0;y<ny;y++)for(let x=0;x<nx;x++)next.push(makeItem(sourceItem,{rotate:base.rotate,x:x*base.l,y:y*base.w,z:layer*base.h}));
+  draft.items=[];draft.items.push(...next);kitMultiSelectV324=true;if(state())state().settings.kitMultiSelect=true;syncKitSelectionV325(new Set(next.map(item=>item.id)),next.at(-1).id);msg(`已按 ${layers} 层满载托盘，共摆放 ${next.length} 件货物。`);
+}
+const openKitV326Base=open;
+open=function(record=null){openKitV326Base(record);requestAnimationFrame(()=>{setupKitSettingsV324();ensureKitSelectionToolsV326();});};
+
