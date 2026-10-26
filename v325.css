@@ -1,0 +1,33 @@
+/* v3.2.5 — modal selectors and a stable, compact planner contract. */
+#loadingModeStep{display:block!important}
+#loadingModeStep .step-label{display:flex}
+#loadingModeStep .mode-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:18px}
+#loadingModeStep .mode-option{min-width:0;min-height:104px;display:flex!important;align-items:center;gap:12px}
+.specified-fill-priority-wrap{margin:14px 0 20px;padding:14px 18px;border:1px solid #d8e4f2;border-radius:16px;background:#f8fbff}
+.specified-fill-priority-wrap label{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:#294866;font-weight:700}
+.specified-fill-priority-wrap select{min-width:320px;max-width:100%;padding:11px 14px;border:1px solid #c8d9ee;border-radius:10px;background:#fff;color:#183550;font:inherit}
+.specified-fill-priority-wrap small{width:100%;font-weight:400;color:#7186a0}
+.selector-card-v325{min-height:0!important}
+.selector-card-v325 .section-title{align-items:center}
+.selector-picker-open{white-space:nowrap}
+.selector-current-head{display:flex;justify-content:flex-end;margin:8px 0 10px}
+.selector-current-head b{padding:7px 12px;border-radius:999px;background:#eef5ff;color:#2563eb;font-size:14px}
+.selector-card-v325 .legacy-selector-controls{display:none!important}
+.selector-current-list{display:grid;gap:10px;max-height:360px;overflow:auto;padding-right:4px}
+.selector-current-row{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px;border:1px solid #e3ebf4;border-radius:14px;background:#fff}
+.selector-current-row .color-square{width:34px;height:34px;border-radius:9px}
+.selector-current-row .record-main{min-width:0;display:grid;gap:4px}.selector-current-row .record-main b,.selector-current-row .record-main small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.selector-current-row .record-main small{color:#70839c}
+.selector-current-stat{color:#2563eb;font-weight:800;white-space:nowrap}
+.selector-picker-dialog{width:min(920px,calc(100vw - 32px));max-height:min(82vh,780px);padding:0;border:0;border-radius:20px;box-shadow:0 24px 80px #102b4b44;overflow:hidden;background:#fff}
+.selector-picker-dialog::backdrop{background:#102b4b88}
+.selector-picker-shell{display:grid;grid-template-rows:auto auto minmax(180px,1fr) auto;max-height:min(82vh,780px)}
+.selector-picker-dialog .modal-head{padding:20px 24px 14px;border-bottom:1px solid #e6edf5}
+.selector-picker-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 24px;border-bottom:1px solid #e6edf5}
+.selector-picker-tabs{display:flex;gap:6px}.selector-picker-tabs button,.selector-picker-tools button{border:1px solid #cbdcf0;border-radius:9px;background:#fff;color:#355a80;padding:8px 12px;font:inherit;font-weight:700;cursor:pointer}.selector-picker-tabs button.active{background:#2563eb;border-color:#2563eb;color:#fff}.selector-picker-tools .picker-primary{background:#eff6ff;color:#2563eb}.selector-picker-tools .picker-mode{display:flex;border:1px solid #cbdcf0;border-radius:10px;overflow:hidden}.selector-picker-tools .picker-mode button{border:0;border-radius:0}.selector-picker-tools .picker-mode button.active{background:#2563eb;color:#fff}.selector-picker-tools .picker-mode button:disabled{color:#aebdce;background:#f3f6f9;cursor:not-allowed}
+.selector-picker-search{flex:1 1 240px;display:flex;align-items:center;gap:8px;min-width:180px;border:1px solid #cfdeef;border-radius:10px;padding:0 10px;color:#6d829a}.selector-picker-search input{border:0;outline:0;width:100%;padding:9px 0;font:inherit;background:transparent}
+.selector-picker-list{overflow:auto;padding:14px 24px;display:grid;gap:10px;background:#f8fbff}
+.selector-picker-row{display:grid;grid-template-columns:34px 36px minmax(0,1fr) minmax(130px,180px) auto;align-items:center;gap:10px;padding:11px 12px;border:1px solid #dfe9f3;border-radius:12px;background:#fff}.selector-picker-row.checked{border-color:#86b7ff;background:#f5f9ff}.selector-picker-row input{width:19px;height:19px}.selector-picker-row .picker-favorite{border:0;background:transparent;font-size:22px;color:#c3ceda;cursor:pointer;line-height:1}.selector-picker-row .picker-favorite.active{color:#f59e0b}.selector-picker-row .picker-main{min-width:0;display:grid;gap:3px}.selector-picker-row .picker-main b,.selector-picker-row .picker-main small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.selector-picker-row .picker-main small{color:#71849d}.selector-picker-row .picker-quantity{display:flex;align-items:center;gap:7px}.selector-picker-row .picker-quantity input{width:100%;min-width:0;height:36px;padding:0 9px;border:1px solid #cbdcf0;border-radius:8px;text-align:right;font:700 16px inherit}.selector-picker-row .picker-result{color:#2563eb;font-weight:800;white-space:nowrap}.selector-picker-row .picker-type{color:#6c7f98;white-space:nowrap}
+.selector-picker-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 24px;border-top:1px solid #e6edf5}.selector-picker-pager{display:flex;align-items:center;gap:8px;color:#6c8099}.selector-picker-pager button,.selector-picker-pager select{border:1px solid #cbdcf0;border-radius:8px;background:#fff;padding:7px 10px;color:#355a80;font:inherit}.selector-picker-footer .modal-actions{margin:0;gap:8px}
+@media(max-width:900px){#loadingModeStep .mode-options{grid-template-columns:repeat(2,minmax(0,1fr))}.selector-picker-row{grid-template-columns:28px 32px minmax(0,1fr) auto}.selector-picker-row .picker-quantity{grid-column:3/5}.selector-picker-row .picker-type{display:none}.selector-picker-dialog{width:calc(100vw - 16px)}}
+@media(max-width:560px){.selector-picker-tools{padding:12px}.selector-picker-list{padding:10px}.selector-picker-footer{padding:12px;align-items:flex-start;flex-direction:column}.selector-picker-row{grid-template-columns:28px minmax(0,1fr) auto}.selector-picker-row .picker-favorite{grid-column:1}.selector-picker-row input{grid-column:1;grid-row:1}.selector-picker-row .picker-main{grid-column:2}.selector-picker-row .picker-result{grid-column:3}.selector-picker-row .picker-quantity{grid-column:2/4}.specified-fill-priority-wrap select{min-width:0;width:100%}}
+
