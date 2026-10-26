@@ -29,3 +29,19 @@ body.selector-dialog-open,body:has(#palletKitDialog[open]),body:has(#selectorPic
 .fill-priority-dialog{width:min(560px,calc(100vw - 28px));border:0;border-radius:22px;padding:0;box-shadow:0 24px 74px rgba(18,42,70,.25);background:#fff}.fill-priority-dialog::backdrop{background:rgba(12,31,55,.42)}.fill-priority-shell{padding:22px}.fill-priority-shell .modal-head{margin:-22px -22px 18px;padding:22px;border-bottom:1px solid #e5edf6}.fill-priority-shell .modal-head h2{margin:2px 0 6px}.fill-priority-shell .modal-head small{color:#71839a;line-height:1.5}.fill-priority-options{display:grid;gap:10px}.fill-priority-options label{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #d9e4f1;border-radius:13px;cursor:pointer}.fill-priority-options label:has(input:checked){border-color:#2563eb;background:#f2f7ff;box-shadow:0 0 0 2px #dceaff}.fill-priority-options input{width:18px;height:18px;accent-color:#2563eb}.fill-priority-options b,.fill-priority-options small{display:block}.fill-priority-options small{margin-top:3px;color:#74859c}
 .pallet-kit-stage:fullscreen{display:flex!important;flex-direction:column!important;gap:0!important;background:#f3f7fb!important;padding:14px!important}.pallet-kit-stage:fullscreen .pallet-kit-toolbar{display:flex!important;flex:0 0 auto!important;position:relative!important;z-index:3!important;background:#fff!important;border-radius:12px 12px 0 0!important}.pallet-kit-stage:fullscreen .kit-preview{height:calc(100vh - 112px)!important;min-height:0!important;flex:1!important}.kit-fullscreen-exit{color:#c62828!important;font-weight:800!important}
 @media(max-width:720px){.selector-card-v325 .section-title{align-items:flex-start}.selector-card-actions{justify-content:flex-start}.selector-card-actions .button{padding-inline:10px}.fill-priority-shell{padding:16px}.fill-priority-shell .modal-head{margin:-16px -16px 14px;padding:16px}}
+
+/* v3.2.10 — confirmed selector cards grow only with selected rows. */
+.selector-card-v325{height:auto!important;min-height:0!important}
+.selector-card-v325>.selector-current-list{display:grid!important;min-height:0!important;height:auto!important;max-height:none!important;overflow:visible!important;align-content:start!important}
+.selector-card-v325>.selector-current-list[hidden]{display:none!important}
+.selector-card-v325 .selector-current-row{min-height:64px!important;margin-top:8px!important}
+.selector-card-actions #selectedContainerCount,.selector-card-actions #selectedCargoCount{order:1}
+.selector-card-actions .selector-reset{order:2}
+.selector-card-actions .selector-picker-open{order:3}
+
+/* Fullscreen keeps the palette toolbar and forces the renderer back to the
+   real preview bounds on exit rather than retaining its viewport dimensions. */
+#palletKitDialog[open] .pallet-kit-stage:fullscreen{box-sizing:border-box!important;width:100vw!important;max-width:none!important;height:100vh!important;min-height:100vh!important;margin:0!important;padding:14px!important;overflow:hidden!important;display:grid!important;grid-template-rows:auto minmax(0,1fr) auto!important;background:#f3f7fb!important}
+#palletKitDialog[open] .pallet-kit-stage:fullscreen .pallet-kit-toolbar{display:flex!important;visibility:visible!important;opacity:1!important;position:relative!important;z-index:10!important;min-height:54px!important}
+#palletKitDialog[open] .pallet-kit-stage:fullscreen #kitPreview{width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;overflow:hidden!important}
+#palletKitDialog[open] .pallet-kit-stage:fullscreen #kitPreview canvas{display:block!important;width:100%!important;height:100%!important}

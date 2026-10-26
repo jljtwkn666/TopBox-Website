@@ -1914,3 +1914,50 @@ window.TopBoxApp.renderSelectors=renderSelectorsV328;
 generatePlanV324=generatePlanV328;
 syncSpecifiedFillPriorityV328();
 renderSelectorsV328();
+
+/* v3.2.10 — one canonical confirmed-selection renderer.
+   The planner used to retain several historical list renderers.  Every entry
+   point now comes through this compact renderer so switching the loading mode
+   or resetting cannot bring an older layout back. */
+function renderCurrentSelectorsV329(){
+  const render=(kind,hostId)=>{
+    const host=$('#'+hostId),items=selectedItemsV325(kind);if(!host)return;
+    host.hidden=!items.length;
+    host.innerHTML=items.map(item=>{
+      const label=kind==='cargo'?cargoLabel(item):containerLabel(item);
+      const statistic=kind==='cargo'?cargoSelectionStatV326(item):item.type;
+      return `<div class="selector-current-row"><i class="color-square" style="background:${escV325(item.color||'#2563eb')}"></i><span class="record-main"><b title="${escV325(item.name)}">${escV325(item.name)}</b><small title="${escV325(label)}">${escV325(label)}</small></span><strong class="selector-current-stat">${escV325(statistic)}</strong></div>`;
+    }).join('');
+  };
+  render('containers','containerList');render('cargo','cargoList');
+  const containers=$('#selectedContainerCount'),cargo=$('#selectedCargoCount');
+  if(containers)containers.textContent=`已选 ${state.selectedContainers.size} 项`;
+  if(cargo)cargo.textContent=`已选 ${state.selectedCargo.size} 项`;
+}
+function renderSelectorsV329(){
+  normalizePickerSelectionV325();
+  syncSpecifiedFillPriorityV328();
+  renderCurrentSelectorsV329();
+  renderExactUtilization();
+}
+function resetPlannerSelectionsV329(){
+  state.selectedContainers.clear();
+  resetCargoSelectionV328();
+}
+renderSelectors=renderSelectorsV329;
+renderSelectorsV293=renderSelectorsV329;
+renderSelectorsV315=renderSelectorsV329;
+renderSelectorsV318=renderSelectorsV329;
+renderSelectorsV319=renderSelectorsV329;
+renderSelectorsV325=renderSelectorsV329;
+window.TopBoxApp.renderSelectors=renderSelectorsV329;
+document.addEventListener('click',event=>{
+  const option=event.target.closest?.('.mode-option');
+  if(!option||option.classList.contains('disabled'))return;
+  setTimeout(()=>{resetPlannerSelectionsV329();persistState();renderSelectorsV329();},0);
+},true);
+document.addEventListener('change',event=>{
+  if(!event.target.matches?.('input[name="mode"]'))return;
+  setTimeout(()=>{resetPlannerSelectionsV329();persistState();renderSelectorsV329();},0);
+},true);
+renderSelectorsV329();

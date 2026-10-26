@@ -410,3 +410,71 @@ function setupSingleKitContextMenuV328(){
 }
 const openKitV328Base=open;
 open=function(record=null){openKitV328Base(record);requestAnimationFrame(()=>{setupSingleKitContextMenuV328();setupKitFullscreenV328();});};
+
+/* v3.2.10 — final pallet interaction layer.  It owns canvas selection and
+   dragging so the older independent handlers cannot disagree about the mode. */
+let kitDragV329=null,kitDragFrameV329=0,kitFullscreenPoseV329=null;
+function kitPoseV329(){
+  if(!preview?.camera)return null;
+  return {p:preview.camera.position.clone(),q:preview.camera.quaternion.clone(),z:preview.camera.zoom,t:preview.controls?.target?.clone?.()||null};
+}
+function restoreKitPoseV329(pose){
+  if(!pose||!preview?.camera)return;
+  preview.camera.position.copy(pose.p);preview.camera.quaternion.copy(pose.q);preview.camera.zoom=pose.z;
+  if(pose.t&&preview.controls?.target)preview.controls.target.copy(pose.t);
+  preview.camera.updateProjectionMatrix();preview.controls?.update?.();
+}
+function resizeKitPreviewV329(){
+  const host=$('#kitPreview');if(!host||!preview?.renderer||!preview?.camera)return;
+  const rect=host.getBoundingClientRect(),width=Math.max(1,Math.round(rect.width)),height=Math.max(1,Math.round(rect.height));
+  preview.renderer.setSize(width,height,false);
+  const canvas=preview.renderer.domElement;if(canvas){canvas.style.width='100%';canvas.style.height='100%';}
+  preview.camera.aspect=width/height;preview.camera.updateProjectionMatrix();preview.controls?.update?.();preview.renderer.render?.(preview.scene,preview.camera);
+}
+function syncKitFullscreenV329(){
+  const stage=$('.pallet-kit-stage'),button=$('#kitFullscreenV326');if(!stage||!button)return;
+  const full=document.fullscreenElement===stage;
+  button.textContent=full?'×':'⛶';button.title=full?'退出全屏':'全屏显示';button.setAttribute('aria-label',button.title);button.classList.toggle('kit-fullscreen-exit',full);
+  [0,50,180].forEach(delay=>setTimeout(()=>{resizeKitPreviewV329();if(!full)restoreKitPoseV329(kitFullscreenPoseV329);},delay));
+}
+function setupKitFullscreenV329(){
+  const stage=$('.pallet-kit-stage'),current=$('#kitFullscreenV326');if(!stage||!current)return;
+  let button=current;
+  /* Replace the v3.2.8 button once: that button has an old click listener
+     which otherwise runs alongside the current handler. */
+  if(!current.dataset.v329Bound){button=current.cloneNode(true);button.dataset.v329Bound='1';current.replaceWith(button);}
+  button.onclick=event=>{event.preventDefault();kitFullscreenPoseV329=kitPoseV329();if(document.fullscreenElement===stage)document.exitFullscreen?.();else stage.requestFullscreen?.().catch(()=>msg('当前浏览器不支持全屏显示。',true));};
+  if(!document.documentElement.dataset.kitFullscreenV329){document.documentElement.dataset.kitFullscreenV329='1';document.addEventListener('fullscreenchange',syncKitFullscreenV329);}
+  syncKitFullscreenV329();
+}
+function selectFromCanvasV329(item){
+  if(!item)return;
+  if(kitMultiSelectV324){
+    const ids=new Set(kitMultiSelectedIdsV324);ids.has(item.id)?ids.delete(item.id):ids.add(item.id);
+    syncKitSelectionV325(ids,ids.has(item.id)?item.id:[...ids].at(-1)||null);
+  }else syncKitSelectionV325(new Set([item.id]),item.id);
+}
+function moveKitItemV329(){
+  kitDragFrameV329=0;const drag=kitDragV329;if(!drag||!draft?.items)return;
+  const canvas=preview?.renderer?.domElement,item=draft.items.find(value=>value.id===drag.id);if(!canvas||!item)return;
+  const rect=canvas.getBoundingClientRect(),point=new THREE.Vector2((drag.x-rect.left)/rect.width*2-1,-(drag.y-rect.top)/rect.height*2+1),ray=new THREE.Raycaster(),plane=new THREE.Plane(),world=new THREE.Vector3();
+  ray.setFromCamera(point,preview.camera);const b=bounds(),s=6/Math.max(b.l,b.w,b.h),sx=-b.minX,sy=-b.minY;
+  plane.set(new THREE.Vector3(0,1,0),-(draft.pallet.h+item.z)*s);if(!ray.ray.intersectPlane(plane,world))return;
+  const next={...item,x:Math.max(0,Math.min(draft.pallet.l-item.l,world.x/s-sx-item.l/2)),y:Math.max(0,Math.min(draft.pallet.w-item.w,world.z/s-sy-item.w/2))};
+  if(!valid(next,draft.items.filter(value=>value.id!==item.id)).ok)return;
+  Object.assign(item,next);renderPreview();renderItems();
+}
+function setupKitInputV329(){
+  const canvas=preview?.renderer?.domElement;if(!canvas||canvas.dataset.v329Input)return;canvas.dataset.v329Input='1';
+  canvas.addEventListener('pointerdown',event=>{
+    if(event.button!==0)return;closeKitContextMenuV312();const item=itemForPreviewHitV312(event);if(!item)return;
+    event.preventDefault();event.stopImmediatePropagation();
+    if(kitFreeMoveV314){kitDragV329={id:item.id,pointerId:event.pointerId,x:event.clientX,y:event.clientY};canvas.setPointerCapture?.(event.pointerId);preview.controls.enabled=false;syncKitSelectionV325(new Set([item.id]),item.id);return;}
+    selectFromCanvasV329(item);
+  },true);
+  canvas.addEventListener('pointermove',event=>{if(!kitDragV329||event.pointerId!==kitDragV329.pointerId)return;event.preventDefault();event.stopImmediatePropagation();kitDragV329.x=event.clientX;kitDragV329.y=event.clientY;if(!kitDragFrameV329)kitDragFrameV329=requestAnimationFrame(moveKitItemV329);},true);
+  const finish=event=>{if(!kitDragV329||event.pointerId!==kitDragV329.pointerId)return;canvas.releasePointerCapture?.(event.pointerId);kitDragV329=null;if(preview)preview.controls.enabled=true;if(kitDragFrameV329){cancelAnimationFrame(kitDragFrameV329);kitDragFrameV329=0;}renderPreview();renderItems();};
+  canvas.addEventListener('pointerup',finish,true);canvas.addEventListener('pointercancel',finish,true);
+}
+const openKitV329Base=open;
+open=function(record=null){openKitV329Base(record);requestAnimationFrame(()=>{setupKitInputV329();setupKitFullscreenV329();if(!kitMultiSelectV324&&selectedItemId)syncKitSelectionV325(new Set([selectedItemId]),selectedItemId);});};
