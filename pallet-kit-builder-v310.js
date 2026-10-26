@@ -293,6 +293,7 @@ function setupKitMultiSelectionV324(){
     event.preventDefault();event.stopImmediatePropagation();
     if(kitMultiSelectedIdsV324.has(hit.id))kitMultiSelectedIdsV324.delete(hit.id);else kitMultiSelectedIdsV324.add(hit.id);
     const primary=[...kitMultiSelectedIdsV324].at(-1)||null;
+    markedItemIds=new Set(kitMultiSelectedIdsV324);
     if(primary)selectV317Base(primary);else{selectedItemId=null;$('#kitSelectedEditor')?.classList.add('hidden');refresh();}
     highlightKitSelectionsV324();
   },true);
@@ -301,3 +302,22 @@ const renderPreviewV324Base=renderPreview;
 renderPreview=function(){renderPreviewV324Base();requestAnimationFrame(highlightKitSelectionsV324);};
 const openKitV324Base=open;
 open=function(record=null){openKitV324Base(record);kitMultiSelectedIdsV324=selectedItemId?new Set([selectedItemId]):new Set();requestAnimationFrame(()=>{setupKitSettingsV324();setupKitMultiSelectionV324();highlightKitSelectionsV324();});};
+
+/* v3.2.5 — selection is shared by 3D and the placed-item panel. */
+function selectedKitIdsV325(){return new Set(kitMultiSelectV324?[...kitMultiSelectedIdsV324]:(selectedItemId?[selectedItemId]:[]));}
+function syncKitSelectionV325(ids,primary=[...ids].at(-1)||null){kitMultiSelectedIdsV324=new Set(ids);markedItemIds=new Set(ids);selectedItemId=primary;if(primary){const item=draft.items.find(value=>value.id===primary);if(item){$('#kitSelectedEditor')?.classList.remove('hidden');$('#kitReplaceSource').value=item.sourceId||'';$('#selectedX').value=item.x;$('#selectedY').value=item.y;$('#selectedZ').value=item.z;}}else $('#kitSelectedEditor')?.classList.add('hidden');refresh();}
+const renderItemsV325Base=renderItems;
+renderItems=function(){markedItemIds=new Set(selectedKitIdsV325());renderItemsV325Base();};
+function deleteKitSelectionV325(){const ids=selectedKitIdsV325();if(!ids.size)return msg('请先选择需要删除的货物。',true);draft.items=draft.items.filter(item=>!ids.has(item.id));kitMultiSelectedIdsV324.clear();markedItemIds.clear();selectedItemId=null;$('#kitSelectedEditor')?.classList.add('hidden');closeKitContextMenuV312();refresh();msg(`已删除 ${ids.size} 件货物。`);}
+function ensureLayerToolsV325(){const anchor=$('#addKitGrid');if(!anchor||$('#kitFillLayer'))return;anchor.insertAdjacentHTML('afterend','<div class="kit-layer-tools"><button type="button" class="button secondary" id="kitFillLayer">铺满一层</button><button type="button" class="button secondary" id="kitCopyLayer">复制本层到上一层</button></div>');$('#kitFillLayer').onclick=fillKitLayerV325;$('#kitCopyLayer').onclick=copyKitLayerV325;}
+function fillKitLayerV325(){const sourceItem=source();if(!sourceItem)return msg('请先选择一种货物。',true);const z=Math.max(0,num('kitZ')),rotate=$('#kitRotate')?.checked,base=makeItem(sourceItem,{rotate}),nx=Math.max(1,Math.floor(draft.pallet.l/base.l)),ny=Math.max(1,Math.floor(draft.pallet.w/base.w));let added=0;for(let y=0;y<ny;y++)for(let x=0;x<nx;x++){const item=makeItem(sourceItem,{rotate,x:x*base.l,y:y*base.w,z});if(valid(item).ok){draft.items.push(item);added++;}}if(!added)return msg('当前层没有可放置的空位。',true);const ids=new Set(draft.items.filter(item=>item.z===z).map(item=>item.id));syncKitSelectionV325(ids,[...ids].at(-1));msg(`已铺满一层，新增 ${added} 件货物。`);}
+function copyKitLayerV325(){const sourceZ=selectedItemId?(draft.items.find(item=>item.id===selectedItemId)?.z??num('kitZ')):num('kitZ'),layer=draft.items.filter(item=>item.z===sourceZ);if(!layer.length)return msg('当前层没有货物可复制。',true);const rise=Math.max(...layer.map(item=>item.h)),copies=layer.map(item=>({...item,id:uid('kit-item'),z:item.z+rise}));const accepted=[];for(const candidate of copies){if(valid(candidate,[...draft.items,...accepted]).ok)accepted.push(candidate);}if(!accepted.length)return msg('上一层没有可复制的可用位置。',true);draft.items.push(...accepted);syncKitSelectionV325(new Set(accepted.map(item=>item.id)),accepted.at(-1).id);msg(`已复制本层到上一层，共 ${accepted.length} 件货物。`);}
+function setupKitSelectionControlsV325(){
+  ensureLayerToolsV325();const canvas=preview?.renderer?.domElement;if(!canvas||canvas.dataset.kitSelectV325)return;canvas.dataset.kitSelectV325='1';
+  canvas.addEventListener('contextmenu',event=>{const ids=selectedKitIdsV325();if(!kitMultiSelectV324||ids.size<2)return;event.preventDefault();event.stopImmediatePropagation();const menu=$('#kitContextMenu'),first=draft.items.find(item=>ids.has(item.id));if(!menu||!first)return;menu.innerHTML=`<b>货物操作</b><button class="kit-menu-delete" data-kit-multi-delete>删除已选择的 ${ids.size} 件货物</button>`;menu.onclick=click=>{if(click.target.closest('[data-kit-multi-delete]'))deleteKitSelectionV325();};showKitContextMenuV312(event,first);},true);
+}
+document.addEventListener('change',event=>{const mark=event.target.closest?.('#kitItemList [data-kit-mark]');if(!mark)return;event.stopImmediatePropagation();const ids=selectedKitIdsV325();if(kitMultiSelectV324){mark.checked?ids.add(mark.dataset.kitMark):ids.delete(mark.dataset.kitMark);syncKitSelectionV325(ids,[...ids].at(-1)||null);}else syncKitSelectionV325(mark.checked?new Set([mark.dataset.kitMark]):new Set(),mark.checked?mark.dataset.kitMark:null);},true);
+document.addEventListener('keydown',event=>{if(event.key!=='Delete'||!$('#palletKitDialog')?.open||event.target.matches?.('input,textarea,select'))return;const ids=selectedKitIdsV325();if(!ids.size)return;event.preventDefault();deleteKitSelectionV325();});
+const openKitV325Base=open;
+open=function(record=null){openKitV325Base(record);requestAnimationFrame(()=>{ensureLayerToolsV325();setupKitSelectionControlsV325();markedItemIds=new Set(selectedKitIdsV325());renderItems();});};
+
