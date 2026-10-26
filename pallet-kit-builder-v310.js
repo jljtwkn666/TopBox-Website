@@ -370,3 +370,43 @@ function fillKitLayersV326(){
 const openKitV326Base=open;
 open=function(record=null){openKitV326Base(record);requestAnimationFrame(()=>{setupKitSettingsV324();ensureKitSelectionToolsV326();});};
 
+/* v3.2.8 — keep the original single-item actions, but make fullscreen a
+   reversible in-place view that never recreates the camera pose. */
+function kitSingleContextMarkupV328(){return `<b>货物操作</b><div class="kit-menu-group"><span>+1 新增同货物</span><button data-kit-add="xp">X 正向</button><button data-kit-add="xn">X 负向</button><button data-kit-add="yp">Y 正向</button><button data-kit-add="yn">Y 负向</button><button data-kit-add="zp">Z 正向</button><button data-kit-add="zn">Z 负向</button></div><div class="kit-menu-group"><span>旋转</span><button data-kit-rotate="x,90">X 90°</button><button data-kit-rotate="x,180">X 180°</button><button data-kit-rotate="y,90">Y 90°</button><button data-kit-rotate="y,180">Y 180°</button><button data-kit-rotate="z,90">Z 90°</button><button data-kit-rotate="z,180">Z 180°</button></div>`;}
+function resizeKitPreviewV328(){
+  const host=$('#kitPreview');if(!host||!preview?.renderer||!preview?.camera)return;
+  const width=Math.max(1,host.clientWidth),height=Math.max(1,host.clientHeight);
+  preview.renderer.setSize(width,height,false);preview.camera.aspect=width/height;preview.camera.updateProjectionMatrix();preview.controls?.update?.();preview.renderer.render?.(preview.scene,preview.camera);
+}
+function syncKitFullscreenV328(){
+  const stage=$('.pallet-kit-stage'),button=$('#kitFullscreenV326');if(!stage||!button)return;
+  const full=document.fullscreenElement===stage;
+  button.textContent=full?'×':'⛶';button.title=full?'退出全屏':'全屏显示';button.setAttribute('aria-label',button.title);button.classList.toggle('kit-fullscreen-exit',full);
+  requestAnimationFrame(resizeKitPreviewV328);
+}
+function setupKitFullscreenV328(){
+  const stage=$('.pallet-kit-stage'),current=$('#kitFullscreenV326');if(!stage||!current)return;
+  if(!current.dataset.v328Bound){
+    const button=current.cloneNode(true);button.dataset.v328Bound='1';current.replaceWith(button);
+    button.addEventListener('click',event=>{event.preventDefault();if(document.fullscreenElement===stage)document.exitFullscreen?.();else stage.requestFullscreen?.().catch(()=>msg('当前浏览器不支持全屏显示。',true));});
+  }
+  if(!document.documentElement.dataset.kitFullscreenV328){document.documentElement.dataset.kitFullscreenV328='1';document.addEventListener('fullscreenchange',syncKitFullscreenV328);}
+  syncKitFullscreenV328();
+}
+function setupSingleKitContextMenuV328(){
+  const canvas=preview?.renderer?.domElement;if(!canvas||canvas.dataset.kitSingleMenuV328)return;canvas.dataset.kitSingleMenuV328='1';
+  canvas.addEventListener('contextmenu',event=>{
+    const selected=selectedKitIdsV325();
+    if(kitMultiSelectV324&&selected.size>1)return;
+    const item=itemForPreviewHitV312(event);if(!item)return;
+    event.preventDefault();event.stopImmediatePropagation();
+    selectedItemId=item.id;markedItemIds=new Set([item.id]);kitMultiSelectedIdsV324=new Set([item.id]);
+    const menu=$('#kitContextMenu');if(!menu)return;
+    menu.innerHTML=kitSingleContextMarkupV328();
+    menu.onclick=click=>{const add=click.target.closest('[data-kit-add]'),rotate=click.target.closest('[data-kit-rotate]');if(add)duplicateKitItemV312(add.dataset.kitAdd);if(rotate){const [axis,degrees]=rotate.dataset.kitRotate.split(',');rotateKitItemV312(axis,+degrees);}};
+    syncKitSelectionV325(new Set([item.id]),item.id);
+    showKitContextMenuV312(event,item);
+  },true);
+}
+const openKitV328Base=open;
+open=function(record=null){openKitV328Base(record);requestAnimationFrame(()=>{setupSingleKitContextMenuV328();setupKitFullscreenV328();});};

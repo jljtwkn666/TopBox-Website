@@ -1608,6 +1608,212 @@ document.addEventListener('change',event=>{if(event.target instanceof HTMLInputE
 renderSelectors=renderSelectorsV325;renderSelectorsV293=renderSelectorsV325;renderSelectorsV315=renderSelectorsV325;renderSelectorsV318=renderSelectorsV325;renderSelectorsV319=renderSelectorsV325;renderCargoRowsV315=renderSelectorsV325;renderCargoRowsV318=renderSelectorsV325;renderCargoSelectorV296=renderSelectorsV325;scheduleSelectorsV318=renderSelectorsV325;scheduleSelectorsV319=renderSelectorsV325;scheduleCargoSelectorV296=renderSelectorsV325;window.TopBoxApp.renderSelectors=renderSelectorsV325;
 renderSelectorsV325();
 
+/* v3.2.8 — one final selector controller.  Keep all planner entry paths on
+   the same renderer so mode changes and resets cannot revive legacy cards. */
+function resetCargoSelectionV328(){
+  state.selectedCargo.clear();
+  state.settings.quantityInputMode='bags';
+  state.cargo.forEach(item=>{
+    const pieces=Math.max(1,+item.pieces||1);
+    item.quantity=1;
+    item.pieceQuantity=pieces;
+  });
+}
+function resetPlannerSelectionsV328(){
+  state.selectedContainers.clear();
+  resetCargoSelectionV328();
+}
+function syncSpecifiedFillPriorityV328(){
+  const specified=activeMode()==='specified';
+  const button=$('#specifiedFillSettings');
+  if(button)button.hidden=!specified;
+  const wrap=$('#specifiedFillPriorityWrap');
+  if(wrap){wrap.hidden=true;wrap.style.display='none';}
+  const input=$('#specifiedFillPriority');
+  if(input){input.disabled=!specified;input.value=specifiedFillPriorityV324();}
+}
+function renderSelectorsV328(){
+  normalizePickerSelectionV325();
+  syncSpecifiedFillPriorityV328();
+  renderCurrentSelectorsV325();
+  renderExactUtilization();
+}
+function generatePlanV328(){
+  const containers=state.containers.filter(item=>state.selectedContainers.has(item.id));
+  const cargo=state.cargo.filter(item=>state.selectedCargo.has(item.id));
+  if(!containers.length||!cargo.length){showNotice('请至少选择一个容器和一个货物。');return;}
+  const mode=activeMode(),fillPriority=mode==='specified'?specifiedFillPriorityV324():'inside';
+  state.settings.specifiedFillPriority=fillPriority;
+  state.hiddenCargoIds.clear();
+  state.plan={plans:containers.map(container=>packContainer(container,cargo,mode,fillPriority)),active:0,mode,fillPriority};
+  persistState();
+  showSuccess(t('已生成新装载方案，请查看'),3000);
+  $('#results').classList.remove('hidden');
+  renderPlan();
+  $('#results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+syncSpecifiedFillPriorityV324=syncSpecifiedFillPriorityV328;
+syncSpecifiedFillPriorityV325=syncSpecifiedFillPriorityV328;
+renderSelectors=renderSelectorsV328;
+renderSelectorsV293=renderSelectorsV328;
+renderSelectorsV315=renderSelectorsV328;
+renderSelectorsV318=renderSelectorsV328;
+renderSelectorsV319=renderSelectorsV328;
+renderSelectorsV325=renderSelectorsV328;
+renderCargoRowsV315=renderSelectorsV328;
+renderCargoRowsV318=renderSelectorsV328;
+renderCargoSelectorV296=renderSelectorsV328;
+scheduleSelectorsV318=renderSelectorsV328;
+scheduleSelectorsV319=renderSelectorsV328;
+scheduleCargoSelectorV296=renderSelectorsV328;
+window.TopBoxApp.renderSelectors=renderSelectorsV328;
+generatePlanV324=generatePlanV328;
+
+$('#specifiedFillSettings')?.addEventListener('click',event=>{
+  event.preventDefault();event.stopPropagation();openSpecifiedFillPriorityDialogV327();
+});
+$('#resetContainerSelection')?.addEventListener('click',event=>{
+  event.preventDefault();state.selectedContainers.clear();persistState();renderSelectorsV328();
+});
+$('#resetCargoSelection')?.addEventListener('click',event=>{
+  event.preventDefault();resetCargoSelectionV328();persistState();renderSelectorsV328();
+});
+document.addEventListener('change',event=>{
+  if(!(event.target instanceof HTMLInputElement)||event.target.name!=='mode')return;
+  setTimeout(()=>{
+    resetCargoSelectionV328();
+    persistState();
+    renderSelectorsV328();
+    if($('#selectorPickerDialog')?.open)renderSelectorPickerV326(false);
+  },0);
+},true);
+document.addEventListener('click',event=>{
+  if(event.target.closest('#refreshPage')){resetPlannerSelectionsV328();persistState();}
+  if(event.target.closest('#resetWorkspace'))setTimeout(()=>{resetPlannerSelectionsV328();state.settings.specifiedFillPriority='inside';persistState();renderSelectorsV328();},0);
+},true);
+
+/* Browser reloads always start a new calculation, without changing archives. */
+setTimeout(()=>{resetPlannerSelectionsV328();persistState();renderSelectorsV328();},0);
+
+/* v3.2.7 — planner selection controls have one reset path and the specified
+   quantity packing preference is configured in a small radio dialog. */
+function resetCargoSelectionV327({resetQuantities=true}={}){
+  state.selectedCargo.clear();
+  if(resetQuantities){
+    state.settings.quantityInputMode='bags';
+    state.cargo.forEach(item=>{
+      item.quantity=1;
+      item.pieceQuantity=Math.max(1,+item.pieces||1);
+    });
+  }
+}
+function resetAllSelectionsV327(){
+  state.selectedContainers.clear();
+  resetCargoSelectionV327();
+  persistState();
+}
+function renderSelectorsV327(){
+  normalizePickerSelectionV325();
+  syncSpecifiedFillPriorityV327();
+  renderCurrentSelectorsV325();
+  renderExactUtilization();
+}
+function ensureSpecifiedFillPriorityDialogV327(){
+  if($('#specifiedFillPriorityDialog'))return;
+  document.body.insertAdjacentHTML('beforeend',`<dialog id="specifiedFillPriorityDialog" class="fill-priority-dialog"><div class="fill-priority-shell"><div class="modal-head"><div><p class="eyebrow">TOP BOX</p><h2>指定数量铺满优先级</h2><small>选择优先组织货物的平面；超出容量的货物将保留为未装载。</small></div><button class="icon-button" type="button" id="closeSpecifiedFillPriority" aria-label="关闭">×</button></div><div class="fill-priority-options" role="radiogroup" aria-label="指定数量铺满优先级"><label><input type="radio" name="specified-fill-priority" value="inside"><span><b>优先铺满里面</b><small>宽高方向</small></span></label><label><input type="radio" name="specified-fill-priority" value="side"><span><b>优先铺满侧面</b><small>长高方向</small></span></label><label><input type="radio" name="specified-fill-priority" value="bottom"><span><b>优先铺满底面</b><small>长宽方向</small></span></label></div><div class="modal-actions"><button type="button" class="button secondary" id="cancelSpecifiedFillPriority">取消</button><button type="button" class="button primary" id="saveSpecifiedFillPriority">确定</button></div></div></dialog>`);
+  const dialog=$('#specifiedFillPriorityDialog');
+  const close=()=>dialog.close();
+  $('#closeSpecifiedFillPriority').onclick=close;
+  $('#cancelSpecifiedFillPriority').onclick=close;
+  $('#saveSpecifiedFillPriority').onclick=()=>{
+    const value=$('input[name="specified-fill-priority"]:checked')?.value||'inside';
+    state.settings.specifiedFillPriority=value;
+    const input=$('#specifiedFillPriority');
+    if(input)input.value=value;
+    persistState();
+    close();
+  };
+}
+function openSpecifiedFillPriorityDialogV327(){
+  if(activeMode()!=='specified')return;
+  ensureSpecifiedFillPriorityDialogV327();
+  const value=specifiedFillPriorityV324();
+  const radio=$(`input[name="specified-fill-priority"][value="${value}"]`);
+  if(radio)radio.checked=true;
+  if (!$('#specifiedFillPriorityDialog').open) $('#specifiedFillPriorityDialog').showModal();
+}
+function syncSpecifiedFillPriorityV327(){
+  const specified=activeMode()==='specified';
+  $('#loadingModeStep')?.classList.toggle('specified-active',specified);
+  const input=$('#specifiedFillPriority');
+  if(input){input.disabled=!specified;input.value=specifiedFillPriorityV324();}
+  const button=$('#specifiedFillSettings');
+  if(button)button.hidden=!specified;
+  const wrap=$('#specifiedFillPriorityWrap');
+  if(wrap)wrap.hidden=true;
+}
+syncSpecifiedFillPriorityV324=syncSpecifiedFillPriorityV327;
+syncSpecifiedFillPriorityV325=syncSpecifiedFillPriorityV327;
+
+function generatePlanV327(){
+  const containers=state.containers.filter(container=>state.selectedContainers.has(container.id));
+  const cargo=state.cargo.filter(item=>state.selectedCargo.has(item.id));
+  if(!containers.length||!cargo.length){showNotice('请至少选择一个容器和一个货物。');return;}
+  const mode=activeMode(),fillPriority=mode==='specified'?specifiedFillPriorityV324():'inside';
+  state.settings.specifiedFillPriority=fillPriority;
+  state.hiddenCargoIds.clear();
+  state.plan={plans:containers.map(container=>packContainer(container,cargo,mode,fillPriority)),active:0,mode,fillPriority};
+  persistState();
+  showSuccess(t('已生成新装载方案，请查看'),3000);
+  $('#results').classList.remove('hidden');
+  renderPlan();
+  $('#results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+generatePlanV324=generatePlanV327;
+
+$('#specifiedFillSettings')?.addEventListener('click',event=>{
+  event.preventDefault();
+  event.stopPropagation();
+  openSpecifiedFillPriorityDialogV327();
+});
+$('#resetContainerSelection')?.addEventListener('click',()=>{
+  state.selectedContainers.clear();
+  persistState();
+  renderSelectorsV327();
+});
+$('#resetCargoSelection')?.addEventListener('click',()=>{
+  resetCargoSelectionV327();
+  persistState();
+  renderSelectorsV327();
+});
+document.addEventListener('change',event=>{
+  if(!(event.target instanceof HTMLInputElement)||event.target.name!=='mode')return;
+  setTimeout(()=>{
+    resetCargoSelectionV327();
+    persistState();
+    renderSelectorsV327();
+    const dialog=$('#selectorPickerDialog');
+    if(dialog?.open)renderSelectorPickerV326(false);
+  },0);
+},true);
+document.addEventListener('click',event=>{
+  if(event.target.closest('#refreshPage')){
+    resetAllSelectionsV327();
+  }
+  if(event.target.closest('#resetWorkspace')){
+    setTimeout(()=>{
+      resetAllSelectionsV327();
+      state.settings.specifiedFillPriority='inside';
+      syncSpecifiedFillPriorityV327();
+      renderSelectorsV327();
+    },0);
+  }
+},true);
+
+/* A browser reload intentionally begins with a clean selection workspace. */
+resetAllSelectionsV327();
+renderSelectorsV327();
+
 /* v3.2.6 — selector dialogs own one stable layout and never re-render while a
    quantity field is being typed.  This replaces the last legacy picker row
    path rather than layering another cargo-list renderer over it. */
@@ -1688,3 +1894,23 @@ generatePlanV324=function(){
 };
 renderSelectorsV325();
 
+/* v3.2.9 — final runtime aliases.  This file contains earlier compatibility
+   layers; keep only this renderer and generator reachable after they load. */
+syncSpecifiedFillPriorityV324=syncSpecifiedFillPriorityV328;
+syncSpecifiedFillPriorityV325=syncSpecifiedFillPriorityV328;
+renderSelectors=renderSelectorsV328;
+renderSelectorsV293=renderSelectorsV328;
+renderSelectorsV315=renderSelectorsV328;
+renderSelectorsV318=renderSelectorsV328;
+renderSelectorsV319=renderSelectorsV328;
+renderSelectorsV325=renderSelectorsV328;
+renderCargoRowsV315=renderSelectorsV328;
+renderCargoRowsV318=renderSelectorsV328;
+renderCargoSelectorV296=renderSelectorsV328;
+scheduleSelectorsV318=renderSelectorsV328;
+scheduleSelectorsV319=renderSelectorsV328;
+scheduleCargoSelectorV296=renderSelectorsV328;
+window.TopBoxApp.renderSelectors=renderSelectorsV328;
+generatePlanV324=generatePlanV328;
+syncSpecifiedFillPriorityV328();
+renderSelectorsV328();

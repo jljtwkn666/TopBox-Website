@@ -56,17 +56,17 @@
         <section class="step-card" id="loadingModeStep" aria-label="方案设定">
           <div class="step-label"><span>01</span><div><strong>选择装载方式</strong><small>决定数量与满载规则</small></div></div>
           <div class="mode-options" role="radiogroup" aria-label="装载方式">
-            <label class="mode-option selected"><input type="radio" name="mode" value="specified" checked /><span class="mode-icon">#</span><span><b>指定数量</b><small>按填写数量装载</small></span><i class="mode-hint">可多选货物</i></label>
+            <label class="mode-option selected"><input type="radio" name="mode" value="specified" checked /><span class="mode-icon">#</span><span><b>指定数量</b><small>按填写数量装载</small></span><i class="mode-hint">可多选货物</i><button id="specifiedFillSettings" class="specified-fill-settings" type="button" title="指定数量铺满优先级" aria-label="指定数量铺满优先级设置">⚙</button></label>
             <label class="mode-option"><input type="radio" name="mode" value="full" /><span class="mode-icon">↗</span><span><b>满载优先</b><small>尽可能填满容器</small></span><i class="mode-hint">仅单选货物</i></label>
             <label class="mode-option coming-soon"><input type="radio" name="mode" value="ratio" disabled /><span class="mode-icon">%</span><span><b>按比例满载</b><small>按需求比例配载</small></span><i class="mode-beta">开发中</i></label>
             <label class="mode-option coming-soon"><input type="radio" name="mode" value="lastFull" disabled /><span class="mode-icon">+</span><span><b>尾货满载</b><small>最后一款自动补满</small></span><i class="mode-beta">开发中</i></label>
           </div>
         </section>
-        <section id="specifiedFillPriorityWrap" class="specified-fill-priority-wrap" aria-label="指定数量铺满优先级" hidden><label for="specifiedFillPriority"><span>指定数量铺满优先级</span><select id="specifiedFillPriority"><option value="inside">优先铺满里面（宽高方向）</option><option value="side">优先铺满侧面（长高方向）</option><option value="bottom">优先铺满底面（长宽方向）</option></select><small>按选择的平面优先组织货物，超出容量的货物将保留为未装载。</small></label></section>
+        <section id="specifiedFillPriorityWrap" class="specified-fill-priority-wrap" aria-label="指定数量铺满优先级" hidden><select id="specifiedFillPriority" aria-hidden="true" tabindex="-1"><option value="inside">优先铺满里面（宽高方向）</option><option value="side">优先铺满侧面（长高方向）</option><option value="bottom">优先铺满底面（长宽方向）</option></select></section>
 
         <div class="planner-grid">
-          <section class="selector-card selector-card-v325"><div class="section-title"><div><span class="step-number">02</span><h2>选择容器</h2><p>点击选择容器；当前仅显示已选择项目</p></div><button id="openContainerPicker" class="button secondary selector-picker-open" type="button">选择容器</button></div><div class="selector-current-head"><b id="selectedContainerCount">已选 0 项</b></div><div id="containerList" class="selection-list selector-current-list"></div><div class="legacy-selector-controls" aria-hidden="true"><button id="selectAllContainers" type="button">全选</button><button id="clearAllContainers" type="button">取消全选</button><button id="resetContainers" type="button">重置</button><input id="containerSearch" type="search"><div id="containerPager"></div></div></section>
-          <section class="selector-card selector-card-v325"><div class="section-title"><div><span class="step-number">03</span><h2>选择货物</h2><p>点击选择货物；当前仅显示已选择项目</p></div><button id="openCargoPicker" class="button secondary selector-picker-open" type="button">选择货物</button></div><div class="selector-current-head"><b id="selectedCargoCount">已选 0 项</b></div><div id="cargoList" class="selection-list selector-current-list cargo-list"></div><div class="legacy-selector-controls" aria-hidden="true"><button id="selectAllCargo" type="button">全选</button><button id="clearAllCargo" type="button">取消全选</button><span id="quantityInputMode"></span><button id="resetCargoSelection" type="button">重置</button><input id="cargoSearch" type="search"><div id="cargoPager"></div></div></section>
+          <section class="selector-card selector-card-v325"><div class="section-title"><div><span class="step-number">02</span><h2>选择容器</h2><p>点击选择容器；当前仅显示已选择项目</p></div><div class="selector-card-actions"><button id="resetContainerSelection" class="button danger selector-reset" type="button">重置</button><b id="selectedContainerCount">已选 0 项</b><button id="openContainerPicker" class="button secondary selector-picker-open" type="button">选择容器</button></div></div><div id="containerList" class="selection-list selector-current-list"></div><div class="legacy-selector-controls" aria-hidden="true"><button id="selectAllContainers" type="button">全选</button><button id="clearAllContainers" type="button">取消全选</button><button id="resetContainers" type="button">重置</button><input id="containerSearch" type="search"><div id="containerPager"></div></div></section>
+          <section class="selector-card selector-card-v325"><div class="section-title"><div><span class="step-number">03</span><h2>选择货物</h2><p>点击选择货物；当前仅显示已选择项目</p></div><div class="selector-card-actions"><button id="resetCargoSelection" class="button danger selector-reset" type="button">重置</button><b id="selectedCargoCount">已选 0 项</b><button id="openCargoPicker" class="button secondary selector-picker-open" type="button">选择货物</button></div></div><div id="cargoList" class="selection-list selector-current-list cargo-list"></div><div class="legacy-selector-controls" aria-hidden="true"><button id="selectAllCargo" type="button">全选</button><button id="clearAllCargo" type="button">取消全选</button><span id="quantityInputMode"></span><input id="cargoSearch" type="search"><div id="cargoPager"></div></div></section>
         </div>
 
         <section id="results" class="results hidden" aria-live="polite">
@@ -217,8 +217,7 @@
     <link rel="stylesheet" href="pallet-kit-builder-v314.css?v=3.2.3" />
     <link rel="stylesheet" href="v320.css?v=3.2.4" />
     <link rel="stylesheet" href="v325.css?v=3.2.5" />
-    <link rel="stylesheet" href="v326.css?v=3.2.6" />
-    <script type="module" src="pallet-kit-builder-v310.js?v=3.2.6"></script>
+    <link rel="stylesheet" href="v326.css?v=3.2.7" />
+    <script type="module" src="pallet-kit-builder-v310.js?v=3.2.7"></script>
   </body>
 </html>
-
