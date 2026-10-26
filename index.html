@@ -43,7 +43,7 @@
         <button class="nav-link" data-page="tutorial">使用教程</button>
         <button class="nav-link" data-page="updates">更新日志</button>
       </nav>
-      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v3.2.4</span></div>
+      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v3.2.5</span></div>
     </header>
 
     <main>
@@ -61,12 +61,12 @@
             <label class="mode-option coming-soon"><input type="radio" name="mode" value="ratio" disabled /><span class="mode-icon">%</span><span><b>按比例满载</b><small>按需求比例配载</small></span><i class="mode-beta">开发中</i></label>
             <label class="mode-option coming-soon"><input type="radio" name="mode" value="lastFull" disabled /><span class="mode-icon">+</span><span><b>尾货满载</b><small>最后一款自动补满</small></span><i class="mode-beta">开发中</i></label>
           </div>
-          <label class="specified-fill-controls" for="specifiedFillPriority"><span>指定数量铺满优先级</span><select id="specifiedFillPriority"><option value="inside">优先铺满里面（宽高方向）</option><option value="side">优先铺满侧面（长高方向）</option><option value="bottom">优先铺满底面（长宽方向）</option></select><small>按选择的平面优先组织货物，超出容量的货物将保留为未装载。</small></label>
         </section>
+        <section id="specifiedFillPriorityWrap" class="specified-fill-priority-wrap" aria-label="指定数量铺满优先级" hidden><label for="specifiedFillPriority"><span>指定数量铺满优先级</span><select id="specifiedFillPriority"><option value="inside">优先铺满里面（宽高方向）</option><option value="side">优先铺满侧面（长高方向）</option><option value="bottom">优先铺满底面（长宽方向）</option></select><small>按选择的平面优先组织货物，超出容量的货物将保留为未装载。</small></label></section>
 
         <div class="planner-grid">
-          <section class="selector-card"><div class="section-title"><div><span class="step-number">02</span><h2>选择容器</h2><p>可多选，分别生成每个容器的方案</p></div><button class="text-button" data-go-archives="containers">管理档案</button></div><div class="selector-bulk-actions"><div><button id="selectAllContainers" class="text-button" type="button">全选</button><button id="clearAllContainers" class="text-button" type="button">取消全选</button><button id="resetContainers" class="text-button" type="button">重置</button></div><b id="selectedContainerCount">已选 0 项</b></div><label class="selector-search"><span>⌕</span><input id="containerSearch" type="search" placeholder="搜索容器名称或类型" /></label><div id="containerList" class="selection-list"></div><div id="containerPager" class="list-pager"></div></section>
-          <section class="selector-card"><div class="section-title"><div><span class="step-number">03</span><h2>选择货物</h2><p>填写每种货物的计划数量</p></div><button class="text-button" data-go-archives="cargo">管理档案</button></div><div class="selector-bulk-actions"><div><button id="selectAllCargo" class="text-button" type="button">全选</button><button id="clearAllCargo" class="text-button" type="button">取消全选</button><span id="quantityInputMode" class="quantity-input-mode" role="group" aria-label="数量输入方式"></span><button id="resetCargoSelection" class="text-button cargo-reset" type="button">重置</button></div><b id="selectedCargoCount">已选 0 项</b></div><label class="selector-search"><span>⌕</span><input id="cargoSearch" type="search" placeholder="多个关键词以英文逗号分隔" /></label><div id="cargoList" class="selection-list cargo-list"></div><div id="cargoPager" class="list-pager"></div></section>
+          <section class="selector-card selector-card-v325"><div class="section-title"><div><span class="step-number">02</span><h2>选择容器</h2><p>点击选择容器；当前仅显示已选择项目</p></div><button id="openContainerPicker" class="button secondary selector-picker-open" type="button">选择容器</button></div><div class="selector-current-head"><b id="selectedContainerCount">已选 0 项</b></div><div id="containerList" class="selection-list selector-current-list"></div><div class="legacy-selector-controls" aria-hidden="true"><button id="selectAllContainers" type="button">全选</button><button id="clearAllContainers" type="button">取消全选</button><button id="resetContainers" type="button">重置</button><input id="containerSearch" type="search"><div id="containerPager"></div></div></section>
+          <section class="selector-card selector-card-v325"><div class="section-title"><div><span class="step-number">03</span><h2>选择货物</h2><p>点击选择货物；当前仅显示已选择项目</p></div><button id="openCargoPicker" class="button secondary selector-picker-open" type="button">选择货物</button></div><div class="selector-current-head"><b id="selectedCargoCount">已选 0 项</b></div><div id="cargoList" class="selection-list selector-current-list cargo-list"></div><div class="legacy-selector-controls" aria-hidden="true"><button id="selectAllCargo" type="button">全选</button><button id="clearAllCargo" type="button">取消全选</button><span id="quantityInputMode"></span><button id="resetCargoSelection" type="button">重置</button><input id="cargoSearch" type="search"><div id="cargoPager"></div></div></section>
         </div>
 
         <section id="results" class="results hidden" aria-live="polite">
@@ -91,7 +91,8 @@
       </section>
 
       <section id="updates" class="page">
-        <div class="page-heading"><div><p class="eyebrow">RELEASE NOTES</p><h1>更新日志</h1><p>TOP BOX货物装载配货平台版本记录。</p></div><label class="update-filter">更新日期<select id="updateDateFilter"><option value="all">全部日期</option><option value="2026-10-23">2026-10-23</option><option value="2026-10-22">2026-10-22</option><option value="2026-10-18">2026-10-18</option><option value="2026-10-17">2026-10-17</option><option value="2026-10-16">2026-10-16</option><option value="2026-10-15">2026-10-15</option><option value="2026-10-14">2026-10-14</option></select></label></div>
+        <div class="page-heading"><div><p class="eyebrow">RELEASE NOTES</p><h1>更新日志</h1><p>TOP BOX货物装载配货平台版本记录。</p></div><label class="update-filter">更新日期<select id="updateDateFilter"><option value="all">全部日期</option><option value="2026-10-26">2026-10-26</option><option value="2026-10-23">2026-10-23</option><option value="2026-10-22">2026-10-22</option><option value="2026-10-18">2026-10-18</option><option value="2026-10-17">2026-10-17</option><option value="2026-10-16">2026-10-16</option><option value="2026-10-15">2026-10-15</option><option value="2026-10-14">2026-10-14</option></select></label></div>
+        <article class="release-latest" data-release-date="2026-10-26"><div class="release-title"><h2>v3.2.5</h2><time>2026-10-26</time></div><ul><li>选择容器和选择货物改为独立弹出选择页，支持查询、分页、收藏切换、全选与管理档案；主页面只保留已选项目。</li><li>指定数量的铺满优先级改为装载方式下方独立区域，满载优先时自动隐藏。</li><li>托盘套装设计支持 Delete 键删除、多选联动、铺满一层及复制本层到上一层。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-26"><div class="release-title"><h2>v3.2.4</h2><time>2026-10-26</time></div><ul><li>指定数量装载新增“优先铺满里面、侧面、底面”三种策略，可按宽高、长高或长宽方向优先组织货物。</li><li>托盘套装设计的 3D 设置中新增多选货物开关，并将自由移动货物开关统一收纳至设置面板。</li><li>多选货物会在 3D 预览中以浅色高亮，便于同时识别多个被选中的货物。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-24"><div class="release-title"><h2>v3.2.3</h2><time>2026-10-24</time></div><ul><li>托盘套装设计新增木质、塑料、金属三种托盘样式，可在左侧托盘参数中选择并保存。</li><li>托盘 3D 模型升级为组合式真实结构，包含木纹与钉帽、塑料网格孔、金属格栅、底梁及叉车插入通道。</li><li>保存后的套装货物在装载方案及导出效果图中继续使用所选托盘材质和结构。</li></ul></article>
         <article data-release-date="2026-10-24"><div class="release-title"><h2>v3.2.2</h2><time>2026-10-24</time></div><ul><li>托盘套装 3D 预览中，被点击选中的货物以浅色实体和蓝色边框突出显示。</li><li>托盘套装设计右侧功能区恢复独立纵向滚动，已摆放货物及修改区域可完整查看。</li><li>容器档案、货物档案和装载方案列表的省略文字支持悬浮显示完整内容。</li></ul></article>
@@ -214,6 +215,8 @@
     <link rel="stylesheet" href="pallet-kit-builder-v313.css" />
     <link rel="stylesheet" href="pallet-kit-builder-v314.css?v=3.2.3" />
     <link rel="stylesheet" href="v320.css?v=3.2.4" />
-    <script type="module" src="pallet-kit-builder-v310.js?v=3.2.4"></script>
+    <link rel="stylesheet" href="v325.css?v=3.2.5" />
+    <script type="module" src="pallet-kit-builder-v310.js?v=3.2.5"></script>
   </body>
 </html>
+
