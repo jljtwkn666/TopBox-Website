@@ -2028,7 +2028,7 @@ document.addEventListener('wheel',event=>{
   const dialog=[...document.querySelectorAll('dialog[open]')].find(node=>
     ['selectorPickerDialog','specifiedFillPriorityDialog','palletKitDialog','palletKitConfirmV330','appDialog'].includes(node.id));
   if(!dialog)return;
-  const scrollable=event.target.closest?.('.selector-picker-shell,.fill-priority-shell,.pallet-kit-layout,.pallet-kit-panel,.kit-items-panel,.app-dialog-body');
+  const scrollable=event.target.closest?.('.selector-picker-shell,.fill-priority-shell,.pallet-kit-layout,.pallet-kit-panel,.kit-items-panel,.app-dialog-body,#pdfPreview,.pdf-preview');
   if(!scrollable)event.preventDefault();
 },{capture:true,passive:false});
 
@@ -2164,7 +2164,69 @@ window.addEventListener('click',event=>{
   if(!event.target.closest?.('#refreshPage,#resetWorkspace'))return;
   event.preventDefault();event.stopImmediatePropagation();
   resetCurrentWorkspaceV331();
+  if(event.target.closest?.('#refreshPage'))showSuccess('刷新页面成功');
 },true);
 applyDefaultFillPriorityV331();
 syncSpecifiedFillPriorityV330();
 renderSelectorsV330();
+
+/* v3.2.13 — final interaction safeguards for the compact planner. */
+function repairLoadingModeCopyV332(){
+  const copy={
+    specified:{title:'指定数量',description:'按填写数量装载',hint:'可多选货物'},
+    full:{title:'满载优先',description:'尽可能填满容器',hint:'仅单选货物'},
+    ratio:{title:'按比例满载',description:'按需求比例配载',hint:'开发中'},
+    lastFull:{title:'尾货满载',description:'最后一款自动补满',hint:'开发中'}
+  };
+  $$('input[name="mode"]').forEach(input=>{
+    const option=input.closest('.mode-option'),labels=copy[input.value];
+    if(!option||!labels)return;
+    const textHost=[...option.children].find(node=>node.tagName==='SPAN'&&!node.classList.contains('mode-icon'));
+    if(textHost){
+      let title=textHost.querySelector('b'),description=textHost.querySelector('small');
+      if(!title){title=document.createElement('b');textHost.append(title);}
+      if(!description){description=document.createElement('small');textHost.append(description);}
+      title.textContent=labels.title;
+      description.textContent=labels.description;
+    }
+    const hint=option.querySelector('.mode-hint,.mode-beta');
+    if(hint)hint.textContent=labels.hint;
+  });
+  syncSpecifiedFillPriorityV330();
+}
+function settlePlannerControlsV332(){
+  renderSelectorsV330();
+  repairLoadingModeCopyV332();
+  requestAnimationFrame(()=>{
+    renderSelectorsV330();
+    repairLoadingModeCopyV332();
+  });
+}
+window.addEventListener('click',event=>{
+  const option=event.target.closest?.('.mode-option');
+  if(!option||option.classList.contains('disabled'))return;
+  setTimeout(settlePlannerControlsV332,0);
+  setTimeout(settlePlannerControlsV332,48);
+},true);
+window.addEventListener('change',event=>{
+  if(!event.target.matches?.('input[name="mode"]'))return;
+  setTimeout(settlePlannerControlsV332,0);
+  setTimeout(settlePlannerControlsV332,48);
+},true);
+function openExtraVehiclePlansV332(){
+  const plan=state.plan?.plans?.[state.plan.active];
+  const unplaced=Array.isArray(plan?.unplaced)?plan.unplaced:[];
+  if(!unplaced.length){showNotice('当前没有未装载货物。');return;}
+  try{
+    showExtraVehiclePlans(buildExtraVehiclePlans(unplaced));
+  }catch(error){
+    console.error('Unable to build extra vehicle plans',error);
+    showNotice('额外车辆方案生成失败，请重试。');
+  }
+}
+window.addEventListener('click',event=>{
+  if(!event.target.closest?.('#viewExtraVehicles'))return;
+  event.preventDefault();event.stopImmediatePropagation();
+  openExtraVehiclePlansV332();
+},true);
+settlePlannerControlsV332();

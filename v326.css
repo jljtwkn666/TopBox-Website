@@ -73,3 +73,10 @@ html.topbox-modal-lock,body.topbox-modal-lock{overflow:hidden!important;overscro
 #workspace .selector-card-v325>.selector-current-list{display:grid!important;grid-auto-rows:auto!important;block-size:auto!important;min-block-size:0!important;max-block-size:none!important;flex:none!important;margin:0!important;padding-block-end:0!important;overflow:visible!important}
 #workspace .selector-card-v325>.selector-current-list:not(.selector-current-empty){min-height:0!important}
 .fill-priority-default-v331{display:flex;align-items:center;gap:8px;margin-right:auto;color:#475569;font-weight:700;cursor:pointer}.fill-priority-default-v331 input{width:18px;height:18px;accent-color:#2563eb}
+
+/* v3.2.13 — empty selector cards are intentionally compact and equal-height. */
+#workspace .planner-grid{grid-auto-rows:min-content!important;align-items:start!important}
+#workspace .selector-card-v325{block-size:auto!important;height:auto!important;min-block-size:0!important;min-height:0!important}
+#workspace .selector-card-v325>.selector-current-list.selector-current-empty{display:grid!important;block-size:72px!important;height:72px!important;min-block-size:72px!important;min-height:72px!important;max-block-size:72px!important;max-height:72px!important;flex:0 0 72px!important;overflow:hidden!important}
+#workspace .selector-card-v325>.selector-current-list.selector-current-empty .empty-state{display:flex!important;align-items:center!important;justify-content:center!important;block-size:72px!important;height:72px!important;min-block-size:0!important;min-height:0!important;margin:0!important;padding:0 16px!important}
+#appDialog[open] #pdfPreview{overflow:auto!important;overscroll-behavior:contain!important;touch-action:pan-y!important}
