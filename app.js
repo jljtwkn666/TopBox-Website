@@ -25,25 +25,27 @@ const getInitialState = () => ({
     {id:'g3',name:'圆桶包装',type:'单体货物',shape:'cylinder',l:580,w:580,h:900,weight:46,pieces:1,reserve:0,price:330,color:'#10b981',quantity:1},
     {id:'g4',name:'C 型纸箱',type:'单体货物',shape:'box',l:500,w:350,h:300,weight:8.5,pieces:12,reserve:0,price:64,color:'#8b5cf6',quantity:1}
   ],
-  selectedContainers: new Set(['c1']), selectedCargo: new Set(['g1','g2','g3']), archive:'containers', savedPlans:[], settings:{showCargoTooltip:true,showContainerDimensions:true,quantityInputMode:'bags'}, ui:{containerPage:1,cargoPage:1,containerSize:20,cargoSize:20,archivePage:1,archiveSize:50,savedPlansPage:1,savedPlansSize:50}, hiddenCargoIds:new Set(), plan:null
+  // A new visit always starts a new loading workspace.  Archive data and
+  // per-user preferences are retained, but no container or cargo is selected.
+  selectedContainers: new Set(), selectedCargo: new Set(), archive:'containers', savedPlans:[], settings:{showCargoTooltip:true,showContainerDimensions:true,quantityInputMode:'bags'}, ui:{containerPage:1,cargoPage:1,containerSize:20,cargoSize:20,archivePage:1,archiveSize:50,savedPlansPage:1,savedPlansSize:50}, hiddenCargoIds:new Set(), plan:null
 });
 function loadState() {
   const fallback = getInitialState();
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!saved || !Array.isArray(saved.containers) || !Array.isArray(saved.cargo)) return fallback;
-    const containerIds = new Set(saved.containers.map(x => x.id));
     const cargo = saved.cargo.map(x => ({...x,quantity: saved.version >= 3 ? Math.max(1,+x.quantity||1) : 1}));
-    const cargoIds = new Set(cargo.map(x => x.id));
     return {
       ...fallback,
       containers: saved.containers,
       cargo,
-      selectedContainers: new Set((saved.selectedContainers || []).filter(id => containerIds.has(id))),
-      selectedCargo: new Set((saved.selectedCargo || []).filter(id => cargoIds.has(id))),
+      // Selection is intentionally transient.  It must never leak into a
+      // fresh page load or a new login session.
+      selectedContainers: new Set(),
+      selectedCargo: new Set(),
       archive: saved.archive === 'cargo' ? 'cargo' : 'containers',
       savedPlans: Array.isArray(saved.savedPlans) ? saved.savedPlans : [],
-      settings: {showCargoTooltip: saved.settings?.showCargoTooltip !== false,showContainerDimensions:saved.settings?.showContainerDimensions !== false,language:saved.settings?.language||'zh-CN',quantityInputMode:saved.settings?.quantityInputMode==='pieces'?'pieces':'bags'},ui:{...fallback.ui,...(saved.ui||{})}
+      settings: {...fallback.settings,...(saved.settings||{}),showCargoTooltip: saved.settings?.showCargoTooltip !== false,showContainerDimensions:saved.settings?.showContainerDimensions !== false,language:saved.settings?.language||'zh-CN',quantityInputMode:saved.settings?.quantityInputMode==='pieces'?'pieces':'bags'},ui:{...fallback.ui,...(saved.ui||{})}
     };
   } catch { return fallback; }
 }
@@ -2066,4 +2068,103 @@ document.addEventListener('click',event=>{
   resetAllPlannerSelectionsV330();persistState();renderSelectorsV330();
 },true);
 syncModalScrollLockV330();
+renderSelectorsV330();
+
+/* v3.2.12 — planner preferences must outlive a session, while selections must not. */
+const fillPriorityValuesV331=new Set(['inside','side','bottom']);
+function defaultFillPriorityV331(){
+  const value=state.settings?.defaultSpecifiedFillPriority;
+  return fillPriorityValuesV331.has(value)?value:'';
+}
+function applyDefaultFillPriorityV331(){
+  const value=defaultFillPriorityV331();
+  if(value&&state.settings.specifiedFillPriority!==value){
+    state.settings.specifiedFillPriority=value;
+    const input=$('#specifiedFillPriority');
+    if(input)input.value=value;
+    persistState();
+  }
+}
+function ensureFillPriorityDefaultV331(){
+  ensureSpecifiedFillPriorityDialogV327();
+  const actions=$('#specifiedFillPriorityDialog .modal-actions');
+  if(!actions||$('#specifiedFillPriorityDefault'))return;
+  const setting=document.createElement('label');
+  setting.className='fill-priority-default-v331';
+  setting.innerHTML='<input id="specifiedFillPriorityDefault" type="checkbox"><span>设为默认项</span>';
+  actions.prepend(setting);
+}
+function openSpecifiedFillPriorityDialogV331(){
+  ensureFillPriorityDefaultV331();
+  const dialog=$('#specifiedFillPriorityDialog');
+  const value=specifiedFillPriorityV324();
+  $$('input[name="specified-fill-priority"]',dialog).forEach(input=>input.checked=input.value===value);
+  const checkbox=$('#specifiedFillPriorityDefault');
+  if(checkbox)checkbox.checked=defaultFillPriorityV331()===value;
+  if(!dialog.open)dialog.showModal();
+  syncModalScrollLockV330();
+}
+function saveSpecifiedFillPriorityV331(){
+  const dialog=$('#specifiedFillPriorityDialog');
+  const value=$('input[name="specified-fill-priority"]:checked',dialog)?.value||'inside';
+  state.settings.specifiedFillPriority=fillPriorityValuesV331.has(value)?value:'inside';
+  const checkbox=$('#specifiedFillPriorityDefault');
+  if(checkbox?.checked)state.settings.defaultSpecifiedFillPriority=state.settings.specifiedFillPriority;
+  const input=$('#specifiedFillPriority');
+  if(input)input.value=state.settings.specifiedFillPriority;
+  persistState();
+  syncSpecifiedFillPriorityV330();
+  dialog?.close();
+  syncModalScrollLockV330();
+}
+function resetCurrentWorkspaceV331(){
+  state.selectedContainers.clear();
+  state.selectedCargo.clear();
+  state.plan=null;
+  persistState();
+  renderSelectorsV330();
+  $('#results')?.classList.add('hidden');
+}
+function renderUnloadedSummaryV331(){
+  if(!state.plan)return;
+  const plan=state.plan.plans?.[state.plan.active];
+  if(!plan)return;
+  const unplaced=Array.isArray(plan.unplaced)?plan.unplaced:[];
+  const packages=unplaced.length;
+  const pieces=unplaced.reduce((total,item)=>total+(+item.pieces||0),0);
+  const badge=$('#unloadedBadge');
+  if(badge)badge.textContent=`${packages.toLocaleString()} ${t('包')} / ${pieces.toLocaleString()} ${t('件')}`;
+  $('#viewExtraVehicles')?.remove();
+  const details=$('#unloadedDetails');
+  if(packages&&details){
+    const button=document.createElement('button');
+    button.type='button';
+    button.id='viewExtraVehicles';
+    button.className='extra-vehicle-button';
+    button.textContent=t('查看未装载货物的额外车辆方案');
+    button.addEventListener('click',()=>showExtraVehiclePlans(buildExtraVehiclePlans(unplaced)));
+    details.append(button);
+  }
+}
+const renderPlanV331Base=renderPlan;
+renderPlan=function(){renderPlanV331Base();renderUnloadedSummaryV331();};
+
+/* Capture phase blocks the legacy listeners from resetting preferences/selections. */
+window.addEventListener('click',event=>{
+  if(!event.target.closest?.('#specifiedFillSettings'))return;
+  event.preventDefault();event.stopImmediatePropagation();
+  openSpecifiedFillPriorityDialogV331();
+},true);
+window.addEventListener('click',event=>{
+  if(!event.target.closest?.('#saveSpecifiedFillPriority'))return;
+  event.preventDefault();event.stopImmediatePropagation();
+  saveSpecifiedFillPriorityV331();
+},true);
+window.addEventListener('click',event=>{
+  if(!event.target.closest?.('#refreshPage,#resetWorkspace'))return;
+  event.preventDefault();event.stopImmediatePropagation();
+  resetCurrentWorkspaceV331();
+},true);
+applyDefaultFillPriorityV331();
+syncSpecifiedFillPriorityV330();
 renderSelectorsV330();

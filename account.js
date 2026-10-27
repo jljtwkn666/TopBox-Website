@@ -59,8 +59,8 @@ function applyUserRecords(data) {
   const cargoIds = new Set(appState.cargo.map(item => item.id));
   appState.selectedContainers = new Set([...appState.selectedContainers].filter(id => containerIds.has(id)));
   appState.selectedCargo = new Set([...appState.selectedCargo].filter(id => cargoIds.has(id)));
-  if (!appState.selectedContainers.size && appState.containers[0]) appState.selectedContainers.add(appState.containers[0].id);
-  if (!appState.selectedCargo.size && appState.cargo[0]) appState.selectedCargo.add(appState.cargo[0].id);
+  // Never auto-select the first records after synchronising account data.
+  // A fresh session must open with an empty loading workspace.
   return appState;
 }
 

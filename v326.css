@@ -67,3 +67,9 @@ html.topbox-modal-lock,body.topbox-modal-lock{overflow:hidden!important;overscro
 .pallet-kit-footer #resetPalletKitV330{border-color:#f2c9cb;color:#b42318;background:#fff8f8}
 .pallet-kit-stage:fullscreen .kit-display-settings{position:relative!important;z-index:12!important}
 .pallet-kit-stage:fullscreen #kitDisplaySettingsMenu{z-index:20!important}
+
+/* v3.2.12 — selected cards only occupy the rows that are actually selected. */
+#workspace .selector-card-v325{display:block!important;height:auto!important;min-height:0!important;align-self:start!important}
+#workspace .selector-card-v325>.selector-current-list{display:grid!important;grid-auto-rows:auto!important;block-size:auto!important;min-block-size:0!important;max-block-size:none!important;flex:none!important;margin:0!important;padding-block-end:0!important;overflow:visible!important}
+#workspace .selector-card-v325>.selector-current-list:not(.selector-current-empty){min-height:0!important}
+.fill-priority-default-v331{display:flex;align-items:center;gap:8px;margin-right:auto;color:#475569;font-weight:700;cursor:pointer}.fill-priority-default-v331 input{width:18px;height:18px;accent-color:#2563eb}
