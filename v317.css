@@ -29,7 +29,7 @@
 .kit-cargo-picker-dialog::backdrop { background: rgba(9,31,55,.5); }
 .kit-cargo-picker-search { display: grid; gap: 7px; margin: 14px 0; color: #405b74; font-weight: 700; }
 .kit-cargo-picker-search input { width: 100%; padding: 13px 15px; border: 1px solid #c7d8e9; border-radius: 12px; font: inherit; }
-.kit-cargo-picker-list { display: grid; gap: 8px; max-height: min(52vh, 510px); overflow: auto; padding: 2px; }
+.kit-cargo-picker-list { display: grid; gap: 8px; max-height: min(52vh, 510px); overflow: auto; overscroll-behavior: contain; touch-action: pan-y; padding: 2px; }
 .kit-cargo-picker-row { display: grid; grid-template-columns: 36px minmax(0,1fr) auto; align-items: center; gap: 12px; width: 100%; padding: 12px; border: 1px solid #dbe5ef; border-radius: 13px; background: #fff; color: #10243c; text-align: left; cursor: pointer; }
 .kit-cargo-picker-row:hover { border-color: #83b4ff; background: #f6faff; }
 .kit-cargo-picker-row.selected { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,.12); background: #eef5ff; }

@@ -80,3 +80,7 @@ html.topbox-modal-lock,body.topbox-modal-lock{overflow:hidden!important;overscro
 #workspace .selector-card-v325>.selector-current-list.selector-current-empty{display:grid!important;block-size:72px!important;height:72px!important;min-block-size:72px!important;min-height:72px!important;max-block-size:72px!important;max-height:72px!important;flex:0 0 72px!important;overflow:hidden!important}
 #workspace .selector-card-v325>.selector-current-list.selector-current-empty .empty-state{display:flex!important;align-items:center!important;justify-content:center!important;block-size:72px!important;height:72px!important;min-block-size:0!important;min-height:0!important;margin:0!important;padding:0 16px!important}
 #appDialog[open] #pdfPreview{overflow:auto!important;overscroll-behavior:contain!important;touch-action:pan-y!important}
+
+/* v3.2.14 — no legacy grid row may stretch an empty current-selection card. */
+#workspace .selector-card-v325.selector-card-empty{height:auto!important;min-height:0!important;max-height:none!important;block-size:auto!important;min-block-size:0!important;max-block-size:none!important;align-self:start!important;grid-row:auto!important}
+#workspace .selector-card-v325.selector-card-empty>.selector-current-list{height:72px!important;min-height:72px!important;max-height:72px!important;block-size:72px!important;min-block-size:72px!important;max-block-size:72px!important;overflow:hidden!important}

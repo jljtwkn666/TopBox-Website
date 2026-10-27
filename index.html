@@ -43,7 +43,7 @@
         <button class="nav-link" data-page="tutorial">使用教程</button>
         <button class="nav-link" data-page="updates">更新日志</button>
       </nav>
-      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v3.2.13</span></div>
+      <div class="topbar-actions"><select id="languageSelect" aria-label="语言"><option value="zh-CN">简体中文</option><option value="en">English</option><option value="th">ไทย</option></select><button id="accountMenuButton" class="account-menu-button" type="button" title="账户中心"><span id="accountAvatar">T</span><b id="accountName">登录</b></button><span class="status-dot"></span><span>v3.2.14</span></div>
     </header>
 
     <main>
@@ -92,7 +92,7 @@
 
       <section id="updates" class="page">
         <div class="page-heading"><div><p class="eyebrow">RELEASE NOTES</p><h1>更新日志</h1><p>TOP BOX货物装载配货平台版本记录。</p></div><label class="update-filter">更新日期<select id="updateDateFilter"><option value="all">全部日期</option><option value="2026-10-26">2026-10-26</option><option value="2026-10-23">2026-10-23</option><option value="2026-10-22">2026-10-22</option><option value="2026-10-18">2026-10-18</option><option value="2026-10-17">2026-10-17</option><option value="2026-10-16">2026-10-16</option><option value="2026-10-15">2026-10-15</option><option value="2026-10-14">2026-10-14</option></select></label></div>
-        <article class="release-latest" data-release-date="2026-10-27"><div class="release-title"><h2>v3.2.13</h2><time>2026-10-27</time></div><ul><li>统一容器、货物未选择区域的紧凑高度，避免货物选择卡片出现大面积空白。</li><li>切换指定数量或满载优先后会重新校正装载方式的标题、说明和铺满优先级按钮文字。</li><li>刷新页面后显示成功提示；生成方案时会先校验至少选择一种容器和一种货物。</li><li>修复未装载额外车辆建议入口与 PDF 方案预览滚轮滚动。</li></ul></article>
+        <article class="release-latest" data-release-date="2026-10-27"><div class="release-title"><h2>v3.2.14</h2><time>2026-10-27</time></div><ul><li>修复托盘套装设计内“选择添加货物”弹窗的滚轮滚动；弹窗打开时仍锁定背层页面。</li><li>进一步强制容器和货物已选区域按内容高度收紧，空状态固定为紧凑提示行。</li><li>修复未装载货物的额外车辆方案入口，点击后直接生成并显示建议预览。</li></ul></article>
         <article data-release-date="2026-10-27"><div class="release-title"><h2>v3.2.11</h2><time>2026-10-27</time></div><ul><li>选择器、装载优先级与托盘设计弹窗统一锁定底层页面滚动。</li><li>使用教程更新为覆盖当前装载、选择、3D、托盘设计、保存和导出的详细操作说明。</li></ul></article>
         <article class="release-latest" data-release-date="2026-10-26"><div class="release-title"><h2>v3.2.6</h2><time>2026-10-26</time></div><ul><li>压缩装载方式与指定数量优先级区域；容器和货物选择卡片统一改为上下排列并显示更紧凑。</li><li>选择弹窗支持整行点击选择、容器类型彩色标签、货物颜色块、稳定的多位数量输入，以及包数和小件数的实时双向换算。</li><li>弹窗打开时锁定底层页面滚动；未选择容器或货物时恢复居中提示。</li><li>托盘套装设计的显示设置升级为开关，新增全选、按层／X／Y／Z 行选择、按层数满载和全屏预览；单选与多选右键菜单分别保留对应操作。</li></ul></article>
         <article data-release-date="2026-10-26"><div class="release-title"><h2>v3.2.5</h2><time>2026-10-26</time></div><ul><li>选择容器和选择货物改为独立弹出选择页，支持查询、分页、收藏切换、全选与管理档案；主页面只保留已选项目。</li><li>指定数量的铺满优先级改为装载方式下方独立区域，满载优先时自动隐藏。</li><li>托盘套装设计支持 Delete 键删除、多选联动、铺满一层及复制本层到上一层。</li></ul></article>
@@ -171,7 +171,7 @@
       </section>
 
       <section id="tutorial" class="page">
-        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>按以下步骤完成档案准备、托盘套装设计、装载计算和方案导出。</p></div><span class="tutorial-version">随 v3.2.13 更新</span></div>
+        <div class="page-heading"><div><p class="eyebrow">GETTING STARTED</p><h1>平台使用教程</h1><p>按以下步骤完成档案准备、托盘套装设计、装载计算和方案导出。</p></div><span class="tutorial-version">随 v3.2.14 更新</span></div>
         <div class="tutorial-grid" id="tutorialGrid">
           <article class="tutorial-card"><span class="tutorial-step">01</span><div class="tutorial-graphic account-graphic">◉</div><h2>登录与账户</h2><p>首次由管理员创建账号。登录后可在账户中心修改昵称、上传头像图片和修改密码。</p></article>
           <article class="tutorial-card"><span class="tutorial-step">02</span><div class="tutorial-graphic archive-graphic">▤</div><h2>准备容器与货物</h2><p>分别在“容器档案”和“货物档案”维护当前账号的基础数据。容器用于定义可用空间；货物填写外部尺寸、重量、小件数、小件尺寸和备注。</p></article>
@@ -221,7 +221,7 @@
     <link rel="stylesheet" href="pallet-kit-builder-v314.css?v=3.2.3" />
     <link rel="stylesheet" href="v320.css?v=3.2.4" />
     <link rel="stylesheet" href="v325.css?v=3.2.5" />
-    <link rel="stylesheet" href="v326.css?v=3.2.13" />
-    <script type="module" src="pallet-kit-builder-v310.js?v=3.2.13"></script>
+    <link rel="stylesheet" href="v326.css?v=3.2.14" />
+    <script type="module" src="pallet-kit-builder-v310.js?v=3.2.14"></script>
   </body>
 </html>

@@ -1989,13 +1989,29 @@ function syncSpecifiedFillPriorityV330(){
 function renderCurrentSelectorsV330(){
   const render=(kind,hostId)=>{
     const host=$('#'+hostId),items=selectedItemsV325(kind);if(!host)return;
+    const empty=!items.length;
     host.hidden=false;
-    host.classList.toggle('selector-current-empty',!items.length);
+    host.classList.toggle('selector-current-empty',empty);
     host.innerHTML=items.map(item=>{
       const label=kind==='cargo'?cargoLabel(item):containerLabel(item);
       const statistic=kind==='cargo'?cargoSelectionStatV326(item):item.type;
       return `<div class="selector-current-row"><i class="color-square" style="background:${escV325(item.color||'#2563eb')}"></i><span class="record-main"><b title="${escV325(item.name)}">${escV325(item.name)}</b><small title="${escV325(label)}">${escV325(label)}</small></span><strong class="selector-current-stat">${escV325(statistic)}</strong></div>`;
     }).join('')||'<div class="empty-state">暂未选择项目，请点击右上角按钮选择。</div>';
+    /* Legacy layout rules can leave a grid row stretched after the list is
+       cleared.  Set the compact state at the element level so every render
+       path (refresh, mode switch and reset) has the same height. */
+    const card=host.closest('.selector-card-v325');
+    if(card){
+      card.classList.toggle('selector-card-empty',empty);
+      ['height','min-height','max-height','block-size','min-block-size','max-block-size'].forEach(prop=>card.style.setProperty(prop,empty?'auto':'auto','important'));
+      card.style.setProperty('align-self','start','important');
+      card.style.setProperty('grid-row','auto','important');
+    }
+    if(empty){
+      [['height','72px'],['min-height','72px'],['max-height','72px'],['block-size','72px'],['min-block-size','72px'],['max-block-size','72px'],['overflow','hidden']].forEach(([prop,value])=>host.style.setProperty(prop,value,'important'));
+    }else{
+      [['height','auto'],['min-height','0'],['max-height','none'],['block-size','auto'],['min-block-size','0'],['max-block-size','none'],['overflow','visible']].forEach(([prop,value])=>host.style.setProperty(prop,value,'important'));
+    }
   };
   render('containers','containerList');render('cargo','cargoList');
   const containers=$('#selectedContainerCount'),cargo=$('#selectedCargoCount');
@@ -2019,16 +2035,16 @@ window.TopBoxApp.renderSelectors=renderSelectorsV330;
 /* A modal owns the viewport: the backdrop must never scroll the planner. */
 function syncModalScrollLockV330(){
   const open=[...document.querySelectorAll('dialog[open]')].some(dialog=>
-    ['selectorPickerDialog','specifiedFillPriorityDialog','palletKitDialog','palletKitConfirmV330','appDialog'].includes(dialog.id));
+    ['selectorPickerDialog','specifiedFillPriorityDialog','palletKitDialog','kitCargoPickerDialog','palletKitConfirmV330','appDialog'].includes(dialog.id));
   document.documentElement.classList.toggle('topbox-modal-lock',open);
   document.body.classList.toggle('topbox-modal-lock',open);
 }
 new MutationObserver(syncModalScrollLockV330).observe(document.body,{subtree:true,attributes:true,attributeFilter:['open']});
 document.addEventListener('wheel',event=>{
   const dialog=[...document.querySelectorAll('dialog[open]')].find(node=>
-    ['selectorPickerDialog','specifiedFillPriorityDialog','palletKitDialog','palletKitConfirmV330','appDialog'].includes(node.id));
+    ['selectorPickerDialog','specifiedFillPriorityDialog','palletKitDialog','kitCargoPickerDialog','palletKitConfirmV330','appDialog'].includes(node.id));
   if(!dialog)return;
-  const scrollable=event.target.closest?.('.selector-picker-shell,.fill-priority-shell,.pallet-kit-layout,.pallet-kit-panel,.kit-items-panel,.app-dialog-body,#pdfPreview,.pdf-preview');
+  const scrollable=event.target.closest?.('.selector-picker-shell,.fill-priority-shell,.pallet-kit-layout,.pallet-kit-panel,.kit-items-panel,.kit-cargo-picker-dialog,.kit-cargo-picker-list,.app-dialog-body,#pdfPreview,.pdf-preview');
   if(!scrollable)event.preventDefault();
 },{capture:true,passive:false});
 
@@ -2142,7 +2158,7 @@ function renderUnloadedSummaryV331(){
     button.id='viewExtraVehicles';
     button.className='extra-vehicle-button';
     button.textContent=t('查看未装载货物的额外车辆方案');
-    button.addEventListener('click',()=>showExtraVehiclePlans(buildExtraVehiclePlans(unplaced)));
+    button.addEventListener('click',openExtraVehiclePlansV332);
     details.append(button);
   }
 }
@@ -2218,7 +2234,27 @@ function openExtraVehiclePlansV332(){
   const unplaced=Array.isArray(plan?.unplaced)?plan.unplaced:[];
   if(!unplaced.length){showNotice('当前没有未装载货物。');return;}
   try{
-    showExtraVehiclePlans(buildExtraVehiclePlans(unplaced));
+    const recommendation=buildExtraVehiclePlans(unplaced);
+    const plans=Array.isArray(recommendation?.plans)?recommendation.plans:[];
+    if(!plans.length){showNotice('无可用车厢档案可供建议。','额外车辆装载建议');return;}
+    /* Keep this preview self-contained: a detail-rendering error must not
+       make the action button appear to do nothing. */
+    showDialog({title:'额外车辆装载建议',message:`建议增加 ${plans.length} 辆车厢`,kind:'preview',reports:[]});
+    const preview=$('#pdfPreview');
+    if(preview){
+      preview.innerHTML=`<div class="extra-vehicle-plans">${plans.map((item,index)=>{
+        const placed=item.placedCount instanceof Map?[...item.placedCount.entries()]:Object.entries(item.placedCount||{});
+        const details=placed.filter(([,count])=>+count>0).map(([id,count])=>{
+          const cargoItem=state.cargo.find(record=>record.id===id);
+          const pieces=(+count||0)*(+cargoItem?.pieces||1);
+          return `<li><b>${escapeHtml(cargoItem?.name||id)}</b><span>${(+count||0).toLocaleString()} 包 / ${pieces.toLocaleString()} 件</span></li>`;
+        }).join('')||'<li>暂无装载明细</li>';
+        return `<article class="extra-vehicle-card"><div><b>车厢 ${index+1}</b><h3>${escapeHtml(item.container?.name||'推荐车厢')}</h3><p>${Number(item.utilization||0).toFixed(2)}%</p></div><ul>${details}</ul></article>`;
+      }).join('')}</div>`;
+      preview.classList.remove('hidden');
+    }
+    $('#pdfDownload')?.classList.add('hidden');
+    $('#pdfPrint')?.classList.add('hidden');
   }catch(error){
     console.error('Unable to build extra vehicle plans',error);
     showNotice('额外车辆方案生成失败，请重试。');
