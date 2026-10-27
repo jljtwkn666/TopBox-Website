@@ -1961,3 +1961,109 @@ document.addEventListener('change',event=>{
   setTimeout(()=>{resetPlannerSelectionsV329();persistState();renderSelectorsV329();},0);
 },true);
 renderSelectorsV329();
+
+/* v3.2.11 — one final planner state policy.  Mode changes clear cargo only;
+   a page refresh starts a new workspace and therefore clears both lists. */
+resetPlannerSelectionsV329=function(){
+  resetCargoSelectionV328();
+};
+function resetAllPlannerSelectionsV330(){
+  state.selectedContainers.clear();
+  resetCargoSelectionV328();
+}
+function priorityLabelV330(value=specifiedFillPriorityV324()){
+  return ({inside:'里面',side:'侧面',bottom:'底面'})[value]||'里面';
+}
+function syncSpecifiedFillPriorityV330(){
+  syncSpecifiedFillPriorityV328();
+  const button=$('#specifiedFillSettings');
+  if(!button)return;
+  const value=specifiedFillPriorityV324();
+  button.dataset.priority=value;
+  button.title=`指定数量：优先铺满${priorityLabelV330(value)}`;
+  button.setAttribute('aria-label',button.title);
+  button.innerHTML=`<span aria-hidden="true">⚙</span><small>${priorityLabelV330(value)}</small>`;
+}
+function renderCurrentSelectorsV330(){
+  const render=(kind,hostId)=>{
+    const host=$('#'+hostId),items=selectedItemsV325(kind);if(!host)return;
+    host.hidden=false;
+    host.classList.toggle('selector-current-empty',!items.length);
+    host.innerHTML=items.map(item=>{
+      const label=kind==='cargo'?cargoLabel(item):containerLabel(item);
+      const statistic=kind==='cargo'?cargoSelectionStatV326(item):item.type;
+      return `<div class="selector-current-row"><i class="color-square" style="background:${escV325(item.color||'#2563eb')}"></i><span class="record-main"><b title="${escV325(item.name)}">${escV325(item.name)}</b><small title="${escV325(label)}">${escV325(label)}</small></span><strong class="selector-current-stat">${escV325(statistic)}</strong></div>`;
+    }).join('')||'<div class="empty-state">暂未选择项目，请点击右上角按钮选择。</div>';
+  };
+  render('containers','containerList');render('cargo','cargoList');
+  const containers=$('#selectedContainerCount'),cargo=$('#selectedCargoCount');
+  if(containers)containers.textContent=`已选 ${state.selectedContainers.size} 项`;
+  if(cargo)cargo.textContent=`已选 ${state.selectedCargo.size} 项`;
+}
+function renderSelectorsV330(){
+  normalizePickerSelectionV325();
+  syncSpecifiedFillPriorityV330();
+  renderCurrentSelectorsV330();
+  renderExactUtilization();
+}
+renderSelectors=renderSelectorsV330;
+renderSelectorsV293=renderSelectorsV330;
+renderSelectorsV315=renderSelectorsV330;
+renderSelectorsV318=renderSelectorsV330;
+renderSelectorsV319=renderSelectorsV330;
+renderSelectorsV325=renderSelectorsV330;
+window.TopBoxApp.renderSelectors=renderSelectorsV330;
+
+/* A modal owns the viewport: the backdrop must never scroll the planner. */
+function syncModalScrollLockV330(){
+  const open=[...document.querySelectorAll('dialog[open]')].some(dialog=>
+    ['selectorPickerDialog','specifiedFillPriorityDialog','palletKitDialog','palletKitConfirmV330','appDialog'].includes(dialog.id));
+  document.documentElement.classList.toggle('topbox-modal-lock',open);
+  document.body.classList.toggle('topbox-modal-lock',open);
+}
+new MutationObserver(syncModalScrollLockV330).observe(document.body,{subtree:true,attributes:true,attributeFilter:['open']});
+document.addEventListener('wheel',event=>{
+  const dialog=[...document.querySelectorAll('dialog[open]')].find(node=>
+    ['selectorPickerDialog','specifiedFillPriorityDialog','palletKitDialog','palletKitConfirmV330','appDialog'].includes(node.id));
+  if(!dialog)return;
+  const scrollable=event.target.closest?.('.selector-picker-shell,.fill-priority-shell,.pallet-kit-layout,.pallet-kit-panel,.kit-items-panel,.app-dialog-body');
+  if(!scrollable)event.preventDefault();
+},{capture:true,passive:false});
+
+/* The gear is the only entry point for the priority dialog and also shows
+   the saved preference directly on the specified-quantity mode. */
+document.addEventListener('click',event=>{
+  const gear=event.target.closest?.('#specifiedFillSettings');
+  if(!gear)return;
+  event.preventDefault();event.stopImmediatePropagation();
+  openSpecifiedFillPriorityDialogV327();
+  syncModalScrollLockV330();
+},true);
+document.addEventListener('click',event=>{
+  if(!event.target.closest?.('#calculate'))return;
+  if(state.selectedContainers.size&&state.selectedCargo.size)return;
+  event.preventDefault();event.stopImmediatePropagation();
+  showNotice('请至少选择一种容器和一种货物。');
+},true);
+$('#specifiedFillPriorityDialog')?.addEventListener('close',syncModalScrollLockV330);
+document.addEventListener('click',event=>{
+  if(event.target.closest?.('#saveSpecifiedFillPriority'))setTimeout(()=>{
+    syncSpecifiedFillPriorityV330();persistState();
+  },0);
+},true);
+
+/* Existing refresh handlers already clear both kinds; this final handler
+   keeps that guarantee when the compact controls are used. */
+document.addEventListener('click',event=>{
+  if(!event.target.closest?.('#refreshPage'))return;
+  setTimeout(()=>{resetAllPlannerSelectionsV330();persistState();renderSelectorsV330();},0);
+},true);
+/* The legacy workspace reset previously also reset the saved fill preference.
+   Resetting a workspace is now deliberately limited to the two selections. */
+document.addEventListener('click',event=>{
+  if(!event.target.closest?.('#resetWorkspace'))return;
+  event.preventDefault();event.stopImmediatePropagation();
+  resetAllPlannerSelectionsV330();persistState();renderSelectorsV330();
+},true);
+syncModalScrollLockV330();
+renderSelectorsV330();

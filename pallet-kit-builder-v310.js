@@ -478,3 +478,135 @@ function setupKitInputV329(){
 }
 const openKitV329Base=open;
 open=function(record=null){openKitV329Base(record);requestAnimationFrame(()=>{setupKitInputV329();setupKitFullscreenV329();if(!kitMultiSelectV324&&selectedItemId)syncKitSelectionV325(new Set([selectedItemId]),selectedItemId);});};
+
+/* v3.2.11 — final pallet-kit editing policy: an unsaved kit is explicit,
+   new items are not implicitly selected, and kit metadata follows its cargo. */
+let kitBaselineV330='';
+let kitFormDirtyV330=false;
+function kitSnapshotV330(){
+  if(!draft)return '';
+  return JSON.stringify({id:draft.id||'',name:draft.name||'',pallet:draft.pallet,allowOverhang:!!draft.allowOverhang,items:draft.items});
+}
+function kitDirtyV330(){return !!draft&&(kitFormDirtyV330||kitSnapshotV330()!==kitBaselineV330);}
+function ensureKitConfirmV330(){
+  let node=$('#palletKitConfirmV330');if(node)return node;
+  document.body.insertAdjacentHTML('beforeend',`<dialog id="palletKitConfirmV330" class="kit-confirm-dialog"><div><p class="eyebrow">TOP BOX</p><h3 id="palletKitConfirmText"></h3><div class="modal-actions"><button type="button" class="button secondary" id="kitConfirmCancel">取消</button><button type="button" class="button primary" id="kitConfirmAccept">确认</button></div></div></dialog>`);
+  return $('#palletKitConfirmV330');
+}
+function askKitConfirmV330(text){
+  const node=ensureKitConfirmV330();$('#palletKitConfirmText').textContent=text;
+  return new Promise(resolve=>{
+    let settled=false;
+    const finish=value=>{if(settled)return;settled=true;resolve(value);};
+    $('#kitConfirmCancel').onclick=()=>{node.close('cancel');finish(false);};
+    $('#kitConfirmAccept').onclick=()=>{node.close('confirm');finish(true);};
+    node.oncancel=event=>{event.preventDefault();node.close('cancel');finish(false);};
+    node.onclose=()=>finish(node.returnValue==='confirm');
+    if(!node.open)node.showModal();
+  });
+}
+function setKitAutoNameV330(item){
+  if(!item||!draft)return;
+  draft.name=`托盘货-${item.name}`;
+  const field=$('#kitName');if(field)field.value=draft.name;
+}
+function clearNewItemSelectionV330(){
+  selectedItemId=null;markedItemIds=new Set();kitMultiSelectedIdsV324=new Set();
+  $('#kitSelectedEditor')?.classList.add('hidden');
+  refresh();
+}
+function updateKitLayerSummaryV330(){
+  const dimensions=$('#kitDimensions');if(!dimensions||!draft)return;
+  let layer=$('#kitLayerSummaryV330');
+  if(!layer){layer=document.createElement('span');layer.id='kitLayerSummaryV330';dimensions.after(layer);}
+  const count=new Set(draft.items.map(item=>Number(item.z||0))).size;
+  layer.textContent=`货物层数 ${count} 层`;
+}
+const renderItemsV330Base=renderItems;
+renderItems=function(){renderItemsV330Base();updateKitLayerSummaryV330();};
+
+function setupKitSettingsV330(){
+  setupKitDisplayControlsV312();
+  const button=$('#kitDisplaySettings'),menu=$('#kitDisplaySettingsMenu');if(!button||!menu)return;
+  const saved=state()?.settings||{};
+  kitMultiSelectV324=!!saved.kitMultiSelect;
+  menu.innerHTML=`<div class="kit-setting-switch"><span>悬浮显示货物名称</span><button type="button" role="switch" id="kitTooltipSwitch"><i></i></button></div><div class="kit-setting-switch"><span>多选货物</span><button type="button" role="switch" id="kitMultiSwitch"><i></i></button></div><div class="kit-setting-switch"><span>自由移动货物</span><button type="button" role="switch" id="kitFreeSwitch"><i></i></button></div>`;
+  const tooltip=$('#kitTooltipSwitch'),multi=$('#kitMultiSwitch'),free=$('#kitFreeSwitch');
+  setKitSwitchV326(tooltip,saved.kitCargoTooltip!==false);setKitSwitchV326(multi,kitMultiSelectV324);setKitSwitchV326(free,kitFreeMoveV314);
+  button.onclick=event=>{event.preventDefault();event.stopPropagation();menu.hidden=!menu.hidden;};
+  menu.onpointerdown=event=>event.stopPropagation();
+  menu.onclick=event=>{event.preventDefault();event.stopPropagation();const target=event.target.closest('button');if(!target)return;
+    if(target===tooltip){const on=target.getAttribute('aria-checked')!=='true';if(state())state().settings.kitCargoTooltip=on;setKitSwitchV326(target,on);persistKitSettingsV324();return;}
+    if(target===multi){kitMultiSelectV324=target.getAttribute('aria-checked')!=='true';if(!kitMultiSelectV324){const one=selectedItemId?[selectedItemId]:[];kitMultiSelectedIdsV324=new Set(one);markedItemIds=new Set(one);}if(state())state().settings.kitMultiSelect=kitMultiSelectV324;setKitSwitchV326(target,kitMultiSelectV324);persistKitSettingsV324();highlightKitSelectionsV324();renderItems();return;}
+    if(target===free){kitFreeMoveV314=target.getAttribute('aria-checked')!=='true';kitDragV314=null;kitDragV329=null;syncFreeMoveV314?.();setKitSwitchV326(target,kitFreeMoveV314);if(state())state().settings.kitFreeMove=kitFreeMoveV314;persistKitSettingsV324();}
+  };
+}
+
+function setupKitFullscreenV330(){
+  const stage=$('.pallet-kit-stage'),button=$('#kitFullscreenV326');if(!stage||!button)return;
+  button.onclick=event=>{event.preventDefault();kitFullscreenPoseV329=kitPoseV329();if(document.fullscreenElement===stage)document.exitFullscreen?.();else stage.requestFullscreen?.().catch(()=>msg('当前浏览器不支持全屏显示。',true));};
+  if(document.documentElement.dataset.kitFullscreenV330)return;
+  document.documentElement.dataset.kitFullscreenV330='1';
+  document.addEventListener('fullscreenchange',()=>{
+    const full=document.fullscreenElement===stage;
+    button.textContent=full?'×':'⛶';button.title=full?'退出全屏':'全屏显示';button.setAttribute('aria-label',button.title);button.classList.toggle('kit-fullscreen-exit',full);
+    [0,80,240,420].forEach(delay=>setTimeout(()=>{resizeKitPreviewV329();if(!full)restoreKitPoseV329(kitFullscreenPoseV329);},delay));
+  });
+}
+function setupKitFreeMoveV330(){
+  const canvas=preview?.renderer?.domElement;if(!canvas||canvas.dataset.v330FreeMove)return;
+  canvas.dataset.v330FreeMove='1';
+  const lock=()=>{if(preview?.controls)preview.controls.enabled=!kitFreeMoveV314;};
+  canvas.addEventListener('pointerup',lock,true);canvas.addEventListener('pointercancel',lock,true);
+}
+
+async function closeKitSafelyV330(){
+  if(kitDirtyV330&&!await askKitConfirmV330('当前托盘套装设计尚未保存，是否舍弃修改？'))return;
+  close();
+}
+async function resetKitDesignV330(){
+  if(!await askKitConfirmV330('是否重置设计？'))return;
+  draft=fresh();selectedItemId=null;markedItemIds=new Set();kitMultiSelectedIdsV324=new Set();fillChoices();sync();refresh();kitFormDirtyV330=false;kitBaselineV330=kitSnapshotV330();msg('已重置为初始化托盘套装设计。');
+}
+async function saveKitV330(){
+  if(!editable())return msg('当前账户未获档案维护权限。',true);
+  const editing=!!draft?.id;applyPallet();
+  if(!draft.items.length)return msg('请至少在托盘上摆放一件货物后再保存。',true);
+  const s=state(),p=draft.pallet,b=bounds(),record={id:draft.id||uid('kit'),name:draft.name||'托盘货-',type:'套装货物',shape:'box',l:b.l,w:b.w,h:b.h,weight:draft.items.reduce((n,item)=>n+(+item.weight||0),0),pieces:draft.items.reduce((n,item)=>n+(+item.pieces||0),0),reserve:0,price:0,color:p.color,quantity:1,pieceQuantity:draft.items.reduce((n,item)=>n+(+item.pieces||0),0),kit:{version:2,pallet:{...p},origin:{x:-b.minX,y:-b.minY},allowOverhang:!!draft.allowOverhang,items:draft.items.map(item=>({...item}))}},index=s.cargo.findIndex(item=>item.id===record.id),old=index>=0?{...s.cargo[index]}:null;
+  if(index>=0)s.cargo[index]={...s.cargo[index],...record};else s.cargo.push(record);s.selectedCargo.add(record.id);
+  try{
+    const response=await fetch('/api/shared/records',{method:'PUT',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({containers:s.containers,cargo:s.cargo})}),out=await response.json().catch(()=>({}));
+    if(!response.ok)throw Error(out.error||'保存失败。');
+    window.dispatchEvent(new Event('topbox:records-changed'));window.TopBoxApp?.renderSelectors?.();
+    $('.archive-tabs [data-archive="cargo"]')?.click();kitFormDirtyV330=false;kitBaselineV330=kitSnapshotV330();
+    msg(editing?'托盘套装货物修改成功':'托盘套装货物新增成功');setTimeout(close,700);
+  }catch(error){const at=s.cargo.findIndex(item=>item.id===record.id);if(old&&at>=0)s.cargo[at]=old;else if(at>=0)s.cargo.splice(at,1);msg(error.message||'保存失败。',true);}
+}
+function wireKitControlsV330(){
+  const footer=$('.pallet-kit-footer>div:last-child');
+  if(footer&&!$('#resetPalletKitV330'))$('#cancelPalletKit')?.insertAdjacentHTML('afterend','<button type="button" class="button secondary" id="resetPalletKitV330">重置</button>');
+  $('#closePalletKit').onclick=closeKitSafelyV330;$('#cancelPalletKit').onclick=closeKitSafelyV330;$('#resetPalletKitV330').onclick=resetKitDesignV330;$('#savePalletKit').onclick=saveKitV330;
+  $('#addKitItem').onclick=()=>{const chosen=source();const before=draft.items.length;addOne();if(draft.items.length>before){setKitAutoNameV330(chosen);clearNewItemSelectionV330();}};
+  $('#addKitGrid').onclick=()=>{const chosen=source();const before=draft.items.length;addGrid();if(draft.items.length>before){setKitAutoNameV330(chosen);clearNewItemSelectionV330();}};
+  const fullLayer=$('#kitFullLayer');if(fullLayer)fullLayer.onclick=()=>{const chosen=source();fillKitLayersV326();if(draft?.items?.length){setKitAutoNameV330(chosen);clearNewItemSelectionV330();}};
+  const fillLayer=$('#kitFillLayer');if(fillLayer)fillLayer.onclick=()=>{const chosen=source();const before=draft.items.length;fillKitLayerV325();if(draft.items.length>before){setKitAutoNameV330(chosen);clearNewItemSelectionV330();}};
+  const copyLayer=$('#kitCopyLayer');if(copyLayer)copyLayer.onclick=()=>{const before=draft.items.length;copyKitLayerV325();if(draft.items.length>before)clearNewItemSelectionV330();};
+  $('#kitSource').onchange=()=>setKitAutoNameV330(source());
+  $('#kitReplaceSource').onchange=()=>setKitAutoNameV330(cargo().find(item=>item.id===$('#kitReplaceSource').value));
+  $('#updateSelected').onclick=()=>{const chosen=cargo().find(item=>item.id===$('#kitReplaceSource').value);update();setKitAutoNameV330(chosen);};
+  const form=$('#palletKitDialog');
+  if(form&&!form.dataset.v330Dirty){form.dataset.v330Dirty='1';form.addEventListener('input',event=>{if(event.target.matches('input,select,textarea'))kitFormDirtyV330=true;});form.addEventListener('change',event=>{if(event.target.matches('input,select,textarea'))kitFormDirtyV330=true;});form.addEventListener('cancel',event=>{event.preventDefault();closeKitSafelyV330();});}
+}
+/* Every add path has the same post-condition: the freshly added cargo is not
+   selected, so later batch actions cannot affect it accidentally. */
+const duplicateKitItemV330Base=duplicateKitItemV312;
+duplicateKitItemV312=function(direction){
+  const before=draft?.items?.length||0,menu=$('#kitContextMenu'),item=draft?.items?.find(value=>value.id===menu?.dataset.itemId);
+  duplicateKitItemV330Base(direction);
+  if((draft?.items?.length||0)>before){setKitAutoNameV330(item);clearNewItemSelectionV330();}
+};
+const openKitV330Base=open;
+open=function(record=null){
+  openKitV330Base(record);
+  requestAnimationFrame(()=>{setupKitSettingsV330();setupKitFullscreenV330();setupKitFreeMoveV330();wireKitControlsV330();syncKitFullscreenV329();updateKitLayerSummaryV330();kitFormDirtyV330=false;kitBaselineV330=kitSnapshotV330();});
+};

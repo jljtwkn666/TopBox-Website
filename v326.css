@@ -45,3 +45,25 @@ body.selector-dialog-open,body:has(#palletKitDialog[open]),body:has(#selectorPic
 #palletKitDialog[open] .pallet-kit-stage:fullscreen .pallet-kit-toolbar{display:flex!important;visibility:visible!important;opacity:1!important;position:relative!important;z-index:10!important;min-height:54px!important}
 #palletKitDialog[open] .pallet-kit-stage:fullscreen #kitPreview{width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;overflow:hidden!important}
 #palletKitDialog[open] .pallet-kit-stage:fullscreen #kitPreview canvas{display:block!important;width:100%!important;height:100%!important}
+
+/* v3.2.11 — compact current selections and modal viewport ownership. */
+html.topbox-modal-lock,body.topbox-modal-lock{overflow:hidden!important;overscroll-behavior:none!important}
+.specified-fill-settings{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:3px!important;width:auto!important;min-width:56px!important;padding:0 7px!important;font-size:14px!important}
+.specified-fill-settings small{font-size:11px!important;font-weight:800!important;line-height:1!important}
+#specifiedFillSettings{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:3px!important;width:auto!important;min-width:56px!important;padding:0 7px!important;font-size:14px!important}
+#specifiedFillSettings small{font-size:11px!important;font-weight:800!important;line-height:1!important}
+.selector-card-v325>.selector-current-list.selector-current-empty{display:grid!important;min-height:72px!important}
+.selector-card-v325>.selector-current-list:not(.selector-current-empty){min-height:0!important}
+.selector-card-v325 .selector-current-row{height:auto!important}
+
+/* v3.2.11: modal ownership, compact selected lists and pallet-kit safeguards. */
+.kit-confirm-dialog{border:0;border-radius:18px;padding:0;width:min(440px,calc(100vw - 32px));color:#10243e;background:#fff;box-shadow:0 26px 72px #10243e45}
+.kit-confirm-dialog::backdrop{background:#10243e88}
+.kit-confirm-dialog>div{padding:24px}
+.kit-confirm-dialog h3{margin:4px 0 24px;font-size:18px;line-height:1.55}
+.kit-confirm-dialog .modal-actions{justify-content:flex-end;margin:0}
+#kitLayerSummaryV330{margin-left:10px;color:#2563eb!important;font-weight:800}
+.pallet-kit-footer>div:last-child{flex-wrap:wrap;justify-content:flex-end}
+.pallet-kit-footer #resetPalletKitV330{border-color:#f2c9cb;color:#b42318;background:#fff8f8}
+.pallet-kit-stage:fullscreen .kit-display-settings{position:relative!important;z-index:12!important}
+.pallet-kit-stage:fullscreen #kitDisplaySettingsMenu{z-index:20!important}
